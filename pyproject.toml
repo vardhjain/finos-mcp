@@ -1,0 +1,61 @@
+[project]
+name = "finos-mcp-workspace"
+version = "0.1.0"
+description = "Workspace root for finos-mcp: typed, read-only MCP servers for FINOS standards"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["core", "servers/*", "evals"]
+
+[tool.uv.sources]
+finos-mcp-core = { workspace = true }
+finos-mcp-aigf = { workspace = true }
+finos-mcp-cdm = { workspace = true }
+finos-mcp-fdc3 = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "pytest>=8",
+  "pytest-cov>=5",
+  "anyio>=4",
+  "inline-snapshot>=0.13",
+  "types-PyYAML",
+  "types-jsonschema>=4.26.0.20260518",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["core/src", "servers/aigf/src", "servers/cdm/src", "servers/fdc3/src", "evals/src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+mypy_path = "core/src:servers/aigf/src:servers/cdm/src:servers/fdc3/src:evals/src"
+namespace_packages = true
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = ["bm25s", "bm25s.*", "frontmatter", "frontmatter.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["core/tests", "servers/aigf/tests", "servers/cdm/tests", "servers/fdc3/tests", "evals"]
+addopts = "-q -p no:cacheprovider"
+filterwarnings = ["error::DeprecationWarning:finos_mcp.*"]
+
+[tool.coverage.run]
+source = ["finos_mcp"]
+branch = true
+omit = ["*/_vendor/*"]
