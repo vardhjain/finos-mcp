@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "finos-aigf": {
+      "command": "uvx",
+      "args": ["finos-mcp-aigf"]
+    },
+    "finos-cdm": {
+      "command": "uvx",
+      "args": ["--from", "finos-mcp-cdm[rune]", "finos-mcp-cdm"]
+    },
+    "finos-fdc3": {
+      "command": "uvx",
+      "args": ["finos-mcp-fdc3"]
+    }
+  }
+}

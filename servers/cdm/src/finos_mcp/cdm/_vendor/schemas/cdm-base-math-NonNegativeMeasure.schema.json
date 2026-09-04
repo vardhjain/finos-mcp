@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.base.math",
+  "type": "object",
+  "title": "NonNegativeMeasure",
+  "description": "Defines a concrete non-negative measure as a number associated to a unit. It extends Measure by requiring the value attribute to be non-negative. A measure may be unit-less so the unit attribute is still optional.",
+  "properties": {
+    "value": {
+      "description": "The initial rate or amount, as the case may be. An initial rate of 5% would be represented as 0.05.",
+      "type": "number"
+    },
+    "datedValue": {
+      "description": "The schedule of step date and value pairs. On each step date the associated step value becomes effective. A list of steps may be ordered in the document by ascending step date. An FpML document containing an unordered list of steps is still regarded as a conformant document.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-base-math-DatedValue.schema.json"
+      },
+      "minItems": 0
+    },
+    "unit": {
+      "description": "Qualifies the unit by which the amount is measured. Optional because a measure may be unit-less (e.g. when representing a ratio between amounts in the same unit).",
+      "$ref": "cdm-base-math-UnitType.schema.json"
+    },
+    "value": {
+      "description": "The value attribute must be present in a concrete measure.",
+      "type": "number"
+    },
+    "datedValue": {
+      "description": "The schedule of step date and value pairs must be absent.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-base-math-DatedValue.schema.json"
+      },
+      "minItems": 0
+    },
+    "value": {
+      "description": "The value attribute must be present in a concrete measure and non-negative.",
+      "type": "NonNegativeNumber"
+    }
+  },
+  "required": [
+    "value"
+  ]
+}

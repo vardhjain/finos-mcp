@@ -1,0 +1,2 @@
+{"tool": "list_intents", "args": {"context_type": "fdc3.instrument"},
+ "expect": {"intents": {"$min_len": 5}}}

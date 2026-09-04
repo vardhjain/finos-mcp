@@ -1,0 +1,355 @@
+{
+  "functions": [
+    {
+      "name": "Qualify_Adjustment",
+      "has_business_event_annotation": true,
+      "docstring": "This qualification function is used to qualify adjustment of the collateral amount when a transaction is repriced.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> after -> trade -> product -> economicTerms -> payout\n            as InterestRatePayout\n            exists\n            and openEconomicTerms -> payout = beforeEconomicterms -> payout\n            and beforeTradePurchasePrice exists\n            and afterTradePurchasePrice exists\n            and afterTradePurchasePrice = beforeTradePurchasePrice\n            and beforeTradeCollateralQuantity <> afterTradeCollateralQuantity\n            and beforeTradeCollateralPrice <> afterTradeCollateralPrice\n            and beforeEconomicterms exists\n            and openEconomicTerms exists\n            and openEconomicTerms -> terminationDate = beforeEconomicterms -> terminationDate\n            and openEconomicTerms -> effectiveDate <> beforeEconomicterms -> effectiveDate"
+    },
+    {
+      "name": "Qualify_Allocation",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of allocation event from the fact that (i) the only primitives are split and contract formation (ii) the number of split executions and the number of contract formations are equal.  Note that SplitPrimitive type has a condition to check that the post-split quantities sum to the pre-split quantity.  Also note that it is expected that an allocation can result in a single contract.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> Allocation\n            and closedTradeStates count = 1\n            and openTradeStates count >= 1\n            and businessEvent -> instruction -> primitiveInstruction -> split exists\n                // before trade counterparties should match closed after trade counterparties\n            and beforeTradeState -> trade -> counterparty -> partyReference = closedTradeStates only-element -> trade -> counterparty -> partyReference\n                // before trade counterparties should not match open after trade counterparties\n            and openTradeStates\n                extract [\n                    item -> trade -> counterparty -> partyReference <> beforeTradeState -> trade -> counterparty -> partyReference\n                ] all = True"
+    },
+    {
+      "name": "Qualify_Cancellation",
+      "has_business_event_annotation": true,
+      "docstring": "Qualification of an cancellation event.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> instruction -> before count = 1\n            and closedEconomicTerms exists\n            and openEconomicTerms exists\n                // and openEconomicTerms -> payout = closedEconomicTerms -> payout\n                // and openEconomicTerms -> collateral = closedEconomicTerms -> collateral\n            and (if openEconomicTerms -> terminationDate exists\n                        and closedEconomicTerms -> terminationDate exists\n                then openEconomicTerms -> terminationDate -> adjustableDate -> unadjustedDate < closedEconomicTerms -> terminationDate -> adjustableDate -> unadjustedDate\n                else openEconomicTerms -> terminationDate exists)"
+    },
+    {
+      "name": "Qualify_CashTransfer",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a cash transfer from the fact that the only component is a cashTransfer.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        (businessEvent -> instruction\n                extract primitiveInstruction -> transfer only exists\n                ) all = True\n            and beforeTransfers count + transferInstructions count = afterTransfers count\n            and transferInstructions -> transferState -> transfer ->> asset as Cash exists"
+    },
+    {
+      "name": "Qualify_ClearedTrade",
+      "has_business_event_annotation": true,
+      "docstring": null,
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> Clearing\n            and closedTradeStates count = 1\n            and openTradeStates count = 2\n            and businessEvent -> instruction -> primitiveInstruction -> split exists\n            and beforeTradeState -> trade -> counterparty -> partyReference = closedTradeStates only-element -> trade -> counterparty -> partyReference\n            and openTradeStates\n                extract [\n                    item -> trade -> counterparty -> partyReference <> beforeTradeState -> trade -> counterparty -> partyReference\n                        and item -> trade -> tradeIdentifier <> beforeTradeState -> trade -> tradeIdentifier\n                        and item -> trade -> partyRole -> role contains PartyRoleEnum -> ClearingOrganization\n                ] all = True"
+    },
+    {
+      "name": "Qualify_Compression",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a compression event from the fact that (i) the quantityChange primitive exists, and (ii) there are multiple contracts (or contract references) specified in the before state.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> instruction -> primitiveInstruction -> execution count = 1 and businessEvent -> instruction -> primitiveInstruction -> quantityChange count > 1"
+    },
+    {
+      "name": "Qualify_ContractFormation",
+      "has_business_event_annotation": true,
+      "docstring": "Qualifies a business event as a contract formation from the fact that the only component is a single Contract Formation Primitive.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        (primitiveInstruction -> contractFormation) only exists\n            or (primitiveInstruction -> contractFormation, primitiveInstruction -> transfer) only exists\n            or (primitiveInstruction -> execution, primitiveInstruction -> contractFormation) only exists\n            or (primitiveInstruction -> execution, primitiveInstruction -> contractFormation, primitiveInstruction -> transfer) only exists\n            or (primitiveInstruction is absent and businessEvent -> intent = EventIntentEnum -> ContractFormation)"
+    },
+    {
+      "name": "Qualify_CorporateActionDetermined",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of the ocurrence of a corporate action form the fact that a corporate action is present in either the observation or the observation history structures.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> instruction -> primitiveInstruction -> observation -> observationEvent -> corporateAction exists\n            or businessEvent -> instruction -> before -> observationHistory -> corporateAction exists\n            or businessEvent -> after -> observationHistory -> corporateAction exists"
+    },
+    {
+      "name": "Qualify_CreditEventDetermined",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of the ocurrence of a credit event determination from the fact that a credit event is present in either the observation or observation history structures.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> instruction -> primitiveInstruction -> observation -> observationEvent -> creditEvent exists\n            or businessEvent -> instruction -> before -> observationHistory -> creditEvent exists\n            or businessEvent -> after -> observationHistory -> creditEvent exists"
+    },
+    {
+      "name": "Qualify_Execution",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of an execution event from the fact that the only component is an execution.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent is absent\n            and (primitiveInstruction -> execution only exists\n                or (primitiveInstruction -> execution, primitiveInstruction -> transfer) only exists)"
+    },
+    {
+      "name": "Qualify_Exercise",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of an exercise event from the fact that (i) the only primitive is the exercise, and (ii) the remaining quantity = 0, and (iv) the closedState of the contract is Terminated.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> OptionExercise\n            and ((businessEvent -> instruction count = 1\n                    and (businessEvent -> instruction -> primitiveInstruction -> quantityChange exists and businessEvent -> instruction -> primitiveInstruction -> transfer exists))\n                or (businessEvent -> instruction count = 2\n                    and (businessEvent -> instruction -> primitiveInstruction -> quantityChange exists and businessEvent -> instruction -> primitiveInstruction -> execution exists))\n                or (businessEvent -> instruction count = 1\n                    and businessEvent -> instruction -> primitiveInstruction -> exercise exists))"
+    },
+    {
+      "name": "Qualify_FullReturn",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a full return event from the fact that (i) a quantityChange primitive and a transfer primitive exists, (ii) an assetPayout exists, (iii) the remaining quantity = 0, and (iv) the closedState of the contract is Terminated.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        (businessEvent -> intent is absent)\n            and businessEvent -> after -> trade -> product -> economicTerms -> collateral -> collateralPortfolio -> collateralPosition -> product ->> economicTerms -> payout\n                as AssetPayout\n                exists\n            and (businessEvent -> instruction count = 1\n                    and businessEvent -> instruction -> primitiveInstruction -> quantityChange exists\n                or (businessEvent -> instruction -> primitiveInstruction -> quantityChange exists and transfer exists))\n            and QuantityDecreasedToZero(\n                    businessEvent -> instruction -> before,\n                    businessEvent -> after\n                ) = True\n            and businessEvent -> after -> state -> closedState -> state all = ClosedStateEnum -> Terminated"
+    },
+    {
+      "name": "Qualify_Increase",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a increase event from the fact that (i) the intent is Increase when specified, (ii) the associated primitives are the quantityChange and the cash transfer, the (iii) the quantity associated with the contract increases.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent is absent\n            and ((primitiveInstruction -> quantityChange only exists\n                    or (primitiveInstruction -> quantityChange, primitiveInstruction -> transfer) only exists)\n                and (QuantityIncreased(\n                        businessEvent -> instruction -> before only-element,\n                        businessEvent -> after\n                    ) = True or businessEvent -> instruction -> before -> trade -> tradeLot count < businessEvent -> after -> trade -> tradeLot count))"
+    },
+    {
+      "name": "Qualify_IndexTransition",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of an index transition event based on (i) adjustment spread applied and (ii) floating rate index changed.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> IndexTransition\n            and floatingRateIndexChanged = True\n            and adjustmentSpreadAdded = True"
+    },
+    {
+      "name": "Qualify_Novation",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a novation event from the fact that (i) the intent is Novation when specified, (ii) the primitives quantityChange and a contract formation exist, (iii) the remaining quantity = 0, (iv) the closedState of the contract is Novated, (v) the stepped-in contract has a different contract identifier than the novated contract, (vi) the stepped-in contract has the novation event date and the novation event effective date, and (vii) the contract counterparties have changed.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> Novation\n            and closedTradeStates count = 1\n            and openTradeStates count = 1\n            and businessEvent -> instruction -> primitiveInstruction -> split exists\n            and beforeTradeState -> trade -> counterparty -> partyReference = closedTradeStates only-element -> trade -> counterparty -> partyReference\n            and beforeTradeState -> trade -> counterparty -> partyReference <> openTradeStates only-element -> trade -> counterparty -> partyReference\n            and beforeTradeState -> trade -> tradeIdentifier <> openTradeStates -> trade -> tradeIdentifier"
+    },
+    {
+      "name": "Qualify_OnDemandPayment",
+      "has_business_event_annotation": true,
+      "docstring": "Qualification of a on-demand payment.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> instruction count = 1\n            and businessEvent -> after count = 1\n            and afterTradeStates count = 1\n            and instruction -> primitiveInstruction -> transfer only exists\n            and transfer as ScheduledTransfer -> transferType all = NetInterest"
+    },
+    {
+      "name": "Qualify_OnDemandRateChange",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of on an-demand rate change event from the fact that the only primitive is the reset.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        // The first 2 conditions imply that there is 1 and only 1 before and 1 open thanks to the \"only-element\" modifier\n        beforeEconomicterms exists\n            and openEconomicTerms exists\n            and closedTradeState count = 1\n            and // openEconomicTerms -> payout = beforeEconomicterms -> payout and\n            openEconomicTerms -> collateral = beforeEconomicterms -> collateral\n            and beforePriceQuantityRateOnly count = 1\n            and openPriceQuantityRateOnly count = 1\n            and beforePriceQuantityRateOnly only-element\n                <> openPriceQuantityRateOnly only-element\n            and beforePriceQuantityNoRate = openPriceQuantityNoRate"
+    },
+    {
+      "name": "Qualify_OpenOfferClearedTrade",
+      "has_business_event_annotation": true,
+      "docstring": null,
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> Clearing\n            and businessEvent -> instruction count = 2\n            and businessEvent -> instruction -> primitiveInstruction -> execution exists\n            and businessEvent -> instruction -> primitiveInstruction -> contractFormation exists\n            and openTradeStates count = 2\n            and openTradeStates\n                extract [\n                    item -> trade -> counterparty -> partyReference <> beforeTradeState -> trade -> counterparty -> partyReference\n                        and item -> trade -> tradeIdentifier <> beforeTradeState -> trade -> tradeIdentifier\n                        and item -> trade -> partyRole -> role contains PartyRoleEnum -> ClearingOrganization\n                ] all = True"
+    },
+    {
+      "name": "Qualify_PairOff",
+      "has_business_event_annotation": true,
+      "docstring": "Qualifies an event as a pair-off when all the details of the existing trades are maintained, except for their execution details which are updated to include a package component. This package component must be unique across all trades.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        // The first condition asserts that there are only new executions\n        newTradeInstruction count = businessEvent -> instruction count\n                // All the trade details (except the execution instructions) are unchanged\n                // and openTradeNoExecutionDetails = beforeTradeNoExecutionDetails\n            and openTradeState -> trade -> product = newTradeInstruction -> before -> trade -> product\n            and openTradeState -> trade -> tradeLot = newTradeInstruction -> before -> trade -> tradeLot\n            and openTradeState -> trade -> counterparty = newTradeInstruction -> before -> trade -> counterparty\n                // for optional fields such as ancillaryParty and adjustment, we need to check if both are absent or both equal\n            and (if openTradeState -> trade -> ancillaryParty exists\n                        or newTradeInstruction -> before -> trade -> ancillaryParty exists\n                then openTradeState -> trade -> ancillaryParty = newTradeInstruction -> before -> trade -> ancillaryParty\n                else True)\n            and (if openTradeState -> trade -> adjustment exists\n                        or newTradeInstruction -> before -> trade -> adjustment exists\n                then openTradeState -> trade -> adjustment = newTradeInstruction -> before -> trade -> adjustment\n                else True)\n                    // All open trades are associated to a package, and that package is the same across all trades\n            and packageRef count = openTradeState count\n            and packageRef distinct count = 1"
+    },
+    {
+      "name": "Qualify_PartialDelivery",
+      "has_business_event_annotation": true,
+      "docstring": "Qualification of a partial delivery which constitutes a change in quantity and open with the remaining quantity and termination date.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        beforeEconomicterms exists\n            and openEconomicTerms exists\n            and openTrades count = 1\n            and closedTradeState count = 1\n            and openEconomicTerms -> payout as InterestRatePayout\n                = beforeEconomicterms -> payout as InterestRatePayout\n            and openEconomicTerms -> collateral = beforeEconomicterms -> collateral\n            and beforeTradeCollateralQuantity > afterTradeCollateralQuantity\n            and openEconomicTerms -> terminationDate = beforeEconomicterms -> terminationDate\n            and openEconomicTerms -> effectiveDate = beforeEconomicterms -> effectiveDate"
+    },
+    {
+      "name": "Qualify_PartialNovation",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a novation event from the fact that (i) the intent is Novation when specified, (ii) the primitives quantityChange and contractFormation exist, (iii) the contract quantity/notional has decreased as part of the quantityChange primitive, while (iv) there is a remaining quantity/notional, (v) the stepped-in contract has a different contract identifier than the original contract, (vi) the stepped-in contract has the novation event date and the novation event effective date, and (vii) the contract counterparties have changed.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> Novation\n            and closedTradeStates count = 0\n            and openTradeStates count = 2\n            and businessEvent -> instruction -> primitiveInstruction -> split exists\n            and openTradeStates\n                extract [\n                    // before trade counterparties should not match open after trade counterparties, and neither should trade identifiers\n                    (item -> trade -> counterparty -> partyReference <> beforeTradeState -> trade -> counterparty -> partyReference\n                            and item -> trade -> tradeIdentifier <> beforeTradeState -> trade -> tradeIdentifier)\n                        or // before trade counterparties match open after trade counterparties, and match trade identifiers, but with decreased quantity\n                        (item -> trade -> counterparty -> partyReference = beforeTradeState -> trade -> counterparty -> partyReference\n                            and item -> trade -> tradeIdentifier = beforeTradeState -> trade -> tradeIdentifier\n                            and QuantityDecreased(beforeTradeState, [item]))\n                ] all = True"
+    },
+    {
+      "name": "Qualify_PartialTermination",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a partial termination event from the fact that (i) the intent is Partial Termination when specified, (ii) the associated primitives are the quantityChange and the cash transfer, the (iii) the quantity associated with the contract decreases, and (iv) there is an actual remaining quantity.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent is absent\n            and (primitiveInstruction -> quantityChange only exists\n                or (primitiveInstruction -> quantityChange, primitiveInstruction -> transfer) only exists)\n            and (QuantityDecreased(businessEvent -> instruction -> before only-element, businessEvent -> after) = True)\n            and businessEvent -> after -> state -> closedState is absent"
+    },
+    {
+      "name": "Qualify_PortfolioRebalancing",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a portfolio rebalancing event from the fact that (i) the intent is PortfolioRebalancing, and (ii) the execution primitive exists",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> PortfolioRebalancing\n            and businessEvent -> instruction -> primitiveInstruction -> execution exists"
+    },
+    {
+      "name": "Qualify_Reallocation",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a reallocation event from the fact that (i) a quantity change primitive exists, (ii) a split primitive exists, and (iii) the intent is Reallocation.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> Reallocation\n            and closedTradeStates count = 0\n            and openTradeStates count = 2\n            and businessEvent -> instruction -> primitiveInstruction -> split exists\n            and openTradeStates\n                extract [\n                    // before trade counterparties should not match open after trade counterparties, and neither should trade identifiers\n                    (item -> trade -> counterparty -> partyReference <> beforeTradeState -> trade -> counterparty -> partyReference\n                            and item -> trade -> tradeIdentifier <> beforeTradeState -> trade -> tradeIdentifier)\n                        or // before trade counterparties match open after trade counterparties, and match trade identifiers, but with decreased quantity\n                        (item -> trade -> counterparty -> partyReference = beforeTradeState -> trade -> counterparty -> partyReference\n                            and item -> trade -> tradeIdentifier = beforeTradeState -> trade -> tradeIdentifier\n                            and QuantityDecreased(beforeTradeState, [item]))\n                ] all = True"
+    },
+    {
+      "name": "Qualify_Renegotiation",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a renegotiation event from the fact that (i) the intent is Renegotiation when specified, and (ii) the associated primitives instructions are the TermsChange, QuantityChange and the cash transfer.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        (businessEvent -> intent is absent or businessEvent -> intent = EventIntentEnum -> ContractTermsAmendment)\n            and (businessEvent -> instruction\n                extract\n                    (primitiveInstruction -> termsChange only exists or (primitiveInstruction -> termsChange, primitiveInstruction -> quantityChange) only exists)) all = True\n            and (QuantityDecreasedToZero(businessEvent -> instruction -> before, businessEvent -> after) = False)\n            and businessEvent -> after -> state -> closedState is absent"
+    },
+    {
+      "name": "Qualify_Reprice",
+      "has_business_event_annotation": true,
+      "docstring": "This qualification function is used to qualify repricing of a contractual product with an interest rate payout and assetPayout.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> after -> trade -> product -> economicTerms -> payout\n            as InterestRatePayout\n            exists\n            and openTrades count = 1\n            and closedTradeState count = 1\n            and beforeTradePurchasePrice exists\n            and afterTradePurchasePrice exists\n            and afterTradePurchasePrice <> beforeTradePurchasePrice\n            and beforeTradeCollateralQuantity = afterTradeCollateralQuantity\n            and beforeTradeCollateralPrice <> afterTradeCollateralPrice\n            and beforeEconomicterms exists\n            and openEconomicTerms exists\n            and openEconomicTerms -> terminationDate = beforeEconomicterms -> terminationDate"
+    },
+    {
+      "name": "Qualify_Repurchase",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a repurchase event from the fact that (i) a quantityChange instruction exists, (ii) an assetPayout exists, (iii) the remaining quantity = 0, (iv) the closedState of the contract is Terminated, and (v) the intent of the event is 'Repurchase'.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent = EventIntentEnum -> Repurchase\n            and businessEvent -> after -> trade -> product -> economicTerms -> collateral -> collateralPortfolio -> collateralPosition -> product ->> economicTerms -> payout\n                as AssetPayout\n                exists\n            and (businessEvent -> instruction count = 1\n                and businessEvent -> instruction\n                    only-element\n                    extract\n                        (primitiveInstruction -> quantityChange, primitiveInstruction -> transfer) only exists)\n            and QuantityDecreasedToZero(\n                    businessEvent -> instruction -> before,\n                    businessEvent -> after\n                ) = True\n            and businessEvent -> after -> state -> closedState -> state all = ClosedStateEnum -> Terminated"
+    },
+    {
+      "name": "Qualify_Reset",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a reset event from the fact that the only primitive is the reset.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> after count = 1\n            and beforeTradeState -> trade = afterTradeState -> trade\n            and beforeTradeState -> resetHistory count + 1 = afterTradeState -> resetHistory count"
+    },
+    {
+      "name": "Qualify_Roll",
+      "has_business_event_annotation": true,
+      "docstring": "Qualification of a roll event based on: (i) terminating a single existing trade, (ii) entering into a new trade with the same details as the old trade, except for the effective and termination date where the effective date. The roll qualification does not make any assumption on the resulting quantity which may change compared to the original trade (it may only be partially rolled). The price is also likely different as market conditions may have evolved.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        // The first 2 conditions imply that there is 1 and only 1 before and 1 open thanks to the \"only-element\" modifier\n        beforeEconomicterms -> collateral exists\n            and openEconomicTerms -> collateral exists\n            and closedTradeState count = 1\n            and openEconomicTerms -> payout = beforeEconomicterms -> payout\n            and openEconomicTerms -> collateral = beforeEconomicterms -> collateral\n            and openEconomicTerms -> effectiveDate = beforeEconomicterms -> terminationDate\n            and openEconomicTerms -> terminationDate <> beforeEconomicterms -> terminationDate"
+    },
+    {
+      "name": "Qualify_SecurityTransfer",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a security transfer from the fact that the only component is a securityTransfer.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        (businessEvent -> instruction\n                extract primitiveInstruction -> transfer only exists\n                ) all = True\n            and beforeTransfers count + transferInstructions count = afterTransfers count\n            and transferInstructions -> transferState -> transfer ->> asset\n                as Security\n                exists"
+    },
+    {
+      "name": "Qualify_Shaping",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a shaping event from the fact that (i) the only primitive is a split where the original trade is closed, (ii) the parties before and after the split remain the same (by contrast with an allocation, for instance) and (iii) the split trades contain a package component in their execution details. This package ties together the resulting shapes trades' identifiers and must be the same across all shaped trades. Note that SplitPrimitive type has a condition to check that the post-split quantities sum to the pre-split quantity.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        // There is a single before trade with a split instruction, resulting in a single closed trade and multiple open trades\n        beforeTradeState exists\n            and closedTradeState exists\n            and openTradeStates count > 1\n            and instruction -> primitiveInstruction -> split only exists\n                // Open trade counterparties should match before trade counterparties\n            and openTradeStates\n                extract [\n                    item -> trade -> counterparty -> partyReference = beforeTradeState -> trade -> counterparty -> partyReference\n                ] all = True\n                // All open trades are associated to a package, and that package is the same across all trades\n            and packageRef count = openTradeNoExecutionDetails count\n            and packageRef distinct count = 1"
+    },
+    {
+      "name": "Qualify_StockSplit",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of StockSplit business event based on (i) an unchanged before/after currency amount (ii) the same adjustment ratio applied to the before/after cash price and number of units.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        currencyAmountUnchanged = True\n            and noOfUnitsChanged = True\n            and cashPriceChanged = True\n            and adjustmentRatioMatches = True"
+    },
+    {
+      "name": "Qualify_Substitution",
+      "has_business_event_annotation": true,
+      "docstring": "Qualification of a collateral substitution event.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        beforeEconomicterms -> terminationDate exists\n            and openEconomicTerms -> effectiveDate exists\n            and openEconomicTerms -> terminationDate exists\n            and openEconomicTerms -> payout <> beforeEconomicterms -> payout\n            and openEconomicTerms -> collateral <> beforeEconomicterms -> collateral\n            and openEconomicTerms -> effectiveDate = beforeEconomicterms -> terminationDate\n            and openEconomicTerms -> terminationDate = beforeEconomicterms -> terminationDate"
+    },
+    {
+      "name": "Qualify_Termination",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a termination event from the fact that (i) the intent is Termination when specified, (ii) the only primitive is the quantityChange and there is only one such primitive involved, the (iii) the remaining quantity is null, and (iv) the closedState of the contract is Terminated.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event:\n        businessEvent -> intent is absent\n            and (primitiveInstruction -> quantityChange only exists\n                or (primitiveInstruction -> quantityChange, primitiveInstruction -> transfer) only exists)\n            and (QuantityDecreasedToZero(businessEvent -> instruction -> before, businessEvent -> after) = True)\n            and (businessEvent -> after -> state -> closedState -> state all = ClosedStateEnum -> Terminated)"
+    },
+    {
+      "name": "Qualify_ValuationUpdate",
+      "has_business_event_annotation": true,
+      "docstring": "The qualification of a valuation update from the fact that the only component is a valuation.",
+      "inputs": [
+        "businessEvent BusinessEvent (1..1)"
+      ],
+      "output": "is_event boolean (1..1)",
+      "condition_text": "set is_event: instruction -> primitiveInstruction -> valuation only exists"
+    }
+  ],
+  "count": 35
+}

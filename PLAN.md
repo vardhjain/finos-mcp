@@ -163,18 +163,23 @@ Key architectural rules:
 from mcp.server import MCPServer
 from mcp.types import ToolAnnotations
 
-READ_ONLY = ToolAnnotations(read_only_hint=True, destructive_hint=False,
-                            idempotent_hint=True, open_world_hint=False)
+READ_ONLY = ToolAnnotations(
+    read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=False
+)
 
-def build_server(name: str, *, version: str, instructions: str,
-                 policy: SafetyPolicy) -> MCPServer:
+
+def build_server(name: str, *, version: str, instructions: str, policy: SafetyPolicy) -> MCPServer:
     audit = AuditLog.from_env()
     limiter = RateLimiter(policy)
-    server = MCPServer(name, version=version, instructions=instructions,
-                       middleware=[size_guard(policy), limiter.middleware,
-                                   audit.middleware, metrics.middleware])
-    server._finos_policy = policy       # read by register_tool
+    server = MCPServer(
+        name,
+        version=version,
+        instructions=instructions,
+        middleware=[size_guard(policy), limiter.middleware, audit.middleware, metrics.middleware],
+    )
+    server._finos_policy = policy  # read by register_tool
     return server
+
 
 def register_tool(server, fn, *, name, description, limit: RateLimit | None = None):
     # enforce rule 4: read-only or refuse to start
@@ -188,17 +193,18 @@ Middleware order matters: size guard first (cheapest rejection), then rate limit
 
 ```python
 class RateLimit(BaseModel):
-    calls: int = 60          # per window
+    calls: int = 60  # per window
     window_s: float = 60.0
     burst: int = 10
 
+
 class SafetyPolicy(BaseModel):
-    max_input_bytes: int = 64 * 1024          # per tool call, serialized arguments
-    max_output_bytes: int = 512 * 1024        # truncate + flag, never silently
+    max_input_bytes: int = 64 * 1024  # per tool call, serialized arguments
+    max_output_bytes: int = 512 * 1024  # truncate + flag, never silently
     default_limit: RateLimit = RateLimit()
-    per_tool: dict[str, RateLimit] = {}       # e.g. validate_object gets calls=30
+    per_tool: dict[str, RateLimit] = {}  # e.g. validate_object gets calls=30
     max_search_results: int = 50
-    audit_hash_inputs: bool = True            # log sha256(args), not raw args
+    audit_hash_inputs: bool = True  # log sha256(args), not raw args
 ```
 
 Policy is loaded from defaults, then `FINOS_MCP_*` env vars, then an optional `finos-mcp.toml`. Only tightening is possible from the environment (a lower limit wins); the read-only rule is not configurable.
@@ -213,11 +219,18 @@ Every failure the model *could* fix is raised as `ToolError` whose message is a 
 
 ```python
 class ErrorEnvelope(BaseModel):
-    code: Literal["not_found", "ambiguous_id", "invalid_input", "input_too_large",
-                  "validation_failed", "unsupported_format", "internal"]
+    code: Literal[
+        "not_found",
+        "ambiguous_id",
+        "invalid_input",
+        "input_too_large",
+        "validation_failed",
+        "unsupported_format",
+        "internal",
+    ]
     message: str
-    hint: str | None = None              # e.g. "Did you mean AIR-SEC-010?"
-    candidates: list[str] = []           # for ambiguous_id
+    hint: str | None = None  # e.g. "Did you mean AIR-SEC-010?"
+    candidates: list[str] = []  # for ambiguous_id
     retryable: bool = False
     details: dict[str, Any] = {}
 ```
@@ -359,12 +372,14 @@ Output:
 ```python
 class ValidationReport(BaseModel):
     valid: bool
-    format_detected: Literal["rune","legacy"]
-    validator: Literal["finos-cdm 7.2.0 (pydantic)","json-schema draft-04 (cdm-json-schema 7.2.0)"]
-    type: str                          # "cdm.event.common.TradeState"
-    issues: list[ValidationIssue]      # json_path, message, kind (cardinality|type|enum|condition|unknown_field)
-    warnings: list[str]                # e.g. "legacy schema does not enforce Rune conditions"
-    stats: dict[str,int]               # nodes visited, refs resolved
+    format_detected: Literal["rune", "legacy"]
+    validator: Literal["finos-cdm 7.2.0 (pydantic)", "json-schema draft-04 (cdm-json-schema 7.2.0)"]
+    type: str  # "cdm.event.common.TradeState"
+    issues: list[
+        ValidationIssue
+    ]  # json_path, message, kind (cardinality|type|enum|condition|unknown_field)
+    warnings: list[str]  # e.g. "legacy schema does not enforce Rune conditions"
+    stats: dict[str, int]  # nodes visited, refs resolved
 ```
 
 `finos-cdm` is an optional extra (`finos-mcp-cdm[rune]`) because it is large. Without it, Rune-format input returns `unsupported_format` with a hint naming the extra; with it, both paths work. CI installs the extra. This honesty is deliberate: the tool never claims a document is valid when it only checked shape.
@@ -642,21 +657,30 @@ from finos_mcp.core import build_server, register_tool, SafetyPolicy, ErrorEnvel
 from .catalog import load_catalog
 from .models import Risk, Control, Mapping, SearchHit, Page
 
-catalog = load_catalog()          # vendored, verified, cached
-server = build_server("finos-mcp-aigf", version=__version__,
-                      instructions="Read-only access to the FINOS AI Governance Framework. "
-                                   "Cite controls by AIR-* id and aigf:// resource URI.",
-                      policy=SafetyPolicy(per_tool={"search_framework": RateLimit(calls=120)}))
+catalog = load_catalog()  # vendored, verified, cached
+server = build_server(
+    "finos-mcp-aigf",
+    version=__version__,
+    instructions="Read-only access to the FINOS AI Governance Framework. "
+    "Cite controls by AIR-* id and aigf:// resource URI.",
+    policy=SafetyPolicy(per_tool={"search_framework": RateLimit(calls=120)}),
+)
+
 
 def get_control(id: str, include_sections: bool = True) -> Control:
     """Return one AIGF control (mitigation) by id. Accepts AIR-PREV-020, mi-20, 20, or a title."""
-    return catalog.resolve_control(id, include_sections)   # raises ToolError(ErrorEnvelope) on miss/ambiguity
+    return catalog.resolve_control(
+        id, include_sections
+    )  # raises ToolError(ErrorEnvelope) on miss/ambiguity
+
 
 register_tool(server, get_control, name="get_control", description=get_control.__doc__)
+
 
 @server.resource("aigf://control/{id}", mime_type="text/markdown")
 def control_markdown(id: str) -> str:
     return catalog.raw_markdown("control", id)
+
 
 def main() -> None:
     server.run(transport="stdio")
@@ -669,20 +693,25 @@ import pytest
 from mcp import Client
 from finos_mcp.aigf.server import server
 
+
 @pytest.fixture
-def anyio_backend(): return "asyncio"
+def anyio_backend():
+    return "asyncio"
+
 
 @pytest.fixture
 async def client():
     async with Client(server, raise_exceptions=True) as c:
         yield c
 
+
 @pytest.mark.anyio
 async def test_get_control_by_public_id(client: Client):
     r = await client.call_tool("get_control", {"id": "AIR-PREV-020"})
     assert r.structured_content["short_id"] == "mi-20"
-    assert "ri-26" not in r.structured_content["mitigates"]        # ids are AIR-* in output
+    assert "ri-26" not in r.structured_content["mitigates"]  # ids are AIR-* in output
     assert "AIR-SEC-026" in r.structured_content["mitigates"]
+
 
 @pytest.mark.anyio
 async def test_every_tool_is_read_only(client: Client):
@@ -696,15 +725,22 @@ async def test_every_tool_is_read_only(client: Client):
 def recall_at_k(results: list[str], expected: set[str], k: int) -> float:
     return len(set(results[:k]) & expected) / len(expected)
 
+
 @pytest.mark.anyio
 async def test_retrieval(client, questions):
-    scores = {1: [], 3: [], 5: []}; rr = []
+    scores = {1: [], 3: [], 5: []}
+    rr = []
     for q in questions:
-        hits = (await client.call_tool("search_framework", {"query": q.question, "k": 10})).structured_content["result"]
+        hits = (
+            await client.call_tool("search_framework", {"query": q.question, "k": 10})
+        ).structured_content["result"]
         ids = [h["id"] for h in hits]
-        for k in scores: scores[k].append(recall_at_k(ids, set(q.expected), k))
-        rr.append(next((1/(i+1) for i, x in enumerate(ids) if x in q.expected), 0.0))
-    metrics.record("retrieval", {f"recall_at_{k}": mean(v) for k, v in scores.items()} | {"mrr": mean(rr)})
+        for k in scores:
+            scores[k].append(recall_at_k(ids, set(q.expected), k))
+        rr.append(next((1 / (i + 1) for i, x in enumerate(ids) if x in q.expected), 0.0))
+    metrics.record(
+        "retrieval", {f"recall_at_{k}": mean(v) for k, v in scores.items()} | {"mrr": mean(rr)}
+    )
     assert mean(scores[5]) >= 0.85
 ```
 
@@ -714,22 +750,31 @@ async def test_retrieval(client, questions):
 from anthropic import AsyncAnthropic
 from anthropic.lib.tools.mcp import async_mcp_tool
 
+
 async def run_task(task, mcp_client) -> AgentRun:
     client = AsyncAnthropic()
     tools = [async_mcp_tool(t, mcp_client) for t in (await mcp_client.list_tools()).tools]
     runner = client.beta.messages.tool_runner(
-        model=os.environ.get("EVAL_MODEL", "claude-opus-5"), max_tokens=16000,
-        betas=["server-side-fallback-2026-07-01"], fallbacks="default",
+        model=os.environ.get("EVAL_MODEL", "claude-opus-5"),
+        max_tokens=16000,
+        betas=["server-side-fallback-2026-07-01"],
+        fallbacks="default",
         system="Answer using the FINOS tools. Every control you mention must carry its AIR-* id "
-               "and the aigf:// resource you read it from.",
-        messages=[{"role": "user", "content": task.prompt}], tools=tools)
+        "and the aigf:// resource you read it from.",
+        messages=[{"role": "user", "content": task.prompt}],
+        tools=tools,
+    )
     called, final = [], None
     async for msg in runner:
         called += [b.name for b in msg.content if b.type == "tool_use"]
         final = msg
     assert final.stop_reason != "refusal", final.stop_details
     text = "".join(b.text for b in final.content if b.type == "text")
-    return AgentRun(text=text, tools_called=called, cited=set(re.findall(r"AIR-(?:RC|OP|SEC|PREV|DET)-\d{3}", text)))
+    return AgentRun(
+        text=text,
+        tools_called=called,
+        cited=set(re.findall(r"AIR-(?:RC|OP|SEC|PREV|DET)-\d{3}", text)),
+    )
 ```
 
 ### F. What the README must say (verbatim commitments)

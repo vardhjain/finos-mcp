@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.product.common.settlement",
+  "type": "string",
+  "title": "UnscheduledTransferEnum",
+  "description": "The qualification of the type of ad-hoc transfers and cash flows that can be associated with contracts and their lifecycle events.",
+  "enum": [
+    "Assignment",
+    "BrokerageCommission",
+    "Increase",
+    "Novation",
+    "PartialTermination",
+    "Premium",
+    "Recall",
+    "Renegotiation",
+    "Return",
+    "Termination",
+    "Upfront"
+  ],
+  "oneOf": [
+    {
+      "enum": [
+        "Assignment"
+      ],
+      "title": "Assignment",
+      "description": "A transfer resulting from the assignment of a contract to a new counterparty."
+    },
+    
+    {
+      "enum": [
+        "BrokerageCommission"
+      ],
+      "title": "BrokerageCommission",
+      "description": "The brokerage commission."
+    },
+    
+    {
+      "enum": [
+        "Increase"
+      ],
+      "title": "Increase",
+      "description": "A transfer associated with an increase lifecycle event."
+    },
+    
+    {
+      "enum": [
+        "Novation"
+      ],
+      "title": "Novation",
+      "description": "The novation fee."
+    },
+    
+    {
+      "enum": [
+        "PartialTermination"
+      ],
+      "title": "PartialTermination",
+      "description": "A transfer associated with a partial termination lifecycle event."
+    },
+    
+    {
+      "enum": [
+        "Premium"
+      ],
+      "title": "Premium",
+      "description": "Denotes the amount payable by the buyer to the seller for an option. The premium is paid on the specified premium payment date or on each premium payment date if specified."
+    },
+    
+    {
+      "enum": [
+        "Recall"
+      ],
+      "title": "Recall",
+      "description": "A recall of securities by the lender who has lent them out."
+    },
+    
+    {
+      "enum": [
+        "Renegotiation"
+      ],
+      "title": "Renegotiation",
+      "description": "A transfer associated with a renegotiation lifecycle event."
+    },
+    
+    {
+      "enum": [
+        "Return"
+      ],
+      "title": "Return",
+      "description": "A return by the borrower to the lender of the full or partial quantity of securities on the contract."
+    },
+    
+    {
+      "enum": [
+        "Termination"
+      ],
+      "title": "Termination",
+      "description": "A transfer associated with a termination lifecycle event."
+    },
+    
+    {
+      "enum": [
+        "Upfront"
+      ],
+      "title": "Upfront",
+      "description": "An upfront transfer associated to the swap to adjust for a difference between the swap price and the current market price."
+    }
+  ]
+}

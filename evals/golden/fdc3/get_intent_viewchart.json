@@ -1,0 +1,3 @@
+{"tool": "get_intent", "args": {"name": "ViewChart"},
+ "expect": {"name": "ViewChart", "deprecated": false, "citation_uri": "fdc3://intent/ViewChart",
+            "contexts": {"$contains": ["fdc3.instrument", "fdc3.chart", "fdc3.portfolio"]}}}

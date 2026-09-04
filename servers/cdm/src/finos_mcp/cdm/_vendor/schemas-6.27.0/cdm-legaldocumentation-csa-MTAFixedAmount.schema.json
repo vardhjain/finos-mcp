@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.csa",
+  "type": "object",
+  "title": "MTAFixedAmount",
+  "description": "Defines that the Minimum Transfer Amount (MTA) is a Fixed Amount.",
+  "properties": {
+    "party": {
+      "description": "The party to which the Minimum Transfer Amount (MTA) applies.",
+      "$ref": "cdm-base-staticdata-party-CounterpartyRoleEnum.schema.json"
+    },
+    "amount": {
+      "description": "The amount value applicable to the Minimum Transfer Amount (MTA).",
+      "type": "integer"
+    },
+    "currency": {
+      "description": "The minimum transfer amount currency code.",
+      "$ref": "cdm-base-staticdata-asset-common-ISOCurrencyCodeEnum.schema.json"
+    }
+  },
+  "required": [
+    "party",
+    "amount",
+    "currency"
+  ]
+}

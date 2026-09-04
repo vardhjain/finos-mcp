@@ -1,0 +1,278 @@
+{
+  "count": 19,
+  "intents": [
+    {
+      "contexts": [
+        "fdc3.contactList",
+        "fdc3.interaction"
+      ],
+      "deprecated": false,
+      "description": "Create a record documenting an interaction (calls, meetings, etc.) between a list of contacts.",
+      "doc_path": "website/docs/intents/ref/CreateInteraction.md",
+      "name": "CreateInteraction",
+      "result": "fdc3.transactionResult",
+      "since": null,
+      "standard": true,
+      "title": "CreateInteraction"
+    },
+    {
+      "contexts": [
+        "fdc3.contact",
+        "fdc3.organization"
+      ],
+      "deprecated": false,
+      "description": "Create a record or update an existing profile record with information for the individual or organization provided as context.",
+      "doc_path": "website/docs/intents/ref/CreateOrUpdateProfile.md",
+      "name": "CreateOrUpdateProfile",
+      "result": "fdc3.transactionResult",
+      "since": null,
+      "standard": true,
+      "title": "CreateOrUpdateProfile"
+    },
+    {
+      "contexts": [
+        "fdc3.chat.message"
+      ],
+      "deprecated": false,
+      "description": "Send a message to an existing chat room.",
+      "doc_path": "website/docs/intents/ref/SendChatMessage.md",
+      "name": "SendChatMessage",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "SendChatMessage"
+    },
+    {
+      "contexts": [
+        "fdc3.contact",
+        "fdc3.contactList"
+      ],
+      "deprecated": false,
+      "description": "Initiate a call with a contact or list of contacts.",
+      "doc_path": "website/docs/intents/ref/StartCall.md",
+      "name": "StartCall",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "StartCall"
+    },
+    {
+      "contexts": [
+        "fdc3.chat.initSettings",
+        "fdc3.contact",
+        "fdc3.contactList"
+      ],
+      "deprecated": false,
+      "description": "Initiate a chat with a contact, a list of contacts or detailed initialization settings.  This could be launched from within another application. For example initiating a chat from a research or OMS application.",
+      "doc_path": "website/docs/intents/ref/StartChat.md",
+      "name": "StartChat",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "StartChat"
+    },
+    {
+      "contexts": [
+        "fdc3.email"
+      ],
+      "deprecated": false,
+      "description": "Initiate an email with a contact or list of contacts provided as part of an Email context.",
+      "doc_path": "website/docs/intents/ref/StartEmail.md",
+      "name": "StartEmail",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "StartEmail"
+    },
+    {
+      "contexts": [
+        "fdc3.instrument",
+        "fdc3.organization",
+        "fdc3.portfolio"
+      ],
+      "deprecated": false,
+      "description": "Display analysis on the provided context.",
+      "doc_path": "website/docs/intents/ref/ViewAnalysis.md",
+      "name": "ViewAnalysis",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewAnalysis"
+    },
+    {
+      "contexts": [
+        "fdc3.chart",
+        "fdc3.instrument",
+        "fdc3.instrumentList",
+        "fdc3.portfolio",
+        "fdc3.position"
+      ],
+      "deprecated": false,
+      "description": "Display a chart for the provided context.",
+      "doc_path": "website/docs/intents/ref/ViewChart.md",
+      "name": "ViewChart",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewChart"
+    },
+    {
+      "contexts": [
+        "fdc3.chat.room",
+        "fdc3.contact",
+        "fdc3.contactList"
+      ],
+      "deprecated": false,
+      "description": "Open an existing chat room.",
+      "doc_path": "website/docs/intents/ref/ViewChat.md",
+      "name": "ViewChat",
+      "result": "fdc3.chat.room",
+      "since": null,
+      "standard": true,
+      "title": "ViewChat"
+    },
+    {
+      "contexts": [
+        "fdc3.contact"
+      ],
+      "deprecated": true,
+      "description": "View details for a contact.",
+      "doc_path": "website/docs/intents/ref/ViewContact.md",
+      "name": "ViewContact",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewContact"
+    },
+    {
+      "contexts": [
+        "fdc3.instrument",
+        "fdc3.instrumentList",
+        "fdc3.organization"
+      ],
+      "deprecated": false,
+      "description": "Display any holdings for the provided instrument, list of instruments, or organization.",
+      "doc_path": "website/docs/intents/ref/ViewHoldings.md",
+      "name": "ViewHoldings",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewHoldings"
+    },
+    {
+      "contexts": [
+        "fdc3.instrument"
+      ],
+      "deprecated": false,
+      "description": "Display details for the provided instrument.",
+      "doc_path": "website/docs/intents/ref/ViewInstrument.md",
+      "name": "ViewInstrument",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewInstrument"
+    },
+    {
+      "contexts": [
+        "fdc3.contact",
+        "fdc3.instrument",
+        "fdc3.organization"
+      ],
+      "deprecated": false,
+      "description": "Display interactions (calls, meetings, etc.) related to an individual, an instrument or organization provided as context.",
+      "doc_path": "website/docs/intents/ref/ViewInteractions.md",
+      "name": "ViewInteractions",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewInteractions"
+    },
+    {
+      "contexts": [
+        "fdc3.chat.searchCriteria"
+      ],
+      "deprecated": false,
+      "description": "Search and display a list of messages (for example in a chat application or CRM) to the user.",
+      "doc_path": "website/docs/intents/ref/ViewMessages.md",
+      "name": "ViewMessages",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewMessages"
+    },
+    {
+      "contexts": [
+        "fdc3.country",
+        "fdc3.instrument",
+        "fdc3.instrumentList",
+        "fdc3.organization",
+        "fdc3.portfolio"
+      ],
+      "deprecated": false,
+      "description": "Display news stories for the provided context.",
+      "doc_path": "website/docs/intents/ref/ViewNews.md",
+      "name": "ViewNews",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewNews"
+    },
+    {
+      "contexts": [
+        "fdc3.contact",
+        "fdc3.instrument",
+        "fdc3.organization"
+      ],
+      "deprecated": false,
+      "description": "Display any orders related to the provided contact, instrument, or organization.",
+      "doc_path": "website/docs/intents/ref/ViewOrders.md",
+      "name": "ViewOrders",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewOrders"
+    },
+    {
+      "contexts": [
+        "fdc3.contact",
+        "fdc3.organization"
+      ],
+      "deprecated": false,
+      "description": "Display basic profile information for the individual or organization provided as context.",
+      "doc_path": "website/docs/intents/ref/ViewProfile.md",
+      "name": "ViewProfile",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewProfile"
+    },
+    {
+      "contexts": [
+        "fdc3.instrument"
+      ],
+      "deprecated": false,
+      "description": "Display pricing for an Instrument.",
+      "doc_path": "website/docs/intents/ref/ViewQuote.md",
+      "name": "ViewQuote",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewQuote"
+    },
+    {
+      "contexts": [
+        "fdc3.contact",
+        "fdc3.instrument",
+        "fdc3.organization"
+      ],
+      "deprecated": false,
+      "description": "Show research related to an instrument, an individual or organization provided as context.",
+      "doc_path": "website/docs/intents/ref/ViewResearch.md",
+      "name": "ViewResearch",
+      "result": null,
+      "since": null,
+      "standard": true,
+      "title": "ViewResearch"
+    }
+  ]
+}

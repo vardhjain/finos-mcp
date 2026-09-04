@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.common",
+  "type": "string",
+  "title": "AgreementEventIntentEnum",
+  "description": "Defines the intent of the agreement event. An agreement event may cover multiple business scenarios, which result in different agreement lifecycle events.",
+  "enum": [
+    "AmendedAndRestated",
+    "AmendedParties",
+    "AmendedTerms",
+    "Novation",
+    "Superseded",
+    "Termination"
+  ],
+  "oneOf": [
+    {
+      "enum": [
+        "AmendedAndRestated"
+      ],
+      "title": "AmendedAndRestated",
+      "description": "Represents a change in terms and or parties where the agreement is required to be restated in its entirety."
+    },
+    
+    {
+      "enum": [
+        "AmendedParties"
+      ],
+      "title": "AmendedParties",
+      "description": "Represents a change to the contractual parties to an agreement through the process of addition or deletion."
+    },
+    
+    {
+      "enum": [
+        "AmendedTerms"
+      ],
+      "title": "AmendedTerms",
+      "description": "Specifies that an agreement event results in updated agreement terms for the overall legal agreement to which the agreement event applies."
+    },
+    
+    {
+      "enum": [
+        "Novation"
+      ],
+      "title": "Novation",
+      "description": "Represents a change where certain trades will be moved to a different agreement while the existing agreement remains in place."
+    },
+    
+    {
+      "enum": [
+        "Superseded"
+      ],
+      "title": "Superseded",
+      "description": "Represents a change where an agreement is being superseded by another existing agreement and the agreement that is being amended is being terminated as a function of this process."
+    },
+    
+    {
+      "enum": [
+        "Termination"
+      ],
+      "title": "Termination",
+      "description": "Represents a change that results in the related agreement being terminated."
+    }
+  ]
+}

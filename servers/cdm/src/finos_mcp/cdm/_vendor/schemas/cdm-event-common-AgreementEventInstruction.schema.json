@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.common",
+  "type": "object",
+  "title": "AgreementEventInstruction",
+  "description": "Specifies the date of the event and the effective date of the event.",
+  "properties": {
+    "eventDate": {
+      "description": "Specifies the date of the agreement event.",
+      "type": "string"
+    },
+    "effectiveDate": {
+      "description": "Specifies the effective date of the agreement event.",
+      "type": "string"
+    },
+    "instruction": {
+      "description": "Specifies the instruction associated with the agreement event triggered by an amendment.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-event-common-AgreementInstruction.schema.json"
+      },
+      "minItems": 0
+    },
+    "intent": {
+      "description": "Specifies the purposes for which the amendment agreement exists and how it will impact the agreement to which it applies.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-event-common-AgreementEventIntentEnum.schema.json"
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "eventDate",
+    "effectiveDate"
+  ]
+}

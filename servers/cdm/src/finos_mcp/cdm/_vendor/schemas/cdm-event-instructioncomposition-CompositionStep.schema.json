@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.instructioncomposition",
+  "type": "object",
+  "title": "CompositionStep",
+  "description": "Represents a single atomic step in the Instruction Composition lifecycle, including its instructions, status, and optional output. Each CompositionStep is defined by an identifier, a timestamp and a single Instruction.",
+  "properties": {
+    "identifier": {
+      "description": "Identification of the Instruction Composition step.",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "Date and time of the execution of the Instruction Composition step after being executed.",
+      "type": "string"
+    },
+    "compositionStepInstruction": {
+      "description": "Set of instructions defining the steps of each Instruction Composition process.",
+      "$ref": "cdm-event-instructioncomposition-CompositionStepInstruction.schema.json"
+    }
+  },
+  "required": [
+    "compositionStepInstruction"
+  ]
+}

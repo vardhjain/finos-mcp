@@ -1,0 +1,2 @@
+{"tool": "validate_context", "args": {"context": {"type": "fdc3.instrument", "id": {"ticker": "MSFT"}}},
+ "expect": {"valid": true, "issues": {"$len": 0}}}

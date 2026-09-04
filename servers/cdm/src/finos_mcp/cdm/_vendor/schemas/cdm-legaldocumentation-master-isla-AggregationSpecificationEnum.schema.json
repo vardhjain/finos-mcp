@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isla",
+  "type": "string",
+  "title": "AggregationSpecificationEnum",
+  "description": "The potential options for specifying whether mark to market value of collateral is determined on an aggregated or loan by loan basis.",
+  "enum": [
+    "Aggregated",
+    "AggregatedAndLoanByLoan",
+    "LoanByLoan",
+    "NotSpecified"
+  ],
+  "oneOf": [
+    {
+      "enum": [
+        "Aggregated"
+      ],
+      "title": "Aggregated",
+      "description": "The market value is determined on an aggregated basis."
+    },
+    
+    {
+      "enum": [
+        "AggregatedAndLoanByLoan"
+      ],
+      "title": "AggregatedAndLoanByLoan",
+      "description": "The market value is determined on an aggregated basis for some loans but on a Loan by Loan basis for others."
+    },
+    
+    {
+      "enum": [
+        "LoanByLoan"
+      ],
+      "title": "LoanByLoan",
+      "description": "The market value is determined on a loan by loan basis."
+    },
+    
+    {
+      "enum": [
+        "NotSpecified"
+      ],
+      "title": "NotSpecified",
+      "description": "It is not specified how the market value is determined."
+    }
+  ]
+}

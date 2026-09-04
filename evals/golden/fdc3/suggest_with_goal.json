@@ -1,0 +1,2 @@
+{"tool": "suggest_intent", "args": {"context_type": "fdc3.instrument", "goal": "show a price chart"},
+ "expect": {"detected_by": "explicit", "suggestions": {"$first": {"name": "ViewChart"}}}}

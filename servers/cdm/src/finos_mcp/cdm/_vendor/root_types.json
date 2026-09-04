@@ -1,0 +1,101 @@
+{
+  "root_types": [
+    {
+      "name": "Instruction",
+      "namespace": "cdm.event.common",
+      "extends": null,
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "BusinessEvent",
+      "namespace": "cdm.event.common",
+      "extends": "EventInstruction",
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "AgreementEvent",
+      "namespace": "cdm.event.common",
+      "extends": "AgreementEventInstruction",
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "AgreementInstruction",
+      "namespace": "cdm.event.common",
+      "extends": null,
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "TradeState",
+      "namespace": "cdm.event.common",
+      "extends": null,
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "CounterpartyPositionState",
+      "namespace": "cdm.event.common",
+      "extends": null,
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "TransferState",
+      "namespace": "cdm.event.common",
+      "extends": null,
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "SecurityLendingInvoice",
+      "namespace": "cdm.event.common",
+      "extends": null,
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "CollateralPortfolio",
+      "namespace": "cdm.event.common",
+      "extends": null,
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "InstructionComposition",
+      "namespace": "cdm.event.instructioncomposition",
+      "extends": null,
+      "source_file": "event-instructioncomposition-type.rosetta"
+    },
+    {
+      "name": "AvailableInventory",
+      "namespace": "cdm.event.position",
+      "extends": null,
+      "source_file": "event-position-type.rosetta"
+    },
+    {
+      "name": "SecurityLocate",
+      "namespace": "cdm.event.position",
+      "extends": "AvailableInventory",
+      "source_file": "event-position-type.rosetta"
+    },
+    {
+      "name": "WorkflowStep",
+      "namespace": "cdm.event.workflow",
+      "extends": null,
+      "source_file": "event-workflow-type.rosetta"
+    },
+    {
+      "name": "LegalAgreement",
+      "namespace": "cdm.legaldocumentation.common",
+      "extends": "LegalAgreementBase",
+      "source_file": "legaldocumentation-common-type.rosetta"
+    },
+    {
+      "name": "Observation",
+      "namespace": "cdm.observable.event",
+      "extends": null,
+      "source_file": "observable-event-type.rosetta"
+    },
+    {
+      "name": "EligibleCollateralSpecification",
+      "namespace": "cdm.product.collateral",
+      "extends": null,
+      "source_file": "product-collateral-type.rosetta"
+    }
+  ],
+  "count": 16
+}

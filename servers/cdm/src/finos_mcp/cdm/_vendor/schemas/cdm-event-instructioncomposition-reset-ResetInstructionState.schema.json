@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.instructioncomposition.reset",
+  "type": "object",
+  "title": "ResetInstructionState",
+  "description": "The definitive state object for the Reset process. It acts as a cumulative 'Golden Record,' storing every data point captured from Step 1 (Index Collection) through Step 7 (Final Calculation) to ensure deterministic processing.",
+  "properties": {
+    "floatingRateIndex": {
+      "description": "The benchmark rate index (e.g., LIBOR, EURIBOR, SOFR) identified for this reset.",
+      "$ref": "cdm-base-staticdata-asset-rates-FloatingRateIndexEnum.schema.json"
+    },
+    "tradeDate": {
+      "description": "The date the underlying trade was executed, used for referencing the relevant holiday calendars.",
+      "type": "string"
+    },
+    "unadjustedCalculationPeriod": {
+      "description": "The raw start and end dates of the period before any business day adjustments are applied.",
+      "$ref": "cdm-product-common-schedule-CalculationPeriodBase.schema.json"
+    },
+    "unadjustedResetDate": {
+      "description": "The theoretical reset date before applying business day conventions.",
+      "type": "string"
+    },
+    "adjustedCalculationPeriod": {
+      "description": "The calculation period after adjusting for non-business days and relevant financial calendars.",
+      "$ref": "cdm-product-common-schedule-CalculationPeriodBase.schema.json"
+    },
+    "adjustedResetDate": {
+      "description": "The final, legally binding reset date after applying business day conventions.",
+      "type": "string"
+    }
+  }
+}

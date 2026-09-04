@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.instructioncomposition.reset",
+  "type": "object",
+  "title": "CollectFloatingRateOptionInstruction",
+  "description": "Instruction that identifies the floating rate index and the trade date required for downstream Floating Rate Option Data retrieval.",
+  "properties": {
+    "floatingRateIndex": {
+      "$ref": "cdm-base-staticdata-asset-rates-FloatingRateIndexEnum.schema.json"
+    },
+    "tradeDate": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "floatingRateIndex",
+    "tradeDate"
+  ]
+}

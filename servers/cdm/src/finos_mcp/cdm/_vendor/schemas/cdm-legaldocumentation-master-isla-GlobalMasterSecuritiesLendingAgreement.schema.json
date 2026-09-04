@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isla",
+  "type": "object",
+  "title": "GlobalMasterSecuritiesLendingAgreement",
+  "description": "The set of elections that define a GMSLA.",
+  "properties": {
+    "collateral": {
+      "description": "The definitions regarding collateral relating to the GMSLA.",
+      "$ref": "cdm-legaldocumentation-master-isla-CollateralSpecification.schema.json"
+    },
+    "baseCurrency": {
+      "description": "The definitions regarding base currency determinations relating to the GMSLA.",
+      "$ref": "cdm-legaldocumentation-master-isla-BaseCurrency.schema.json"
+    },
+    "eventsOfDefault": {
+      "description": "The definitions regarding any different events of default relating to the GMSLA.",
+      "$ref": "cdm-legaldocumentation-master-isla-EventsOfDefault.schema.json"
+    }
+  },
+  "required": [
+    "collateral",
+    "baseCurrency",
+    "eventsOfDefault"
+  ]
+}

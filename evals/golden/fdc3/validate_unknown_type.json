@@ -1,0 +1,1 @@
+{"tool": "validate_context", "args": {"context": {"type": "fdc3.spaceship"}}, "expect_error": "not_found"}

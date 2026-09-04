@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.observable.asset",
+  "type": "object",
+  "title": "BasketConstituent",
+  "description": "Identifies the constituents of the basket",
+  "properties": {
+    "observable": {
+      "description": "Specifies the object to be observed for a price, it could be an asset or a reference, within the context of a Basket",
+      "$ref": "cdm-observable-asset-Observable.schema.json"
+    },
+    "quantity": {
+      "description": "Specifies a quantity schedule to be associated to an individual underlier that is a basket constituent. The multiple cardinality is aligned to the one of the PriceQuantity->quantity that this quantity is referencing.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-base-math-metafields-ReferenceWithMetaNonNegativeQuantitySchedule.schema.json"
+      },
+      "minItems": 0
+    },
+    "initialValuationPrice": {
+      "description": "Specifies an initial price schedule to be associated to an individual underlier that is a basket constituent. The multiple cardinality is aligned to the one of the PriceQuantity->price that this price is referencing.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-observable-asset-metafields-ReferenceWithMetaPriceSchedule.schema.json"
+      },
+      "minItems": 0
+    },
+    "interimValuationPrice": {
+      "description": "Specifies an interim price schedule to be associated to an individual underlier that is a basket constituent. The multiple cardinality is aligned to the one of the PriceQuantity->price that this price is referencing.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-observable-asset-metafields-ReferenceWithMetaPriceSchedule.schema.json"
+      },
+      "minItems": 0
+    },
+    "finalValuationPrice": {
+      "description": "Specifies a final price schedule to be associated to an individual underlier that is a basket constituent. The multiple cardinality is aligned to the one of the PriceQuantity->price that this price is referencing.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-observable-asset-metafields-ReferenceWithMetaPriceSchedule.schema.json"
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "observable"
+  ]
+}

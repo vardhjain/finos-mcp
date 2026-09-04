@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.product.common.settlement",
+  "type": "string",
+  "title": "ContingentTransferEnum",
+  "description": "The qualification of the type of transfer contingent on a trade lifecycle event.",
+  "enum": [
+    "CorporateAction",
+    "CreditEvent",
+    "Exercise"
+  ],
+  "oneOf": [
+    {
+      "enum": [
+        "CorporateAction"
+      ],
+      "title": "CorporateAction",
+      "description": "A transfer corresponding to a corporate action event."
+    },
+    
+    {
+      "enum": [
+        "CreditEvent"
+      ],
+      "title": "CreditEvent",
+      "description": "A transfer resulting from a credit event."
+    },
+    
+    {
+      "enum": [
+        "Exercise"
+      ],
+      "title": "Exercise",
+      "description": "A transfer associated with an exercise lifecycle event."
+    }
+  ]
+}

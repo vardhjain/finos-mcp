@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.instructioncomposition",
+  "type": "object",
+  "title": "CompositionStepInstructions",
+  "description": "Container for all instruction steps that can be used within an InstructionComposition.",
+  "properties": {
+    "collectFloatingRateOption": {
+      "description": "Data needed to execute the extraction of the Floating Rate Option index name.",
+      "$ref": "cdm-event-instructioncomposition-reset-CollectFloatingRateOptionInstruction.schema.json"
+    },
+    "determineUnadjustedCalculationPeriod": {
+      "description": "Data needed to determine the Unadjusted Calculation Period.",
+      "$ref": "cdm-event-instructioncomposition-reset-DetermineUnadjustedCalculationPeriodInstruction.schema.json"
+    },
+    "adjustPeriod": {
+      "description": "Data needed to adjust the Calculation Period.",
+      "$ref": "cdm-event-instructioncomposition-reset-AdjustPeriodInstruction.schema.json"
+    },
+    "adjustDate": {
+      "description": "Data needed to adjust the Reset Date.",
+      "$ref": "cdm-event-instructioncomposition-reset-AdjustDateInstruction.schema.json"
+    }
+  }
+}

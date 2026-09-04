@@ -1,0 +1,3 @@
+{"tool": "suggest_intent", "args": {"context": {"type": "fdc3.instrument", "id": {"ticker": "AAPL"}}},
+ "expect": {"context_type": "fdc3.instrument", "detected_by": "type_field",
+            "suggestions": {"$min_len": 5, "$first": {"name": "ViewInstrument"}}}}

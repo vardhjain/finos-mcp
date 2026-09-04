@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.instructioncomposition",
+  "type": "string",
+  "title": "InstructionCompositionTypeEnum",
+  "description": "The enumerated values to specify the type of Instruction Composition.",
+  "enum": [
+    "ResetInstruction"
+  ],
+  "oneOf": [
+    {
+      "enum": [
+        "ResetInstruction"
+      ],
+      "title": "ResetInstruction",
+      "description": "The relevant Steps for this Instruction Composition are: collectFloatingRateOptionIndex, recordFloatingRateOptionData, calculateObservationPeriod, adjustDates, recordMarketRates, and calculateResetValue."
+    }
+  ]
+}

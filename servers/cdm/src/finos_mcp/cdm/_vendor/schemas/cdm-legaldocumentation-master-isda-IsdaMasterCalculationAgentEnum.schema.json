@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isda",
+  "type": "string",
+  "title": "IsdaMasterCalculationAgentEnum",
+  "description": "The enumerated values to specify who the calculation agent in the ISDA Master Agreement.",
+  "enum": [
+    "Demands_4c",
+    "Demands_4d",
+    "Other",
+    "Party_A",
+    "Party_A_Or_Party_B",
+    "Party_A_Party_B",
+    "Party_B"
+  ],
+  "oneOf": [
+    {
+      "enum": [
+        "Demands_4c"
+      ],
+      "title": "Demands_4c",
+      "description": "Party making the demand for the purposes of Paragraphs 3, 4(c) and 5 and the Secured Party for the purposes of Paragraph 4(d)"
+    },
+    
+    {
+      "enum": [
+        "Demands_4d"
+      ],
+      "title": "Demands_4d",
+      "description": "Party making the demand for the purposes of Paragraphs 3, 4(d) and 5 and the Secured Party for the purposes of Paragraph 4(e )"
+    },
+    
+    {
+      "enum": [
+        "Other"
+      ],
+      "title": "Other",
+      "description": "Other (to be specified)"
+    },
+    
+    {
+      "enum": [
+        "Party_A"
+      ],
+      "title": "Party_A",
+      "description": "Party A"
+    },
+    
+    {
+      "enum": [
+        "Party_A_Or_Party_B"
+      ],
+      "title": "Party_A_Or_Party_B",
+      "description": "Party A or Party B, as applicable"
+    },
+    
+    {
+      "enum": [
+        "Party_A_Party_B"
+      ],
+      "title": "Party_A_Party_B",
+      "description": "Party A and Party B"
+    },
+    
+    {
+      "enum": [
+        "Party_B"
+      ],
+      "title": "Party_B",
+      "description": "Party B"
+    }
+  ]
+}

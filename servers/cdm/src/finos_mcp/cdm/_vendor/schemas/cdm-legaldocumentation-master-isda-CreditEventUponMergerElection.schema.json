@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isda",
+  "type": "object",
+  "title": "CreditEventUponMergerElection",
+  "description": "Defines whether Credit Event Upon Merger applies to either party, and specifies elections specific to the Credit Event Upon Merger Clause.",
+  "properties": {
+    "party": {
+      "description": "The party for which the provisions are being specified.",
+      "$ref": "cdm-base-staticdata-party-CounterpartyRoleEnum.schema.json"
+    },
+    "isApplicable": {
+      "description": "Defines whether Credit Event Upon Merger are applicable to the respective party (True) or not (False).",
+      "type": "boolean"
+    },
+    "materiallyWeakerReferencesCreditRating": {
+      "description": "Defines whether the definition of 'Materially Weaker' references a credit rating.",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "party",
+    "isApplicable",
+    "materiallyWeakerReferencesCreditRating"
+  ]
+}

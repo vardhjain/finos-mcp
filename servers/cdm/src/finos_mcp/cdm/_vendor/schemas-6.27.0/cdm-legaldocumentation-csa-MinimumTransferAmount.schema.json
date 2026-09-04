@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.csa",
+  "type": "object",
+  "title": "MinimumTransferAmount",
+  "description": "A class to specify amount of exposure reached before collateral has to be posted or returned.",
+  "properties": {
+    "partyElection": {
+      "description": "The parties' minimum transfer amount elections.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-legaldocumentation-csa-ElectiveAmountElection.schema.json"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  }
+}

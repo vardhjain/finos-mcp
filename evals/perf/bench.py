@@ -13,8 +13,10 @@ import argparse
 import asyncio
 import importlib
 import json
+import os
 import statistics
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -40,8 +42,16 @@ CASES: dict[str, list[tuple[str, dict[str, Any], float]]] = {
     ],
     "fdc3": [
         ("get_context_schema", {"type": "fdc3.instrument"}, 5.0),
-        ("validate_context", {"context": {"type": "fdc3.instrument", "id": {"ticker": "AAPL"}}}, 10.0),
-        ("suggest_intent", {"context": {"type": "fdc3.instrument", "id": {"ticker": "AAPL"}}}, 10.0),
+        (
+            "validate_context",
+            {"context": {"type": "fdc3.instrument", "id": {"ticker": "AAPL"}}},
+            10.0,
+        ),
+        (
+            "suggest_intent",
+            {"context": {"type": "fdc3.instrument", "id": {"ticker": "AAPL"}}},
+            10.0,
+        ),
         ("list_intents", {}, 10.0),
     ],
 }
@@ -99,8 +109,15 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=200)
     ap.add_argument("--out", type=Path, default=Path("perf.json"))
-    ap.add_argument("--strict", action="store_true", help="exit non-zero when a p95 budget is exceeded")
+    ap.add_argument(
+        "--strict", action="store_true", help="exit non-zero when a p95 budget is exceeded"
+    )
     args = ap.parse_args(argv)
+    # Keep per-call audit lines out of the benchmark's own output unless a path was chosen.
+    # Servers are created lazily inside bench_server, so this runs before any audit log opens.
+    os.environ.setdefault(
+        "FINOS_MCP_AUDIT_PATH", str(Path(tempfile.gettempdir()) / "finos-mcp-bench-audit.jsonl")
+    )
     results: dict[str, dict[str, float]] = {}
     for server in CASES:
         results.update(asyncio.run(bench_server(server, args.n)))
@@ -108,10 +125,15 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.write(f"{'tool':40} {'p50':>8} {'p95':>8} {'p99':>8} {'budget':>8}\n")
     for k, v in sorted(results.items()):
         flag = "  OVER" if k in over else ""
-        sys.stdout.write(f"{k:40} {v['p50']:8.2f} {v['p95']:8.2f} {v['p99']:8.2f} {v['budget_p95']:8.1f}{flag}\n")
+        sys.stdout.write(
+            f"{k:40} {v['p50']:8.2f} {v['p95']:8.2f} {v['p99']:8.2f} {v['budget_p95']:8.1f}{flag}\n"
+        )
     args.out.write_text(
         json.dumps(
-            {"latency_ms_p95": {k: v["p95"] for k, v in results.items()}, "latency_detail": results},
+            {
+                "latency_ms_p95": {k: v["p95"] for k, v in results.items()},
+                "latency_detail": results,
+            },
             indent=2,
             sort_keys=True,
         )

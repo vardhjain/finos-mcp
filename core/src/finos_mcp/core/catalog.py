@@ -16,11 +16,20 @@ from dataclasses import dataclass
 from typing import Any
 
 import bm25s
+import Stemmer
 from pydantic import BaseModel, Field
 from rapidfuzz import fuzz, process
 
 from .errors import FinosToolError, ambiguous, not_found
 from .models import SearchHit, Section
+
+_STEMMER = Stemmer.Stemmer("english")
+
+
+def _tokenize(texts: list[str]) -> Any:
+    """BM25 tokens with English stopwords removed and Snowball stemming applied."""
+    return bm25s.tokenize(texts, stopwords="en", stemmer=_STEMMER, show_progress=False)
+
 
 _NORM_RE = re.compile(r"[\s_\-./:]+")
 
@@ -107,7 +116,7 @@ class Catalog:
         self._titles = [d.title for d in self._docs]
         self._chunks: list[_Chunk] = []
         for i, d in enumerate(self._docs):
-            self._chunks.append(_Chunk(i, None, f"{d.title}\n{d.body[:2000]}"))
+            self._chunks.append(_Chunk(i, None, f"{d.title}\n{d.body}"))
             for s in d.sections:
                 if s.body:
                     self._chunks.append(
@@ -115,9 +124,7 @@ class Catalog:
                     )
         self._retriever: bm25s.BM25 | None = None
         if self._chunks:
-            tokens = bm25s.tokenize(
-                [c.text for c in self._chunks], stopwords="en", show_progress=False
-            )
+            tokens = _tokenize([c.text for c in self._chunks])
             self._retriever = bm25s.BM25()
             self._retriever.index(tokens, show_progress=False)
 
@@ -185,7 +192,7 @@ class Catalog:
     ) -> list[SearchHit]:
         if self._retriever is None or not query.strip():
             return []
-        q_tokens = bm25s.tokenize([query], stopwords="en", show_progress=False)
+        q_tokens = _tokenize([query])
         # bm25s returns ids/scores shaped (1, n); clamp n to corpus size.
         n = min(len(self._chunks), max(k * 4, 20))
         try:

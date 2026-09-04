@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.csa",
+  "type": "object",
+  "title": "MTAType",
+  "description": "Details whether the Minimum Transfer Amount is rating based, a fixed amount, or infinity.",
+  "properties": {
+    "fixedAmount": {
+      "description": "Defines that the Minimum Transfer Amount (MTA) is a Fixed Amount.",
+      "$ref": "cdm-legaldocumentation-csa-MTAFixedAmount.schema.json"
+    },
+    "ratingsBased": {
+      "description": "Defines that the Minimum Transfer Amount (MTA) is based on a Ratings condition(s).",
+      "$ref": "cdm-legaldocumentation-csa-MTARatingsBased.schema.json"
+    },
+    "other": {
+      "description": "Utilised where the clause data structure is not able to capture a material aspect of the clause.",
+      "type": "string"
+    }
+  }
+}

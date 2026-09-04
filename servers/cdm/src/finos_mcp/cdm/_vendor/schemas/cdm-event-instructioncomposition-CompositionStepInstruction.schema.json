@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.instructioncomposition",
+  "type": "object",
+  "title": "CompositionStepInstruction",
+  "description": "Set of instructions defining the steps of each Instruction Composition process. The CompositionStepInstruction is defined by a type (as the same instruction can be reused across different Instruction Composition types), and the selection of one of the list of CompositionStepInstructions (where the information for executing the step is held).",
+  "properties": {
+    "instructionCompositionType": {
+      "description": "Definition of the Instruction Composition.",
+      "$ref": "cdm-event-instructioncomposition-InstructionCompositionTypeEnum.schema.json"
+    },
+    "compositionStepInstructions": {
+      "description": "List of all Instruction CompositionSteps that can be reusable across Instruction Compositions.",
+      "$ref": "cdm-event-instructioncomposition-CompositionStepInstructions.schema.json"
+    }
+  },
+  "required": [
+    "instructionCompositionType",
+    "compositionStepInstructions"
+  ]
+}

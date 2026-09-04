@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.csa",
+  "type": "object",
+  "title": "CSAThreshold",
+  "properties": {
+    "thresholdType": {
+      "description": "Details whether the threshold is rating based, a fixed amount, or infinity.",
+      "$ref": "cdm-legaldocumentation-csa-ThresholdType.schema.json"
+    }
+  },
+  "required": [
+    "thresholdType"
+  ]
+}

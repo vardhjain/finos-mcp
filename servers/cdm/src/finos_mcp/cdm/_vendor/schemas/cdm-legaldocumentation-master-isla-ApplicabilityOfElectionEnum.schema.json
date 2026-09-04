@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isla",
+  "type": "string",
+  "title": "ApplicabilityOfElectionEnum",
+  "description": "The potential options for specifying whether a particular election applies in a GMSLA.",
+  "enum": [
+    "Applicable",
+    "NotApplicable",
+    "NotSpecified"
+  ],
+  "oneOf": [
+    {
+      "enum": [
+        "Applicable"
+      ],
+      "title": "Applicable",
+      "description": "The election is applicable."
+    },
+    
+    {
+      "enum": [
+        "NotApplicable"
+      ],
+      "title": "NotApplicable",
+      "description": "The election is not applicable."
+    },
+    
+    {
+      "enum": [
+        "NotSpecified"
+      ],
+      "title": "NotSpecified",
+      "description": "The applicability of the election has not been specified."
+    }
+  ]
+}

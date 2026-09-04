@@ -13,9 +13,7 @@ from mcp.client.stdio import StdioServerParameters
 @pytest.mark.anyio
 async def test_console_script_over_stdio(tmp_path: object) -> None:
     env = {**os.environ, "PYTHONUTF8": "1", "FINOS_MCP_AUDIT_PATH": str(tmp_path) + "/audit.jsonl"}
-    params = StdioServerParameters(
-        command=sys.executable, args=["-m", "finos_mcp.aigf"], env=env
-    )
+    params = StdioServerParameters(command=sys.executable, args=["-m", "finos_mcp.aigf"], env=env)
     async with Client(params, raise_exceptions=True) as client:
         tools = (await client.list_tools()).tools
         assert any(t.name == "get_control" for t in tools)

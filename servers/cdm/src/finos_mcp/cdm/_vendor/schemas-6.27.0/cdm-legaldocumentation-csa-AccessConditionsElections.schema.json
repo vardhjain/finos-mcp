@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.csa",
+  "type": "object",
+  "title": "AccessConditionsElections",
+  "description": "A class to specify the Termination Events that will be deemed an Access Condition or a Specified Condition.",
+  "properties": {
+    "party": {
+      "description": "The elective party.",
+      "$ref": "cdm-base-staticdata-party-CounterpartyRoleEnum.schema.json"
+    },
+    "illegality": {
+      "description": "Represents an illegality Termination Event.",
+      "type": "boolean"
+    },
+    "forceMajeure": {
+      "description": "Represents a force Majeure Termination Event.",
+      "type": "boolean"
+    },
+    "taxEvent": {
+      "description": "Represents a Tax Termination Event.",
+      "type": "boolean"
+    },
+    "taxEventUponMerger": {
+      "description": "Represents a Tax Event Upon Merger Termination Event.",
+      "type": "boolean"
+    },
+    "creditEventUponMerger": {
+      "description": "Represents a Credit Event Upon Merger Termination Event.",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "party",
+    "illegality",
+    "forceMajeure",
+    "taxEvent",
+    "taxEventUponMerger",
+    "creditEventUponMerger"
+  ]
+}

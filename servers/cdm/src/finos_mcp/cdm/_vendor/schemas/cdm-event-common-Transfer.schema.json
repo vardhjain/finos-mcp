@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.common",
+  "type": "object",
+  "title": "Transfer",
+  "description": "The type of transfer.",
+  "properties": {
+    "ScheduledTransfer": {
+      "description": "A transfer created from a scheduled event on a contract, e.g. Coupon, Dividend Return, Fixed Rate Return",
+      "$ref": "cdm-event-common-ScheduledTransfer.schema.json"
+    },
+    "UnscheduledTransfer": {
+      "description": "An ad-hoc transfer instigated by a party to the contract e.g. Recall, Return.",
+      "$ref": "cdm-event-common-UnscheduledTransfer.schema.json"
+    },
+    "ContingentTransfer": {
+      "description": "A transfer created from a contingent event on a contract, e.g. Corporate Action, Credit Event or Exercise",
+      "$ref": "cdm-event-common-ContingentTransfer.schema.json"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isda",
+  "type": "object",
+  "title": "AdditionalTerminationEventElection",
+  "description": "A party specific election to determine whether Additional Early Termination Events apply, and if so what they are.",
+  "properties": {
+    "party": {
+      "description": "The elective party.",
+      "$ref": "cdm-base-staticdata-party-CounterpartyRoleEnum.schema.json"
+    },
+    "isApplicable": {
+      "description": "Defines whether Additional Termination events apply (True) or not (False).",
+      "type": "boolean"
+    },
+    "furtherDetails": {
+      "description": "Further Details on the Additional Termination Events that apply to the party.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "party",
+    "isApplicable"
+  ]
+}

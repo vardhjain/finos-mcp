@@ -3,7 +3,15 @@ name = "finos-mcp-workspace"
 version = "0.1.0"
 description = "Workspace root for finos-mcp: typed, read-only MCP servers for FINOS standards"
 requires-python = ">=3.12"
-dependencies = []
+# The virtual root depends on every workspace member so a plain `uv run` (which syncs
+# only the root project) always has all servers and the evals importable.
+dependencies = [
+  "finos-mcp-core",
+  "finos-mcp-aigf",
+  "finos-mcp-cdm",
+  "finos-mcp-fdc3",
+  "finos-mcp-evals",
+]
 
 [tool.uv]
 package = false
@@ -16,6 +24,7 @@ finos-mcp-core = { workspace = true }
 finos-mcp-aigf = { workspace = true }
 finos-mcp-cdm = { workspace = true }
 finos-mcp-fdc3 = { workspace = true }
+finos-mcp-evals = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -47,12 +56,15 @@ namespace_packages = true
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
-module = ["bm25s", "bm25s.*", "frontmatter", "frontmatter.*"]
+module = ["bm25s", "bm25s.*", "frontmatter", "frontmatter.*", "Stemmer"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["core/tests", "servers/aigf/tests", "servers/cdm/tests", "servers/fdc3/tests", "evals"]
-addopts = "-q -p no:cacheprovider"
+# deepeval's pytest plugin (installed via the evals `llm` extra) blocks at startup on a
+# telemetry call unless DEEPEVAL_TELEMETRY_OPT_OUT is set; tier-C evals use its metric
+# classes directly, so the plugin is disabled outright.
+addopts = "-q -p no:cacheprovider -p no:deepeval --import-mode=importlib"
 filterwarnings = ["error::DeprecationWarning:finos_mcp.*"]
 
 [tool.coverage.run]

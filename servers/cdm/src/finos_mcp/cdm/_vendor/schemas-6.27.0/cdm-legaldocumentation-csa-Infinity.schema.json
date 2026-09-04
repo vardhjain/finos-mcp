@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.csa",
+  "type": "object",
+  "title": "Infinity",
+  "description": "Defines that the Threshold is Infinity.",
+  "properties": {
+    "party": {
+      "description": "Elective Party to which the condition applies.",
+      "$ref": "cdm-base-staticdata-party-CounterpartyRoleEnum.schema.json"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.event.common",
+  "type": "object",
+  "title": "AgreementInstruction",
+  "description": "Instruction to a function that will be used to perform an agreement event",
+  "properties": {
+    "primitiveInstruction": {
+      "description": "A Primitive Instruction set for an Agreement Event triggered by an Amendment",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-event-common-AgreementPrimitiveInstruction.schema.json"
+      },
+      "minItems": 0
+    },
+    "before": {
+      "description": "Specifies the Legal Agreement that will be acted upon by the primitive event function.",
+      "$ref": "cdm-legaldocumentation-common-metafields-ReferenceWithMetaLegalAgreement.schema.json"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isda",
+  "type": "object",
+  "title": "AdditionalTerminationEvent",
+  "description": "Elections to determine if Additional Termination Events apply to either party, and if so, what they are.",
+  "properties": {
+    "partyElection": {
+      "description": "The party election specific to Additional Termination Events clause(s).",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-legaldocumentation-master-isda-AdditionalTerminationEventElection.schema.json"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  }
+}

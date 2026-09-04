@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isda",
+  "type": "object",
+  "title": "GoverningLaw",
+  "description": "A represenation of the governing law of the ISDA master agreement.",
+  "properties": {
+    "governingLaw": {
+      "description": "Selection from the enumerated list of governing laws specified.",
+      "$ref": "cdm-legaldocumentation-master-isda-IsdaMasterGoverningLawEnum.schema.json"
+    },
+    "governingLawIfOther": {
+      "description": "Specifies the governing law if the choice on the enumerated list is 'Other'.",
+      "type": "string"
+    },
+    "includesNonContractualObligations": {
+      "description": "Specifies if the governing law of the agreement extends to any non-contractual obligations.",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "governingLaw",
+    "includesNonContractualObligations"
+  ]
+}

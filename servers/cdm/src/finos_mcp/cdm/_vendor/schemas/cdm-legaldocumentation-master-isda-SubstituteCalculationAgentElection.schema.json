@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.master.isda",
+  "type": "object",
+  "title": "SubstituteCalculationAgentElection",
+  "description": "An election to determine the characteristics around a subsitution Calculation Agent.",
+  "properties": {
+    "methodologyForSubstitutionExists": {
+      "description": "A boolean to represent if the metholodgy exists for appointing a substitute Calculation Agent (True), or not (False).",
+      "type": "boolean"
+    },
+    "substituteCalculationAgentIsIndependent": {
+      "description": "A boolean to represent that if a substitute Calculation Agent can be appointed, whether they should be independent (True) or not (False).",
+      "type": "boolean"
+    },
+    "substituteCalculationAgentAppointedBy": {
+      "description": "A representation of who appoints the substitute Calculation Agent.",
+      "$ref": "cdm-legaldocumentation-master-isda-SubstituteCalculationAgentAppointerEnum.schema.json"
+    },
+    "substituteCalculationAgentAppointedByIfOther": {
+      "description": "A representation of who appoints the substitute Calculation Agent if 'Other' or 'Third Party'.",
+      "type": "string"
+    },
+    "costOfSubstituteCalculationAgentIsBoreBy": {
+      "description": "A representation of who bears the cost of the substitute calculation agent.",
+      "$ref": "cdm-legaldocumentation-master-isda-PayeeOfSubstituteCalculationAgentEnum.schema.json"
+    },
+    "costOfSubstituteCalculationAgentBoreByIfOther": {
+      "description": "A representation of who bears the cost of the substitute calculation agent if 'Other'.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "methodologyForSubstitutionExists"
+  ]
+}

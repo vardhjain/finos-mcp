@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.observable.asset",
+  "type": "object",
+  "title": "PriceSchedule",
+  "description": "Specifies the price of a financial instrument in a trade as a schedule of measures. A price generically expresses the value of an exchange as a ratio: it measures the amount of one thing needed to be exchanged for 1 unit of another thing (e.g. cash in a specific currency in exchange for a bond or share). This generic representation can be used to support any type of financial price beyond just cash price: e.g. an interest rate, a foreign exchange rate, etc. This data type is generically based on a schedule and can also be used to represent a price as a single value.",
+  "properties": {
+    "value": {
+      "description": "The initial rate or amount, as the case may be. An initial rate of 5% would be represented as 0.05.",
+      "type": "number"
+    },
+    "datedValue": {
+      "description": "The schedule of step date and value pairs. On each step date the associated step value becomes effective. A list of steps may be ordered in the document by ascending step date. An FpML document containing an unordered list of steps is still regarded as a conformant document.",
+      "type": "array",
+      "items": {
+        "$ref": "cdm-base-math-DatedValue.schema.json"
+      },
+      "minItems": 0
+    },
+    "unit": {
+      "description": "Qualifies the unit by which the amount is measured. Optional because a measure may be unit-less (e.g. when representing a ratio between amounts in the same unit).",
+      "$ref": "cdm-base-math-UnitType.schema.json"
+    },
+    "perUnitOf": {
+      "description": "Provides an attribute to define the unit of the thing being priced. For example, {amount, unitOfAmount, PerUnitOfAmount} = [10, EUR, Shares] = (10.00 EUR/SHARE) * (300,000 SHARES) = EUR 3,000,000.00 (Shares cancel out in the calculation).",
+      "$ref": "cdm-base-math-UnitType.schema.json"
+    },
+    "priceType": {
+      "description": "Specifies the price type as an enumeration: interest rate, exchange rate, asset price etc. This attribute is mandatory so that prices can always be clasiffied according to their type. The price type implies some constraints on the price's units.",
+      "$ref": "cdm-observable-asset-PriceTypeEnum.schema.json"
+    },
+    "priceSubType": {
+      "description": "Allows further classification of the chosen price type.",
+      "$ref": "cdm-observable-asset-PriceSubTypeEnum.schema.json"
+    },
+    "priceExpression": {
+      "description": "(Optionally) Specifies whether the price is expressed in absolute or percentage terms.",
+      "$ref": "cdm-observable-asset-PriceExpressionEnum.schema.json"
+    },
+    "composite": {
+      "description": "(Optionally) Specifies the underlying price components if the price can be expressed as a composite: e.g. dirty price = clean price + accrued.",
+      "$ref": "cdm-observable-asset-PriceComposite.schema.json"
+    },
+    "arithmeticOperator": {
+      "description": "(Optionally) When the price is to be understood as an operator to apply to an observable, i.e. a spread, multiplier or min/max.",
+      "$ref": "cdm-base-math-ArithmeticOperationEnum.schema.json"
+    },
+    "premiumType": {
+      "description": "(Optionally) Additional attribute that can further define any premium to the price.",
+      "$ref": "cdm-observable-asset-PremiumTypeEnum.schema.json"
+    },
+    "derivedQuantity": {
+      "description": "Specifies the derived quantity associated with the price. For instance when the price is an asset price expressed in a currency, the primary quantity is the asset's quantity while the derived quantity is the corresponding monetary amount in that currency. When the price is an exchange rate, both the primary quantity and the derived quantity are monetary amounts, in the 2 currencies of the exchange rate.",
+      "$ref": "cdm-base-math-NonNegativeQuantitySchedule.schema.json"
+    }
+  },
+  "required": [
+    "priceType"
+  ]
+}

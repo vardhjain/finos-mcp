@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$anchor": "cdm.legaldocumentation.csa",
+  "type": "object",
+  "title": "ThresholdType",
+  "description": "Details whether the threshold is rating based, a fixed amount, or infinity.",
+  "properties": {
+    "fixedAmount": {
+      "description": "Defines that the Threshold is a Fixed Amount.",
+      "$ref": "cdm-legaldocumentation-csa-ThresholdFixedAmount.schema.json"
+    },
+    "ratingsBased": {
+      "description": "Defines that the Threshold is based on a Ratings condition(s).",
+      "$ref": "cdm-legaldocumentation-csa-ThresholdRatingsBased.schema.json"
+    },
+    "infinity": {
+      "description": "Defines that the Threshold is Infinity.",
+      "$ref": "cdm-legaldocumentation-csa-Infinity.schema.json"
+    },
+    "other": {
+      "description": "Utilised where the clause data structure is not able to capture a material aspect of the clause.",
+      "type": "string"
+    }
+  }
+}

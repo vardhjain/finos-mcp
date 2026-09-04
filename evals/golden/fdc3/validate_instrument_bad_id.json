@@ -1,0 +1,2 @@
+{"tool": "validate_context", "args": {"context": {"type": "fdc3.instrument", "id": "MSFT"}},
+ "expect": {"valid": false, "issues": {"$min_len": 1, "$first": {"json_path": "$.id"}}}}

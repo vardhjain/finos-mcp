@@ -1,0 +1,185 @@
+{
+  "choice_types": [
+    {
+      "name": "Asset",
+      "namespace": "cdm.base.staticdata.asset.common",
+      "alternatives": [
+        "Cash",
+        "Commodity",
+        "DigitalAsset",
+        "Instrument"
+      ],
+      "source_file": "base-staticdata-asset-common-type.rosetta"
+    },
+    {
+      "name": "Instrument",
+      "namespace": "cdm.base.staticdata.asset.common",
+      "alternatives": [
+        "ListedDerivative",
+        "Loan",
+        "Security"
+      ],
+      "source_file": "base-staticdata-asset-common-type.rosetta"
+    },
+    {
+      "name": "Transfer",
+      "namespace": "cdm.event.common",
+      "alternatives": [
+        "ScheduledTransfer",
+        "UnscheduledTransfer",
+        "ContingentTransfer"
+      ],
+      "source_file": "event-common-type.rosetta"
+    },
+    {
+      "name": "CompositionState",
+      "namespace": "cdm.event.instructioncomposition",
+      "alternatives": [
+        "ResetInstructionState"
+      ],
+      "source_file": "event-instructioncomposition-type.rosetta"
+    },
+    {
+      "name": "InstructionCompositionSteps",
+      "namespace": "cdm.event.instructioncomposition",
+      "alternatives": [
+        "ResetInstructionSteps"
+      ],
+      "source_file": "event-instructioncomposition-type.rosetta"
+    },
+    {
+      "name": "CreditSupportAgreementElections",
+      "namespace": "cdm.legaldocumentation.csa",
+      "alternatives": [
+        "CreditSupportAgreementInitialMarginElections",
+        "CreditSupportAgreementVariationMarginElections",
+        "CreditSupportAgreementLegacyElections"
+      ],
+      "source_file": "legaldocumentation-csa-type.rosetta"
+    },
+    {
+      "name": "DirectionRatingSet",
+      "namespace": "cdm.legaldocumentation.csa",
+      "alternatives": [
+        "AllDirectionRating",
+        "AnyDirectionRating",
+        "DirectionRating"
+      ],
+      "source_file": "legaldocumentation-csa-type.rosetta"
+    },
+    {
+      "name": "EligibilityToHoldCollateralCriteria",
+      "namespace": "cdm.legaldocumentation.csa",
+      "alternatives": [
+        "AllEligibilityToHoldCollateralCriteria",
+        "AnyEligibilityToHoldCollateralCriteria",
+        "RatingAgencyValue",
+        "AmountOfNetCapital"
+      ],
+      "source_file": "legaldocumentation-csa-type.rosetta"
+    },
+    {
+      "name": "Index",
+      "namespace": "cdm.observable.asset",
+      "alternatives": [
+        "CreditIndex",
+        "EquityIndex",
+        "InterestRateIndex",
+        "ForeignExchangeRateIndex",
+        "OtherIndex"
+      ],
+      "source_file": "observable-asset-type.rosetta"
+    },
+    {
+      "name": "InterestRateIndex",
+      "namespace": "cdm.observable.asset",
+      "alternatives": [
+        "FloatingRateIndex",
+        "InflationIndex"
+      ],
+      "source_file": "observable-asset-type.rosetta"
+    },
+    {
+      "name": "Observable",
+      "namespace": "cdm.observable.asset",
+      "alternatives": [
+        "Asset",
+        "Basket",
+        "Index"
+      ],
+      "source_file": "observable-asset-type.rosetta"
+    },
+    {
+      "name": "RateSpecification",
+      "namespace": "cdm.product.asset",
+      "alternatives": [
+        "FixedRateSpecification",
+        "FloatingRateSpecification",
+        "InflationRateSpecification"
+      ],
+      "source_file": "product-asset-type.rosetta"
+    },
+    {
+      "name": "CollateralCriteria",
+      "namespace": "cdm.product.collateral",
+      "alternatives": [
+        "AllCriteria",
+        "AnyCriteria",
+        "NegativeCriteria",
+        "CollateralIssuerType",
+        "CollateralGuarantorType",
+        "AssetType",
+        "IssuerCountryOfOrigin",
+        "AssetCountryOfOrigin",
+        "CurrencyCodeEnum",
+        "IssuerName",
+        "IssuerAgencyRating",
+        "SovereignAgencyRating",
+        "AssetAgencyRating",
+        "AssetMaturity",
+        "AssetIdentifier",
+        "CollateralTaxonomy",
+        "ListingExchange",
+        "ListingSector",
+        "IndexType",
+        "CounterpartyOwnIssuePermitted",
+        "DomesticCurrencyIssued"
+      ],
+      "source_file": "product-collateral-type.rosetta"
+    },
+    {
+      "name": "Payout",
+      "namespace": "cdm.product.template",
+      "alternatives": [
+        "AssetPayout",
+        "CommodityPayout",
+        "CreditDefaultPayout",
+        "FixedPricePayout",
+        "InterestRatePayout",
+        "OptionPayout",
+        "PerformancePayout",
+        "SettlementPayout"
+      ],
+      "source_file": "product-template-type.rosetta"
+    },
+    {
+      "name": "Underlier",
+      "namespace": "cdm.product.template",
+      "alternatives": [
+        "Observable",
+        "Product"
+      ],
+      "source_file": "product-template-type.rosetta"
+    },
+    {
+      "name": "Product",
+      "namespace": "cdm.product.template",
+      "alternatives": [
+        "TransferableProduct",
+        "NonTransferableProduct"
+      ],
+      "source_file": "product-template-type.rosetta"
+    }
+  ],
+  "count": 16
+}

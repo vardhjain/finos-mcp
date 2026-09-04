@@ -1,0 +1,2 @@
+{"tool": "get_context_schema", "args": {"type": "fdc3.instrument"},
+ "expect": {"type": "fdc3.instrument", "required": {"$contains": ["type", "id"]}, "example": {"type": "fdc3.instrument"}}}

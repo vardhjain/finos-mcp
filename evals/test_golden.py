@@ -96,7 +96,9 @@ async def client_for() -> AsyncIterator[Any]:
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(("server", "case_path"), _cases(), ids=lambda p: p.name if isinstance(p, Path) else p)
+@pytest.mark.parametrize(
+    ("server", "case_path"), _cases(), ids=lambda p: p.name if isinstance(p, Path) else p
+)
 async def test_golden(server: str, case_path: Path, client_for: Any) -> None:
     case = json.loads(case_path.read_text(encoding="utf-8"))
     client = await client_for(server)

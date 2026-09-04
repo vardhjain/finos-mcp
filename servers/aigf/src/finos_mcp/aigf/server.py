@@ -67,6 +67,42 @@ class State:
     manifest: SourceManifest
     risks: Catalog
     controls: Catalog
+    combined: Catalog
+
+
+def _citation(doc: Document) -> str:
+    return f"aigf://{doc.kind}/{doc.id}"
+
+
+def _enrich(doc: Document, fw: Framework) -> Document:
+    """Append crosswalk keys/titles and linked record titles to the indexed text.
+
+    Lets search answer "what maps to NIST SA-9" (reference key + resolved title) and
+    "which detective controls cover data poisoning" (a control's text now names the
+    risks it mitigates). Sections and the raw markdown are untouched.
+    """
+    rec: Risk | Control = fw.risks[doc.id] if doc.kind == "risk" else fw.controls[doc.id]
+    lines = [doc.body, ""]
+    refs = [f"{r.key} {r.title}" if r.title else r.key for r in rec.references]
+    if refs:
+        lines.append("External references: " + "; ".join(refs))
+    if isinstance(rec, Risk):
+        linked = [fw.controls[c].title for c in rec.mitigated_by if c in fw.controls]
+        if linked:
+            lines.append("Mitigated by: " + "; ".join(linked))
+        typed = ", ".join(
+            f"{fw.controls[c].type_label} control {fw.controls[c].title}"
+            for c in rec.mitigated_by
+            if c in fw.controls
+        )
+        if typed:
+            lines.append(typed)
+    else:
+        linked = [fw.risks[r].title for r in rec.mitigates if r in fw.risks]
+        if linked:
+            lines.append("Mitigates risks: " + "; ".join(linked))
+        lines.append(f"{rec.type_label} control.")
+    return doc.model_copy(update={"body": "\n".join(lines)})
 
 
 @lru_cache(maxsize=1)
@@ -74,13 +110,14 @@ def state() -> State:
     fw = load_framework(VENDOR_DIR)
     manifest = SourceManifest.load(VENDOR_DIR)
     risk_docs, control_docs = framework_documents(fw)
+    risk_docs = [_enrich(d, fw) for d in risk_docs]
+    control_docs = [_enrich(d, fw) for d in control_docs]
     return State(
         framework=fw,
         manifest=manifest,
-        risks=Catalog(risk_docs, kind="risk", citation_uri=lambda d: f"aigf://risk/{d.id}"),
-        controls=Catalog(
-            control_docs, kind="control", citation_uri=lambda d: f"aigf://control/{d.id}"
-        ),
+        risks=Catalog(risk_docs, kind="risk", citation_uri=_citation),
+        controls=Catalog(control_docs, kind="control", citation_uri=_citation),
+        combined=Catalog([*risk_docs, *control_docs], kind="record", citation_uri=_citation),
     )
 
 
@@ -255,10 +292,12 @@ def map_risks_to_controls(
     risk_ids: list[str] | None = None,
     query: str | None = None,
     k: int = 5,
+    control_type: ControlType | None = None,
 ) -> Mapping:
     """Map risks to the controls that mitigate them. Pass explicit risk_ids (up to 25) or a
-    free-text query (the top k matching risks are used). Reports uncovered risks and any
-    inputs that did not resolve."""
+    free-text query (the top k matching risks are used). Controls are ordered by how many
+    of the given risks they cover; control_type (PREV or DET) restricts the result.
+    Reports uncovered risks and any inputs that did not resolve."""
     st = state()
     fw = st.framework
     if not risk_ids and not query:
@@ -280,18 +319,27 @@ def map_risks_to_controls(
         for hit in st.risks.search(query, k=k):
             resolved.setdefault(hit.id, fw.risks[hit.id])
     controls: dict[str, Control] = {}
+    coverage: dict[str, int] = {}
     edges: list[Edge] = []
     uncovered: list[str] = []
     for rid in sorted(resolved):
         r = resolved[rid]
-        if not r.mitigated_by:
+        matched = [
+            cid
+            for cid in r.mitigated_by
+            if control_type is None or fw.controls[cid].type == control_type
+        ]
+        if not matched:
             uncovered.append(rid)
-        for cid in r.mitigated_by:
+        for cid in matched:
             controls[cid] = fw.controls[cid]
+            coverage[cid] = coverage.get(cid, 0) + 1
             edges.append(Edge(risk_id=rid, control_id=cid))
+    ranked = sorted(controls, key=lambda cid: (-coverage[cid], cid))
+    edges.sort(key=lambda e: (-coverage[e.control_id], e.control_id, e.risk_id))
     return Mapping(
         risks=[_risk_summary(resolved[i]) for i in sorted(resolved)],
-        controls=[_control_summary(controls[i]) for i in sorted(controls)],
+        controls=[_control_summary(controls[i]) for i in ranked],
         edges=edges,
         uncovered_risks=uncovered,
         unresolved=unresolved,
@@ -331,13 +379,9 @@ def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchRes
     if k < 1 or k > 20:
         raise invalid_input("k must be between 1 and 20.")
     st = state()
-    hits: list[SearchHit] = []
-    if scope in ("risks", "all"):
-        hits += st.risks.search(query, k=k)
-    if scope in ("controls", "all"):
-        hits += st.controls.search(query, k=k)
-    hits.sort(key=lambda h: -h.score)
-    return SearchResults(query=query, scope=scope, hits=hits[:k])
+    predicate = None if scope == "all" else (lambda d: d.kind == scope[:-1])
+    hits: list[SearchHit] = st.combined.search(query, k=k, predicate=predicate)
+    return SearchResults(query=query, scope=scope, hits=hits)
 
 
 def list_reference_frameworks() -> ReferenceFrameworks:

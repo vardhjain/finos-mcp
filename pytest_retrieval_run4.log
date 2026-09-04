@@ -1,0 +1,203 @@
+F..                                                                      [100%]
+================================== FAILURES ===================================
+________________________ test_retrieval_recall_and_mrr ________________________
+
+client = Client(server=<mcp.server.mcpserver.server.MCPServer object at 0x000001E07F1A3020>, raise_exceptions=True, read_timeou...sion.ClientSession object at 0x000001E07F3963F0>, _exit_stack=<contextlib.AsyncExitStack object at 0x000001E07F396CC0>)
+
+    @pytest.mark.anyio
+    async def test_retrieval_recall_and_mrr(client: Client) -> None:
+        modes = ("search_only", "tool_assisted")
+        scores: dict[str, dict[int, list[float]]] = {m: {1: [], 3: [], 5: []} for m in modes}
+        rr: dict[str, list[float]] = {m: [] for m in modes}
+        misses: list[dict[str, Any]] = []
+    
+        for q in QUESTIONS:
+            expected = set(q["expected"])
+            search_ids = await _search_ids(client, q["question"], k=10)
+            tool_ids = await _tool_assisted_ids(client, q, search_ids)
+            ranked = {"search_only": search_ids, "tool_assisted": tool_ids}
+    
+            for mode, ids in ranked.items():
+                for k in (1, 3, 5):
+                    scores[mode][k].append(recall_at_k(ids, expected, k))
+                rr[mode].append(reciprocal_rank(ids, expected))
+                if recall_at_k(ids, expected, 5) < 1.0:
+                    misses.append(
+                        {
+                            "id": q["id"],
+                            "mode": mode,
+                            "kind": q["kind"],
+                            "question": q["question"],
+                            "expected": sorted(expected),
+                            "top5": ids[:5],
+                        }
+                    )
+    
+        per_mode = {
+            mode: {
+                "recall_at_1": mean(scores[mode][1]),
+                "recall_at_3": mean(scores[mode][3]),
+                "recall_at_5": mean(scores[mode][5]),
+                "mrr": mean(rr[mode]),
+            }
+            for mode in modes
+        }
+    
+        metrics = {
+            "retrieval": {
+                "questions": len(QUESTIONS),
+                "search_only": per_mode["search_only"],
+                "tool_assisted": per_mode["tool_assisted"],
+                "recall_at_5": per_mode["tool_assisted"]["recall_at_5"],
+                "mrr": per_mode["tool_assisted"]["mrr"],
+                "misses": misses,
+            }
+        }
+    
+        out_path = Path(os.environ.get("FINOS_MCP_METRICS_OUT") or "retrieval.json")
+        out_path.write_text(json.dumps(metrics, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    
+        search_misses = [m for m in misses if m["mode"] == "search_only"]
+        tool_misses = [m for m in misses if m["mode"] == "tool_assisted"]
+    
+>       assert per_mode["search_only"]["recall_at_5"] >= RECALL_AT_5_SEARCH_ONLY_MIN, (
+            f"search-only recall@5 {per_mode['search_only']['recall_at_5']:.3f} < "
+            f"{RECALL_AT_5_SEARCH_ONLY_MIN}; misses:\n"
+            + "\n".join(f"  {m['id']} ({m['kind']}) expected={m['expected']} top5={m['top5']}" for m in search_misses)
+        )
+E       AssertionError: search-only recall@5 0.635 < 0.85; misses:
+E           q14 (direct) expected=['AIR-PREV-018'] top5=['AIR-PREV-012', 'AIR-SEC-010', 'AIR-DET-009', 'AIR-SEC-024', 'AIR-SEC-029']
+E           q18 (concept) expected=['AIR-SEC-008'] top5=['AIR-OP-016', 'AIR-DET-001', 'AIR-OP-006', 'AIR-SEC-010', 'AIR-OP-005']
+E           q21 (concept) expected=['AIR-OP-005'] top5=['AIR-OP-006', 'AIR-PREV-003', 'AIR-PREV-007', 'AIR-PREV-020', 'AIR-SEC-010']
+E           q23 (concept) expected=['AIR-OP-007'] top5=['AIR-DET-009', 'AIR-SEC-025', 'AIR-PREV-007', 'AIR-SEC-029', 'AIR-SEC-008']
+E           q24 (concept) expected=['AIR-RC-001'] top5=['AIR-PREV-017', 'AIR-OP-018', 'AIR-SEC-010', 'AIR-OP-014', 'AIR-PREV-002']
+E           q25 (concept) expected=['AIR-SEC-009'] top5=['AIR-OP-016', 'AIR-PREV-012', 'AIR-SEC-010', 'AIR-OP-028', 'AIR-PREV-014']
+E           q26 (concept) expected=['AIR-SEC-002'] top5=['AIR-PREV-014', 'AIR-OP-006', 'AIR-PREV-002', 'AIR-DET-013', 'AIR-SEC-029']
+E           q31 (crosswalk) expected=['AIR-DET-001', 'AIR-PREV-007', 'AIR-PREV-014', 'AIR-PREV-020'] top5=['AIR-SEC-029', 'AIR-PREV-023', 'AIR-PREV-018', 'AIR-PREV-022', 'AIR-PREV-019']
+E           q32 (crosswalk) expected=['AIR-OP-014'] top5=['AIR-PREV-023', 'AIR-RC-001', 'AIR-PREV-019', 'AIR-PREV-003', 'AIR-DET-011']
+E           q35 (crosswalk) expected=['AIR-OP-016'] top5=['AIR-PREV-022', 'AIR-SEC-026', 'AIR-PREV-023', 'AIR-PREV-017', 'AIR-DET-021']
+E           q39 (crosswalk) expected=['AIR-RC-001'] top5=['AIR-PREV-018', 'AIR-RC-022', 'AIR-PREV-020', 'AIR-SEC-024', 'AIR-PREV-022']
+E           q40 (crosswalk) expected=['AIR-OP-016'] top5=['AIR-PREV-020', 'AIR-RC-001', 'AIR-RC-022', 'AIR-PREV-012', 'AIR-PREV-010']
+E           q41 (multihop) expected=['AIR-DET-004', 'AIR-PREV-022'] top5=['AIR-SEC-027', 'AIR-OP-028', 'AIR-PREV-022', 'AIR-SEC-029', 'AIR-PREV-023']
+E           q42 (multihop) expected=['AIR-DET-004', 'AIR-PREV-020', 'AIR-PREV-023'] top5=['AIR-PREV-020', 'AIR-SEC-026', 'AIR-SEC-024', 'AIR-PREV-023', 'AIR-PREV-019']
+E           q43 (multihop) expected=['AIR-DET-004', 'AIR-DET-021'] top5=['AIR-SEC-024', 'AIR-SEC-026', 'AIR-PREV-019', 'AIR-SEC-025', 'AIR-PREV-020']
+E           q44 (multihop) expected=['AIR-PREV-005', 'AIR-PREV-006'] top5=['AIR-DET-016', 'AIR-OP-004', 'AIR-PREV-005', 'AIR-DET-001', 'AIR-DET-011']
+E           q45 (multihop) expected=['AIR-DET-004', 'AIR-DET-011', 'AIR-DET-015'] top5=['AIR-OP-006', 'AIR-DET-015', 'AIR-PREV-010', 'AIR-PREV-022', 'AIR-DET-001']
+E           q46 (multihop) expected=['AIR-PREV-002', 'AIR-PREV-006', 'AIR-PREV-007', 'AIR-PREV-012'] top5=['AIR-RC-023', 'AIR-DET-001', 'AIR-PREV-014', 'AIR-PREV-007', 'AIR-PREV-002']
+E           q47 (multihop) expected=['AIR-PREV-003', 'AIR-PREV-007', 'AIR-PREV-008', 'AIR-PREV-017'] top5=['AIR-OP-020', 'AIR-PREV-003', 'AIR-PREV-008', 'AIR-DET-001', 'AIR-OP-018']
+E           q48 (multihop) expected=['AIR-PREV-002', 'AIR-PREV-006', 'AIR-PREV-012'] top5=['AIR-RC-001', 'AIR-DET-001', 'AIR-DET-009', 'AIR-PREV-014', 'AIR-PREV-003']
+E           q49 (multihop) expected=['AIR-PREV-018', 'AIR-PREV-019', 'AIR-PREV-022', 'AIR-PREV-023'] top5=['AIR-SEC-029', 'AIR-PREV-018', 'AIR-PREV-023', 'AIR-SEC-024', 'AIR-PREV-022']
+E           q50 (multihop) expected=['AIR-DET-013', 'AIR-DET-016', 'AIR-DET-021'] top5=['AIR-OP-014', 'AIR-RC-022', 'AIR-PREV-006', 'AIR-DET-011', 'AIR-DET-001']
+E       assert 0.635 >= 0.85
+
+evals\retrieval\test_retrieval.py:232: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+{"ts": "2026-09-04T22:27:24.638+00:00", "server": "finos-mcp-aigf", "method": "server/discover", "request_id": 1, "session": "local", "outcome": "ok", "duration_ms": 0.3}
+----------------------------- Captured log setup ------------------------------
+DEBUG    bm25s:__init__.py:529 Building index from IDs objects
+DEBUG    bm25s:__init__.py:529 Building index from IDs objects
+---------------------------- Captured stderr call -----------------------------
+{"ts": "2026-09-04T22:27:24.660+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 2, "session": "local", "tool": "search_framework", "args_bytes": 172, "args_sha256": "24092e76367f8f667660aa16f2f8dd067247c2cbfa4862c1314fdc2274752c57", "result_bytes": 10042, "outcome": "ok", "duration_ms": 8.296}
+{"ts": "2026-09-04T22:27:24.660+00:00", "server": "finos-mcp-aigf", "method": "tools/list", "request_id": 3, "session": "local", "outcome": "ok", "duration_ms": 1.303}
+{"ts": "2026-09-04T22:27:24.678+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 4, "session": "local", "tool": "search_framework", "args_bytes": 156, "args_sha256": "74ea4994d3f0f328bfbdc064a52e25acc0147209d860edf643d3b8d5783c0f1a", "result_bytes": 9792, "outcome": "ok", "duration_ms": 5.138}
+{"ts": "2026-09-04T22:27:24.695+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 5, "session": "local", "tool": "search_framework", "args_bytes": 131, "args_sha256": "2a2218e336a3b22265598666566a318f65f14a507dca9cfcaf749eb62b8673c2", "result_bytes": 9966, "outcome": "ok", "duration_ms": 5.104}
+{"ts": "2026-09-04T22:27:24.701+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 6, "session": "local", "tool": "search_framework", "args_bytes": 133, "args_sha256": "9c06a7f381c41feee67020f1884e9ac8e944da144d411e4bd8b534d908c6f6a6", "result_bytes": 10144, "outcome": "ok", "duration_ms": 4.828}
+{"ts": "2026-09-04T22:27:24.707+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 7, "session": "local", "tool": "search_framework", "args_bytes": 149, "args_sha256": "c92ee942f4f529a72bdf2dfd926babf928547564e207bd8a3319ce9cd105cadc", "result_bytes": 10250, "outcome": "ok", "duration_ms": 5.084}
+{"ts": "2026-09-04T22:27:24.716+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 8, "session": "local", "tool": "search_framework", "args_bytes": 133, "args_sha256": "1af4bbc3fe914d8d0dcdf47e797b415f346d9ee8c0b8dfc94daed0b9f61f43b7", "result_bytes": 9594, "outcome": "ok", "duration_ms": 4.521}
+{"ts": "2026-09-04T22:27:24.722+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 9, "session": "local", "tool": "search_framework", "args_bytes": 138, "args_sha256": "2eca86f4a409966f4191bafbfaebc88d2bb202caffdebf93921369fcbf05818b", "result_bytes": 10080, "outcome": "ok", "duration_ms": 5.404}
+{"ts": "2026-09-04T22:27:24.725+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 10, "session": "local", "tool": "search_framework", "args_bytes": 136, "args_sha256": "153da9b58995d09008a3e4144dca96adb9ada5f4af974bb63c0a27a526fcc0d6", "result_bytes": 10348, "outcome": "ok", "duration_ms": 5.184}
+{"ts": "2026-09-04T22:27:24.737+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 11, "session": "local", "tool": "search_framework", "args_bytes": 142, "args_sha256": "11966c4fde85d6cb909cfc561339b199d214f5c4fdc835c3b397c05ea39756d6", "result_bytes": 10210, "outcome": "ok", "duration_ms": 4.819}
+{"ts": "2026-09-04T22:27:24.743+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 12, "session": "local", "tool": "search_framework", "args_bytes": 138, "args_sha256": "a3896492233fe567c7e5f0debedeb18109a831d5d1331327597b868e0efb65fd", "result_bytes": 10032, "outcome": "ok", "duration_ms": 4.714}
+{"ts": "2026-09-04T22:27:24.748+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 13, "session": "local", "tool": "search_framework", "args_bytes": 154, "args_sha256": "b605c3631e6bef88e6f9fa9f3933527d968371d48e1541f75ca2ac7a69025690", "result_bytes": 10076, "outcome": "ok", "duration_ms": 5.611}
+{"ts": "2026-09-04T22:27:24.758+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 14, "session": "local", "tool": "search_framework", "args_bytes": 129, "args_sha256": "207494101b7f2c5c2a61f10821472792597430af2149ad125ca3ca141748e8f9", "result_bytes": 9964, "outcome": "ok", "duration_ms": 4.818}
+{"ts": "2026-09-04T22:27:24.764+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 15, "session": "local", "tool": "search_framework", "args_bytes": 134, "args_sha256": "70bacdd01acfe0cf64358befab44a4c505adb19eef77a1d3b1fa8964e541e36c", "result_bytes": 9886, "outcome": "ok", "duration_ms": 5.242}
+{"ts": "2026-09-04T22:27:24.772+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 16, "session": "local", "tool": "search_framework", "args_bytes": 131, "args_sha256": "f7abd59e3251ca92f3964c1f7f3ba4374cd4737e2a480776144dd0b99f41a041", "result_bytes": 9944, "outcome": "ok", "duration_ms": 5.153}
+{"ts": "2026-09-04T22:27:24.780+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 17, "session": "local", "tool": "search_framework", "args_bytes": 152, "args_sha256": "45417ee5b46934b1b92c8e2a2cf0b306fd658036c39bb170e66c3c6d4ebf0c65", "result_bytes": 10172, "outcome": "ok", "duration_ms": 5.118}
+{"ts": "2026-09-04T22:27:24.785+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 18, "session": "local", "tool": "search_framework", "args_bytes": 185, "args_sha256": "5df92c565f9883f9e49e879afd8ea61de29fcca44898bda0a46718582e61914a", "result_bytes": 10302, "outcome": "ok", "duration_ms": 5.528}
+{"ts": "2026-09-04T22:27:24.794+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 19, "session": "local", "tool": "search_framework", "args_bytes": 188, "args_sha256": "8e8c762151e860e23fdf622e4a2298d77a04eed368a519dd51a73a91864a1d06", "result_bytes": 10232, "outcome": "ok", "duration_ms": 6.069}
+{"ts": "2026-09-04T22:27:24.803+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 20, "session": "local", "tool": "search_framework", "args_bytes": 220, "args_sha256": "99e2163c9b4ff31827ec59713a82f9652625f533ec8655ff7cdc2888969bc9f3", "result_bytes": 10044, "outcome": "ok", "duration_ms": 6.234}
+{"ts": "2026-09-04T22:27:24.807+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 21, "session": "local", "tool": "search_framework", "args_bytes": 136, "args_sha256": "feece49314230f6b7d8828634c3bf289446d78e52e379222b1fbdd86e16d5c9d", "result_bytes": 10420, "outcome": "ok", "duration_ms": 5.315}
+{"ts": "2026-09-04T22:27:24.817+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 22, "session": "local", "tool": "search_framework", "args_bytes": 163, "args_sha256": "60cdc6fb28d2bcb04dadc175ec94fabae00c91ac03ea48a65956786b9edd7f0d", "result_bytes": 10220, "outcome": "ok", "duration_ms": 5.137}
+{"ts": "2026-09-04T22:27:24.820+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 23, "session": "local", "tool": "search_framework", "args_bytes": 176, "args_sha256": "3b861fe0ea888147f1e48e87c23965a18b10fd18cfe49f76a2857912398574b7", "outcome": "rate_limited", "duration_ms": 0.048}
+{"ts": "2026-09-04T22:27:25.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 24, "session": "local", "tool": "search_framework", "args_bytes": 176, "args_sha256": "3b861fe0ea888147f1e48e87c23965a18b10fd18cfe49f76a2857912398574b7", "result_bytes": 10292, "outcome": "ok", "duration_ms": 5.902}
+{"ts": "2026-09-04T22:27:25.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 25, "session": "local", "tool": "search_framework", "args_bytes": 130, "args_sha256": "15293ea05fb280f795bea898523fc55cc015357e2d32141e1651c4c380ad1b41", "outcome": "rate_limited", "duration_ms": 0.046}
+{"ts": "2026-09-04T22:27:25.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 26, "session": "local", "tool": "search_framework", "args_bytes": 130, "args_sha256": "15293ea05fb280f795bea898523fc55cc015357e2d32141e1651c4c380ad1b41", "result_bytes": 10576, "outcome": "ok", "duration_ms": 4.836}
+{"ts": "2026-09-04T22:27:25.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 27, "session": "local", "tool": "search_framework", "args_bytes": 149, "args_sha256": "19b8d7dae7de1471d3a0e2a2256940592a28d3a4399de67d2cfd973855fd9db6", "outcome": "rate_limited", "duration_ms": 0.039}
+{"ts": "2026-09-04T22:27:26.179+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 28, "session": "local", "tool": "search_framework", "args_bytes": 149, "args_sha256": "19b8d7dae7de1471d3a0e2a2256940592a28d3a4399de67d2cfd973855fd9db6", "result_bytes": 9950, "outcome": "ok", "duration_ms": 5.289}
+{"ts": "2026-09-04T22:27:26.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 29, "session": "local", "tool": "search_framework", "args_bytes": 142, "args_sha256": "1986dc21bb6a28f3edfdabb92ba3dbca884d18d235e015bfc1d116ecf4f65072", "outcome": "rate_limited", "duration_ms": 0.036}
+{"ts": "2026-09-04T22:27:26.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 30, "session": "local", "tool": "search_framework", "args_bytes": 142, "args_sha256": "1986dc21bb6a28f3edfdabb92ba3dbca884d18d235e015bfc1d116ecf4f65072", "result_bytes": 10012, "outcome": "ok", "duration_ms": 5.206}
+{"ts": "2026-09-04T22:27:26.681+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 31, "session": "local", "tool": "search_framework", "args_bytes": 175, "args_sha256": "728b880505566f7c1bb1c040da9af904fccb17bc0c7ce624aa7ce72e9a96dd79", "outcome": "rate_limited", "duration_ms": 0.037}
+{"ts": "2026-09-04T22:27:27.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 32, "session": "local", "tool": "search_framework", "args_bytes": 175, "args_sha256": "728b880505566f7c1bb1c040da9af904fccb17bc0c7ce624aa7ce72e9a96dd79", "result_bytes": 10058, "outcome": "ok", "duration_ms": 6.018}
+{"ts": "2026-09-04T22:27:27.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 33, "session": "local", "tool": "search_framework", "args_bytes": 160, "args_sha256": "1d5c3f75534f322b48126a241d5b34a4c51580e87d36e57dfbafb229e6e1ab40", "outcome": "rate_limited", "duration_ms": 0.035}
+{"ts": "2026-09-04T22:27:27.676+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 34, "session": "local", "tool": "search_framework", "args_bytes": 160, "args_sha256": "1d5c3f75534f322b48126a241d5b34a4c51580e87d36e57dfbafb229e6e1ab40", "result_bytes": 10556, "outcome": "ok", "duration_ms": 5.429}
+{"ts": "2026-09-04T22:27:27.678+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 35, "session": "local", "tool": "search_framework", "args_bytes": 175, "args_sha256": "cd1e6400d93c191abb3a6d1252f6e1d9f92ef18646f646131121fdc1440ba1ff", "outcome": "rate_limited", "duration_ms": 0.041}
+{"ts": "2026-09-04T22:27:28.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 36, "session": "local", "tool": "search_framework", "args_bytes": 175, "args_sha256": "cd1e6400d93c191abb3a6d1252f6e1d9f92ef18646f646131121fdc1440ba1ff", "result_bytes": 10004, "outcome": "ok", "duration_ms": 5.519}
+{"ts": "2026-09-04T22:27:28.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 37, "session": "local", "tool": "search_framework", "args_bytes": 156, "args_sha256": "8989e669da2a086be3349351c8517d1c6aa322f4eb22e29dd9f52aea3bea6d1c", "outcome": "rate_limited", "duration_ms": 0.037}
+{"ts": "2026-09-04T22:27:28.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 38, "session": "local", "tool": "search_framework", "args_bytes": 156, "args_sha256": "8989e669da2a086be3349351c8517d1c6aa322f4eb22e29dd9f52aea3bea6d1c", "result_bytes": 9844, "outcome": "ok", "duration_ms": 5.062}
+{"ts": "2026-09-04T22:27:28.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 39, "session": "local", "tool": "search_framework", "args_bytes": 152, "args_sha256": "cb54cccfbbd005cda6257e61c3388eb264461649cd931da4f7082f75c7028629", "outcome": "rate_limited", "duration_ms": 0.033}
+{"ts": "2026-09-04T22:27:29.178+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 40, "session": "local", "tool": "search_framework", "args_bytes": 152, "args_sha256": "cb54cccfbbd005cda6257e61c3388eb264461649cd931da4f7082f75c7028629", "result_bytes": 10372, "outcome": "ok", "duration_ms": 4.951}
+{"ts": "2026-09-04T22:27:29.179+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 41, "session": "local", "tool": "search_framework", "args_bytes": 143, "args_sha256": "bd8924c1db30e868604a3069a833b01fefc5d0af678a87e2a8a86ddd73159454", "outcome": "rate_limited", "duration_ms": 0.035}
+{"ts": "2026-09-04T22:27:29.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 42, "session": "local", "tool": "search_framework", "args_bytes": 143, "args_sha256": "bd8924c1db30e868604a3069a833b01fefc5d0af678a87e2a8a86ddd73159454", "result_bytes": 9766, "outcome": "ok", "duration_ms": 5.671}
+{"ts": "2026-09-04T22:27:29.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 43, "session": "local", "tool": "search_framework", "args_bytes": 118, "args_sha256": "8a9d66e6e8692e69c03a65111697ea2a221c68aedd4d5af35c753cfba6176f59", "outcome": "rate_limited", "duration_ms": 0.034}
+{"ts": "2026-09-04T22:27:30.171+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 44, "session": "local", "tool": "search_framework", "args_bytes": 118, "args_sha256": "8a9d66e6e8692e69c03a65111697ea2a221c68aedd4d5af35c753cfba6176f59", "result_bytes": 9618, "outcome": "ok", "duration_ms": 4.718}
+{"ts": "2026-09-04T22:27:30.171+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 45, "session": "local", "tool": "find_by_external_reference", "args_bytes": 45, "args_sha256": "e7a877edbba141fc60be71997f0724fb744fa349648023ffb8b41b3272debacf", "result_bytes": 2576, "outcome": "ok", "duration_ms": 1.163}
+{"ts": "2026-09-04T22:27:30.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 46, "session": "local", "tool": "search_framework", "args_bytes": 98, "args_sha256": "b766f85333d0e0debfdb1bf11badaa91db0424e85618239a3256203b8cc72b1b", "outcome": "rate_limited", "duration_ms": 0.044}
+{"ts": "2026-09-04T22:27:30.678+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 47, "session": "local", "tool": "search_framework", "args_bytes": 98, "args_sha256": "b766f85333d0e0debfdb1bf11badaa91db0424e85618239a3256203b8cc72b1b", "result_bytes": 9804, "outcome": "ok", "duration_ms": 3.548}
+{"ts": "2026-09-04T22:27:30.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 48, "session": "local", "tool": "find_by_external_reference", "args_bytes": 44, "args_sha256": "8d96af0aa55cf5183a78f68c36dda78cb7e474bcb8d9cc354c4bd3214094a13e", "result_bytes": 875, "outcome": "ok", "duration_ms": 1.016}
+{"ts": "2026-09-04T22:27:30.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 49, "session": "local", "tool": "search_framework", "args_bytes": 108, "args_sha256": "4ae03e0f1920395b85569862f98a749b1c9d8e64ccfcbf777368bee9a904e2f2", "outcome": "rate_limited", "duration_ms": 0.032}
+{"ts": "2026-09-04T22:27:31.177+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 50, "session": "local", "tool": "search_framework", "args_bytes": 108, "args_sha256": "4ae03e0f1920395b85569862f98a749b1c9d8e64ccfcbf777368bee9a904e2f2", "result_bytes": 9808, "outcome": "ok", "duration_ms": 4.071}
+{"ts": "2026-09-04T22:27:31.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 51, "session": "local", "tool": "find_by_external_reference", "args_bytes": 44, "args_sha256": "fa70350eeaf65693835f09b36e5bfff6a83c1b471986dbbdf91ef1aae34f0e07", "result_bytes": 913, "outcome": "ok", "duration_ms": 0.919}
+{"ts": "2026-09-04T22:27:31.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 52, "session": "local", "tool": "search_framework", "args_bytes": 141, "args_sha256": "7b74e607a079c6d62b4d10a9ab8ca17bc055e9fd60b2964bcb42957eda4b57e0", "outcome": "rate_limited", "duration_ms": 0.032}
+{"ts": "2026-09-04T22:27:31.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 53, "session": "local", "tool": "search_framework", "args_bytes": 141, "args_sha256": "7b74e607a079c6d62b4d10a9ab8ca17bc055e9fd60b2964bcb42957eda4b57e0", "result_bytes": 9700, "outcome": "ok", "duration_ms": 4.624}
+{"ts": "2026-09-04T22:27:31.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 54, "session": "local", "tool": "find_by_external_reference", "args_bytes": 44, "args_sha256": "137af6e48218f200d2e7815388fa4a454f5255c670510554d22bff9c47dccdee", "result_bytes": 915, "outcome": "ok", "duration_ms": 0.815}
+{"ts": "2026-09-04T22:27:31.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 55, "session": "local", "tool": "search_framework", "args_bytes": 122, "args_sha256": "c672011bf5fc84915b2298200be3bbf038980b1d90612529767fb7c8fb2934aa", "outcome": "rate_limited", "duration_ms": 0.03}
+{"ts": "2026-09-04T22:27:32.175+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 56, "session": "local", "tool": "search_framework", "args_bytes": 122, "args_sha256": "c672011bf5fc84915b2298200be3bbf038980b1d90612529767fb7c8fb2934aa", "result_bytes": 9698, "outcome": "ok", "duration_ms": 4.074}
+{"ts": "2026-09-04T22:27:32.179+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 57, "session": "local", "tool": "find_by_external_reference", "args_bytes": 41, "args_sha256": "25df0ce53c4927fe807cbbeab57613478b52698b19afd5462346c08e46d7f542", "result_bytes": 863, "outcome": "ok", "duration_ms": 0.928}
+{"ts": "2026-09-04T22:27:32.181+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 58, "session": "local", "tool": "search_framework", "args_bytes": 116, "args_sha256": "b37feacf006c1846349b19345d87c5bb3c5ae24d24ffe2680d45582d25e09554", "outcome": "rate_limited", "duration_ms": 0.032}
+{"ts": "2026-09-04T22:27:32.678+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 59, "session": "local", "tool": "search_framework", "args_bytes": 116, "args_sha256": "b37feacf006c1846349b19345d87c5bb3c5ae24d24ffe2680d45582d25e09554", "result_bytes": 10116, "outcome": "ok", "duration_ms": 4.306}
+{"ts": "2026-09-04T22:27:32.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 60, "session": "local", "tool": "find_by_external_reference", "args_bytes": 39, "args_sha256": "8c6c5471cb6519bf59f7109b5b1606d2e9617399dfe6c60b84c842cad2ec49ac", "result_bytes": 911, "outcome": "ok", "duration_ms": 0.952}
+{"ts": "2026-09-04T22:27:32.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 61, "session": "local", "tool": "search_framework", "args_bytes": 108, "args_sha256": "f7295c07b291ad5bd8aa2710fd97b9f3b466bd509cc170a13fdae754a0094d83", "outcome": "rate_limited", "duration_ms": 0.031}
+{"ts": "2026-09-04T22:27:33.170+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 62, "session": "local", "tool": "search_framework", "args_bytes": 108, "args_sha256": "f7295c07b291ad5bd8aa2710fd97b9f3b466bd509cc170a13fdae754a0094d83", "result_bytes": 9698, "outcome": "ok", "duration_ms": 4.015}
+{"ts": "2026-09-04T22:27:33.170+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 63, "session": "local", "tool": "find_by_external_reference", "args_bytes": 43, "args_sha256": "afe927599029bb1156ba63705fb2333bfd09233c014a037f9d4918505d104adb", "result_bytes": 899, "outcome": "ok", "duration_ms": 0.859}
+{"ts": "2026-09-04T22:27:33.170+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 64, "session": "local", "tool": "search_framework", "args_bytes": 137, "args_sha256": "2b2b435c9939fa075cf7cdd6efd309797981a5f0c87b20cbcc37a0e3781f84f2", "outcome": "rate_limited", "duration_ms": 0.03}
+{"ts": "2026-09-04T22:27:33.663+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 65, "session": "local", "tool": "search_framework", "args_bytes": 137, "args_sha256": "2b2b435c9939fa075cf7cdd6efd309797981a5f0c87b20cbcc37a0e3781f84f2", "result_bytes": 9788, "outcome": "ok", "duration_ms": 4.143}
+{"ts": "2026-09-04T22:27:33.663+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 66, "session": "local", "tool": "find_by_external_reference", "args_bytes": 42, "args_sha256": "2b7b42ac50e16afeb27c9e11e84acb1f4654842527394275cc07ce79fada0842", "result_bytes": 1492, "outcome": "ok", "duration_ms": 0.792}
+{"ts": "2026-09-04T22:27:33.663+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 67, "session": "local", "tool": "search_framework", "args_bytes": 136, "args_sha256": "95bfd022e5b2ee621d08e3a69833902abbfcc6dd127712c76e9cd82dee403bbf", "outcome": "rate_limited", "duration_ms": 0.03}
+{"ts": "2026-09-04T22:27:34.178+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 68, "session": "local", "tool": "search_framework", "args_bytes": 136, "args_sha256": "95bfd022e5b2ee621d08e3a69833902abbfcc6dd127712c76e9cd82dee403bbf", "result_bytes": 9600, "outcome": "ok", "duration_ms": 4.005}
+{"ts": "2026-09-04T22:27:34.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 69, "session": "local", "tool": "find_by_external_reference", "args_bytes": 46, "args_sha256": "6123c45d8cad439258062673995eb639eea77a57b18f5aefac3c28c5bfcf023b", "result_bytes": 927, "outcome": "ok", "duration_ms": 0.928}
+{"ts": "2026-09-04T22:27:34.182+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 70, "session": "local", "tool": "search_framework", "args_bytes": 128, "args_sha256": "83cba89967b6abd3a385492b953fd9026bf249d500c29982deaa18eb62a55d6a", "outcome": "rate_limited", "duration_ms": 0.031}
+{"ts": "2026-09-04T22:27:34.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 71, "session": "local", "tool": "search_framework", "args_bytes": 128, "args_sha256": "83cba89967b6abd3a385492b953fd9026bf249d500c29982deaa18eb62a55d6a", "result_bytes": 10082, "outcome": "ok", "duration_ms": 4.544}
+{"ts": "2026-09-04T22:27:34.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 72, "session": "local", "tool": "find_by_external_reference", "args_bytes": 54, "args_sha256": "e46b6625ac42006927ba090c6cfc6562e0598a0c33d113726dac68dfa2313ddd", "result_bytes": 931, "outcome": "ok", "duration_ms": 1.051}
+{"ts": "2026-09-04T22:27:34.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 73, "session": "local", "tool": "search_framework", "args_bytes": 212, "args_sha256": "2b528eee09d4184459a7363ef90a92773939455b47f5f4820124035955c6267c", "outcome": "rate_limited", "duration_ms": 0.031}
+{"ts": "2026-09-04T22:27:35.181+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 74, "session": "local", "tool": "search_framework", "args_bytes": 212, "args_sha256": "2b528eee09d4184459a7363ef90a92773939455b47f5f4820124035955c6267c", "result_bytes": 10154, "outcome": "ok", "duration_ms": 6.689}
+{"ts": "2026-09-04T22:27:35.184+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 75, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 197, "args_sha256": "3b4c00d29a9397153f1cd3c59225744c7275bf43cd8a3632f6e42a96eece872d", "result_bytes": 7600, "outcome": "ok", "duration_ms": 2.687}
+{"ts": "2026-09-04T22:27:35.203+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 76, "session": "local", "tool": "search_framework", "args_bytes": 167, "args_sha256": "ee8a86c8af7a48a21676120e16a3002fd27656c9a1cf98765f062321fac15916", "outcome": "rate_limited", "duration_ms": 0.045}
+{"ts": "2026-09-04T22:27:35.679+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 77, "session": "local", "tool": "search_framework", "args_bytes": 167, "args_sha256": "ee8a86c8af7a48a21676120e16a3002fd27656c9a1cf98765f062321fac15916", "result_bytes": 9986, "outcome": "ok", "duration_ms": 5.064}
+{"ts": "2026-09-04T22:27:35.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 78, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 152, "args_sha256": "e7ff6fc6c2b754ab0d3c696fd63d37c715df036925aa1670e65f69ad4db225fc", "result_bytes": 11212, "outcome": "ok", "duration_ms": 2.535}
+{"ts": "2026-09-04T22:27:35.687+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 79, "session": "local", "tool": "search_framework", "args_bytes": 183, "args_sha256": "daf4557daa2b9018db072045faa3f626379c45a0d456b1d40eef38a6e9bf7c65", "outcome": "rate_limited", "duration_ms": 0.034}
+{"ts": "2026-09-04T22:27:36.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 80, "session": "local", "tool": "search_framework", "args_bytes": 183, "args_sha256": "daf4557daa2b9018db072045faa3f626379c45a0d456b1d40eef38a6e9bf7c65", "result_bytes": 9858, "outcome": "ok", "duration_ms": 5.459}
+{"ts": "2026-09-04T22:27:36.182+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 81, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 168, "args_sha256": "7cd89127e2ff5cac4618208a771d22d61759d412c1493c7d913c0bfa8fb5b01f", "result_bytes": 9164, "outcome": "ok", "duration_ms": 2.408}
+{"ts": "2026-09-04T22:27:36.182+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 82, "session": "local", "tool": "search_framework", "args_bytes": 203, "args_sha256": "ecfe9591d6ab194d95b2356469968880a197f6149af1fa42506d9e343ad2372e", "outcome": "rate_limited", "duration_ms": 0.033}
+{"ts": "2026-09-04T22:27:36.681+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 83, "session": "local", "tool": "search_framework", "args_bytes": 203, "args_sha256": "ecfe9591d6ab194d95b2356469968880a197f6149af1fa42506d9e343ad2372e", "result_bytes": 10152, "outcome": "ok", "duration_ms": 6.296}
+{"ts": "2026-09-04T22:27:36.682+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 84, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 188, "args_sha256": "7639c8e9293f43c77aae00473531e5329b0276f6f171805baa3b0b9f0002509c", "result_bytes": 10240, "outcome": "ok", "duration_ms": 2.606}
+{"ts": "2026-09-04T22:27:36.682+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 85, "session": "local", "tool": "search_framework", "args_bytes": 189, "args_sha256": "7caf757c6cd3c3a2261c1e274dcd65dd2e6a9a6f68f285385083574b43340828", "outcome": "rate_limited", "duration_ms": 0.031}
+{"ts": "2026-09-04T22:27:37.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 86, "session": "local", "tool": "search_framework", "args_bytes": 189, "args_sha256": "7caf757c6cd3c3a2261c1e274dcd65dd2e6a9a6f68f285385083574b43340828", "result_bytes": 10392, "outcome": "ok", "duration_ms": 5.503}
+{"ts": "2026-09-04T22:27:37.180+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 87, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 174, "args_sha256": "0a451fd2df93655aea74acb69a18cecec2d0c2e4b4054fb647cf895cd78f1c6b", "result_bytes": 10876, "outcome": "ok", "duration_ms": 2.578}
+{"ts": "2026-09-04T22:27:37.188+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 88, "session": "local", "tool": "search_framework", "args_bytes": 187, "args_sha256": "6af3556df3d1b880cee1c1007526b7c071439bbf5a100dde07ea5670cd44e700", "outcome": "rate_limited", "duration_ms": 0.033}
+{"ts": "2026-09-04T22:27:37.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 89, "session": "local", "tool": "search_framework", "args_bytes": 187, "args_sha256": "6af3556df3d1b880cee1c1007526b7c071439bbf5a100dde07ea5670cd44e700", "result_bytes": 10044, "outcome": "ok", "duration_ms": 5.226}
+{"ts": "2026-09-04T22:27:37.683+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 90, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 172, "args_sha256": "24f7461f0894bed1aa20dc2a478f2f9964a9ef327cf180380655c85d9b12c582", "result_bytes": 10916, "outcome": "ok", "duration_ms": 2.475}
+{"ts": "2026-09-04T22:27:37.683+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 91, "session": "local", "tool": "search_framework", "args_bytes": 168, "args_sha256": "e085cbee6354e8c34b3aec6a71043511c3adc03dbc8162a51f864e27e03853da", "outcome": "rate_limited", "duration_ms": 0.032}
+{"ts": "2026-09-04T22:27:38.159+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 92, "session": "local", "tool": "search_framework", "args_bytes": 168, "args_sha256": "e085cbee6354e8c34b3aec6a71043511c3adc03dbc8162a51f864e27e03853da", "result_bytes": 10038, "outcome": "ok", "duration_ms": 4.886}
+{"ts": "2026-09-04T22:27:38.159+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 93, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 153, "args_sha256": "a4999c69f71017c9656a0a845eb6995a569d4bad90c4d9b677fc0fc9ed9d7fcd", "result_bytes": 11682, "outcome": "ok", "duration_ms": 2.208}
+{"ts": "2026-09-04T22:27:38.159+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 94, "session": "local", "tool": "search_framework", "args_bytes": 169, "args_sha256": "5487f37930b53aa570036fbca12caf8a0de4cc242618606e835e718bf0a1d649", "outcome": "rate_limited", "duration_ms": 0.03}
+{"ts": "2026-09-04T22:27:38.678+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 95, "session": "local", "tool": "search_framework", "args_bytes": 169, "args_sha256": "5487f37930b53aa570036fbca12caf8a0de4cc242618606e835e718bf0a1d649", "result_bytes": 10036, "outcome": "ok", "duration_ms": 4.657}
+{"ts": "2026-09-04T22:27:38.683+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 96, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 154, "args_sha256": "3c1c7d310faa92ae035f52e2564f3f02e3447c2f7e145bf99be9a45c88b760cb", "result_bytes": 9466, "outcome": "ok", "duration_ms": 2.322}
+{"ts": "2026-09-04T22:27:38.684+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 97, "session": "local", "tool": "search_framework", "args_bytes": 171, "args_sha256": "e1012acba20c03bb68eb7cc32dc07a1df0776c92a7ec93c39f9b42ec358c8116", "outcome": "rate_limited", "duration_ms": 0.029}
+{"ts": "2026-09-04T22:27:39.159+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 98, "session": "local", "tool": "search_framework", "args_bytes": 171, "args_sha256": "e1012acba20c03bb68eb7cc32dc07a1df0776c92a7ec93c39f9b42ec358c8116", "result_bytes": 10320, "outcome": "ok", "duration_ms": 4.562}
+{"ts": "2026-09-04T22:27:39.159+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 99, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 156, "args_sha256": "909439281a137fe111a2e80ad24f90bf22b57e3382cc299640b8d0d8df5599a1", "result_bytes": 11060, "outcome": "ok", "duration_ms": 2.155}
+{"ts": "2026-09-04T22:27:39.171+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 100, "session": "local", "tool": "search_framework", "args_bytes": 146, "args_sha256": "58f439448240c570a81bc82d40e85ea00be8c3cbbf070448f6374fea9bea2b33", "outcome": "rate_limited", "duration_ms": 0.03}
+{"ts": "2026-09-04T22:27:39.680+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 101, "session": "local", "tool": "search_framework", "args_bytes": 146, "args_sha256": "58f439448240c570a81bc82d40e85ea00be8c3cbbf070448f6374fea9bea2b33", "result_bytes": 9864, "outcome": "ok", "duration_ms": 5.559}
+{"ts": "2026-09-04T22:27:39.685+00:00", "server": "finos-mcp-aigf", "method": "tools/call", "request_id": 102, "session": "local", "tool": "map_risks_to_controls", "args_bytes": 131, "args_sha256": "3a702c62a106f1983eee3dfdbc7438fd94e370577ba5ffba59bec4cab54a525d", "result_bytes": 12094, "outcome": "ok", "duration_ms": 2.843}
+=========================== short test summary info ===========================
+FAILED evals/retrieval/test_retrieval.py::test_retrieval_recall_and_mrr - Ass...
+PYTEST_EXIT=1
