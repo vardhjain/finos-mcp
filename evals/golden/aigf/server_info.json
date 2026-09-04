@@ -1,0 +1,2 @@
+{"tool": "server_info", "args": {},
+ "expect": {"read_only": true, "counts": {"risks": 23, "controls": 23}}}

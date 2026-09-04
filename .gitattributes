@@ -1,0 +1,6 @@
+# Keep LF everywhere: vendored content is hash-verified at runtime, and a CRLF
+# rewrite on checkout would break SOURCE.json integrity on Windows clones.
+* text=auto eol=lf
+*.png binary
+*.gif binary
+*.zip binary

@@ -1,0 +1,2 @@
+{"tool": "search_framework", "args": {"query": "MCP server governance allow list", "scope": "controls", "k": 3},
+ "expect": {"scope": "controls", "hits": {"$min_len": 1, "$first": {"id": "AIR-PREV-020"}}}}

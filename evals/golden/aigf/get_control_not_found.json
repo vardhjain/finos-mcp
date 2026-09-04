@@ -1,0 +1,1 @@
+{"tool": "get_control", "args": {"id": "AIR-PREV-999"}, "expect_error": "not_found"}

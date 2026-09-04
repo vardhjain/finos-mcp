@@ -108,4 +108,6 @@ class Framework(BaseModel):
     risks: dict[str, Risk] = Field(default_factory=dict)  # keyed by AIR id
     controls: dict[str, Control] = Field(default_factory=dict)  # keyed by AIR id
     references: dict[str, ReferenceFramework] = Field(default_factory=dict)  # keyed by dataset name
-    type_labels: dict[str, str] = Field(default_factory=dict)  # "RC"/"OP"/"SEC"/"PREV"/"DET" -> label
+    type_labels: dict[str, str] = Field(
+        default_factory=dict
+    )  # "RC"/"OP"/"SEC"/"PREV"/"DET" -> label

@@ -1,0 +1,36 @@
+finos-mcp
+Copyright 2026 the finos-mcp contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It redistributes content from FINOS projects under their own licenses. Each
+vendored directory carries a SOURCE.json manifest naming the upstream repository,
+git ref, commit hash, fetch time and per-file sha256, plus the upstream license
+text. finos-mcp is not affiliated with or endorsed by FINOS.
+
+1. FINOS AI Governance Framework
+   Source:  https://github.com/finos/ai-governance-framework
+   License: Creative Commons Attribution 4.0 International (CC-BY-4.0)
+   Vendored in: servers/aigf/src/finos_mcp/aigf/_vendor/
+   Changes: none to the content; identifiers of the form AIR-<TYPE>-<NNN> are
+   derived from each document's `type` and `sequence` fields exactly as the
+   published site derives them.
+
+2. FINOS Common Domain Model (CDM)
+   Source:  https://github.com/finos/common-domain-model and
+            https://repo1.maven.org/maven2/org/finos/cdm/cdm-json-schema/
+   License: Community Specification License 1.0 (Community-Spec-1.0)
+   Vendored in: servers/cdm/src/finos_mcp/cdm/_vendor/
+   Attribution per CSL 1.0 s.1.2: "Common Domain Model", version as recorded in
+   SOURCE.json, from the FINOS common-domain-model repository. Sample files are
+   redistributed unmodified; qualify.json and root_types.json are extracted
+   summaries of the Rune source.
+
+3. FINOS FDC3
+   Source:  https://github.com/finos/FDC3
+   License: Community Specification License 1.0 (Community-Spec-1.0) for the
+            standard (schemas and documentation); Apache-2.0 for code.
+   Vendored in: servers/fdc3/src/finos_mcp/fdc3/_vendor/
+   Attribution per CSL 1.0 s.1.2: "FDC3", version as recorded in SOURCE.json,
+   from the FINOS FDC3 repository. intents.json is a generated summary of the
+   intent reference documentation.

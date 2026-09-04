@@ -1,0 +1,2 @@
+{"tool": "map_risks_to_controls", "args": {"query": "MCP server supply chain", "k": 3},
+ "expect": {"risks": {"$min_len": 1}, "controls": {"$min_len": 1}}}

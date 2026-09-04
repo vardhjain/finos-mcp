@@ -1,0 +1,3 @@
+{"tool": "get_control", "args": {"id": "mi-20", "include_sections": false},
+ "expect": {"id": "AIR-PREV-020", "short_id": "mi-20", "type": "PREV", "title": "MCP Server Security Governance",
+            "mitigates": {"$contains": ["AIR-SEC-026"]}, "sections": {"$len": 0}, "citation_uri": "aigf://control/AIR-PREV-020"}}

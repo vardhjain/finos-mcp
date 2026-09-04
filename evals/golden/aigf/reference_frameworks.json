@@ -1,0 +1,2 @@
+{"tool": "list_reference_frameworks", "args": {},
+ "expect": {"frameworks": {"$min_len": 10}}}

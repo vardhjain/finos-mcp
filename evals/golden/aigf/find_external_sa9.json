@@ -1,0 +1,2 @@
+{"tool": "find_by_external_reference", "args": {"key": "SA-9"},
+ "expect": {"matches": {"$min_len": 1}}}

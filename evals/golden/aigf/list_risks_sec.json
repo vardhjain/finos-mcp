@@ -1,0 +1,2 @@
+{"tool": "list_risks", "args": {"type": "SEC", "page_size": 50},
+ "expect": {"page": 1, "items": {"$min_len": 5, "$first": {"type": "SEC"}}}}

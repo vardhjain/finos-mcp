@@ -1,0 +1,2 @@
+{"tool": "map_control_to_external", "args": {"id": "AIR-PREV-020", "frameworks": ["nist-sp-800-53r5"]},
+ "expect": {"control_id": "AIR-PREV-020", "frameworks": ["nist-sp-800-53r5"], "refs": {"$min_len": 3}}}

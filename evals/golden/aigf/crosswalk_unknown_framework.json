@@ -1,0 +1,1 @@
+{"tool": "map_control_to_external", "args": {"id": "mi-20", "frameworks": ["iso-99999"]}, "expect_error": "not_found"}

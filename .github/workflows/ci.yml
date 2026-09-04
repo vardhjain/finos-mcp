@@ -1,0 +1,104 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.12"]
+        include:
+          - os: ubuntu-latest
+            python: "3.13"
+            experimental: true
+    continue-on-error: ${{ matrix.experimental || false }}
+    env:
+      DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python }}
+
+      - name: Sync workspace
+        run: uv sync --all-packages --all-extras
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Type check
+        run: uv run mypy core/src servers/aigf/src servers/cdm/src servers/fdc3/src
+
+      - name: Verify vendored content provenance
+        run: uv run python -m finos_mcp_evals.vendor_check
+
+      - name: Tests with coverage
+        run: uv run pytest --cov --cov-report=xml --cov-report=term-missing:skip-covered --junitxml=junit.xml
+
+      - name: Latency benchmark
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        run: uv run python evals/perf/bench.py --n 100 --out perf.json
+
+      - name: Collect metrics
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        run: >-
+          uv run python -m finos_mcp_evals.metrics.collect
+          --junit junit.xml --coverage coverage.xml
+          --extra perf.json --extra retrieval.json
+          --out metrics.json
+
+      - name: Upload metrics
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics
+          path: |
+            metrics.json
+            coverage.xml
+            junit.xml
+          retention-days: 90
+
+  publish-metrics:
+    name: publish metrics branch
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: metrics
+          path: _metrics
+      - name: Commit metrics.json to the metrics branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin metrics || true
+          git checkout -B metrics origin/metrics 2>/dev/null || git checkout --orphan metrics
+          git rm -rfq . 2>/dev/null || true
+          cp _metrics/metrics.json metrics.json
+          git add metrics.json
+          git commit -m "metrics: ${GITHUB_SHA::7}" || echo "no change"
+          git push origin metrics

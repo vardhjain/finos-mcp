@@ -1,0 +1,2 @@
+{"tool": "list_controls", "args": {"type": "DET", "page_size": 50},
+ "expect": {"items": {"$min_len": 1, "$first": {"type": "DET"}}}}

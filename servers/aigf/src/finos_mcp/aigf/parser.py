@@ -25,6 +25,7 @@ Upstream quirks this parser is written to tolerate (see PLAN.md sections 1.1 and
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 import frontmatter
 import yaml
@@ -114,6 +115,24 @@ def _as_str_list(value: object) -> list[str]:
     return [str(v) for v in value]
 
 
+def _meta_sequence(metadata: dict[str, object]) -> int:
+    return int(str(metadata["sequence"]))
+
+
+def _meta_risk_type(metadata: dict[str, object]) -> RiskType:
+    value = str(metadata["type"])
+    if value not in ("RC", "OP", "SEC"):
+        raise ValueError(f"unexpected risk type {value!r} in frontmatter")
+    return cast(RiskType, value)
+
+
+def _meta_control_type(metadata: dict[str, object]) -> ControlType:
+    value = str(metadata["type"])
+    if value not in ("PREV", "DET"):
+        raise ValueError(f"unexpected control type {value!r} in frontmatter")
+    return cast(ControlType, value)
+
+
 def load_framework(vendor_dir: Path | None = None) -> Framework:
     vd = vendor_dir if vendor_dir is not None else _default_vendor_dir()
     verify(vd)
@@ -140,26 +159,28 @@ def load_framework(vendor_dir: Path | None = None) -> Framework:
 
     risk_short_to_id: dict[str, str] = {}
     for _filename, post in risk_posts:
-        sequence = int(post.metadata["sequence"])
-        risk_type: RiskType = post.metadata["type"]
+        sequence = _meta_sequence(post.metadata)
+        risk_type = _meta_risk_type(post.metadata)
         risk_short_to_id[f"ri-{sequence}"] = f"AIR-{risk_type}-{sequence:03d}"
 
     control_short_to_id: dict[str, str] = {}
     for _filename, post in control_posts:
-        sequence = int(post.metadata["sequence"])
-        control_type: ControlType = post.metadata["type"]
+        sequence = _meta_sequence(post.metadata)
+        control_type = _meta_control_type(post.metadata)
         control_short_to_id[f"mi-{sequence}"] = f"AIR-{control_type}-{sequence:03d}"
 
     # Pass 2: build the typed models, resolving cross-references via the maps above.
     risks: dict[str, Risk] = {}
     for filename, post in risk_posts:
-        sequence = int(post.metadata["sequence"])
-        risk_type = post.metadata["type"]
+        sequence = _meta_sequence(post.metadata)
+        risk_type = _meta_risk_type(post.metadata)
         short_id = f"ri-{sequence}"
         air_id = risk_short_to_id[short_id]
         summary, sections = _summary_and_sections(post.content)
         related = [
-            risk_short_to_id[s] for s in _as_str_list(post.metadata.get("related_risks")) if s in risk_short_to_id
+            risk_short_to_id[s]
+            for s in _as_str_list(post.metadata.get("related_risks"))
+            if s in risk_short_to_id
         ]
         risks[air_id] = Risk(
             id=air_id,
@@ -180,13 +201,15 @@ def load_framework(vendor_dir: Path | None = None) -> Framework:
 
     controls: dict[str, Control] = {}
     for filename, post in control_posts:
-        sequence = int(post.metadata["sequence"])
-        control_type = post.metadata["type"]
+        sequence = _meta_sequence(post.metadata)
+        control_type = _meta_control_type(post.metadata)
         short_id = f"mi-{sequence}"
         air_id = control_short_to_id[short_id]
         summary, sections = _summary_and_sections(post.content)
         mitigates = [
-            risk_short_to_id[s] for s in _as_str_list(post.metadata.get("mitigates")) if s in risk_short_to_id
+            risk_short_to_id[s]
+            for s in _as_str_list(post.metadata.get("mitigates"))
+            if s in risk_short_to_id
         ]
         related = [
             control_short_to_id[s]

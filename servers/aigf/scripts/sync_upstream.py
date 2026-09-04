@@ -57,7 +57,7 @@ def _headers() -> dict[str, str]:
 def _get_json(url: str) -> Any:
     req = urllib.request.Request(url, headers=_headers())
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 - trusted GitHub API
+        with urllib.request.urlopen(req, timeout=30) as resp:
             return json.load(resp)
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -67,7 +67,7 @@ def _get_json(url: str) -> Any:
 def _get_text(url: str) -> str:
     req = urllib.request.Request(url, headers=_headers())
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 - trusted raw content host
+        with urllib.request.urlopen(req, timeout=30) as resp:
             return resp.read().decode("utf-8")
     except urllib.error.HTTPError as exc:
         raise SystemExit(f"Download failed ({exc.code}) for {url}") from exc

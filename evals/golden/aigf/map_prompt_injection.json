@@ -1,0 +1,2 @@
+{"tool": "map_risks_to_controls", "args": {"risk_ids": ["ri-10"]},
+ "expect": {"risks": {"$len": 1, "$first": {"id": "AIR-SEC-010"}}, "edges": {"$min_len": 1}, "unresolved": {"$len": 0}, "uncovered_risks": {"$len": 0}}}

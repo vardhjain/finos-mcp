@@ -1,0 +1,2 @@
+{"tool": "get_risk", "args": {"id": "Data Poisoning", "include_sections": false},
+ "expect": {"id": "AIR-SEC-009", "short_id": "ri-9"}}

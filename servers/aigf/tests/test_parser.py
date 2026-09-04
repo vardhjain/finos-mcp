@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from finos_mcp.aigf.parser import framework_documents, load_framework
 from finos_mcp.aigf.models import Framework
+from finos_mcp.aigf.parser import framework_documents, load_framework
 from finos_mcp.core import verify
 
 VENDOR_DIR = Path(__file__).parents[1] / "src" / "finos_mcp" / "aigf" / "_vendor"
@@ -97,7 +97,9 @@ def test_external_ref_resolution_rate_at_least_95_percent(framework: Framework) 
                 unresolved.add((record.id, ref.framework, ref.key))
     assert total > 0
     resolved_rate = (total - len(unresolved)) / total
-    assert resolved_rate >= 0.95, f"only {resolved_rate:.2%} of refs resolved; unresolved={sorted(unresolved)}"
+    assert resolved_rate >= 0.95, (
+        f"only {resolved_rate:.2%} of refs resolved; unresolved={sorted(unresolved)}"
+    )
     # Pin the exact unresolved set so upstream drift (fixed or new) is a visible diff.
     assert unresolved == EXPECTED_UNRESOLVED_REFS
 

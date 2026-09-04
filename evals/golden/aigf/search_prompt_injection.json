@@ -1,0 +1,2 @@
+{"tool": "search_framework", "args": {"query": "prompt injection", "k": 5},
+ "expect": {"hits": {"$first": {"id": "AIR-SEC-010", "citation_uri": "aigf://risk/AIR-SEC-010"}}}}

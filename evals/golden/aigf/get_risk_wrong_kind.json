@@ -1,0 +1,1 @@
+{"tool": "get_risk", "args": {"id": "AIR-PREV-020"}, "expect_error": "invalid_input"}
