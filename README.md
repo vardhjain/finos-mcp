@@ -24,6 +24,8 @@ Concretely, `finos-mcp-core` enforces:
 
 Policy can only be tightened from the environment (`FINOS_MCP_MAX_INPUT_BYTES`, `FINOS_MCP_RATE_CALLS`, `FINOS_MCP_RATE_WINDOW_S`, `FINOS_MCP_RATE_BURST`).
 
+The default install is **lexical-only and makes no network calls**: `search_framework` is plain BM25 with a fuzzy title boost. Installing the optional `semantic` extra (`finos-mcp-core[semantic]` / `finos-mcp-aigf[semantic]`, pulling in `model2vec`) enables hybrid search — BM25 fused with a small (~15 MB, MIT-licensed) static-embedding model, `minishlab/potion-base-4M` by default — which downloads that model from Hugging Face on first use unless `FINOS_MCP_EMBEDDING_MODEL` points at a local copy. Loading the model never blocks correctness: any failure (extra not installed, no network, bad path) is caught and leaves the server in pure lexical mode. The active mode is visible via the `search_status` tool, and `FINOS_MCP_SEARCH_MODE=lexical` forces lexical-only explicitly regardless of what is installed.
+
 ## Status
 
 Under active development. See [PLAN.md](PLAN.md) for the design, milestones and the metrics that CI publishes.

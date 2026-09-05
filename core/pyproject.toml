@@ -17,6 +17,12 @@ dependencies = [
   "pystemmer>=2.2",
 ]
 
+[project.optional-dependencies]
+semantic = [
+    "model2vec>=0.4",
+    "numpy>=2.5.2",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

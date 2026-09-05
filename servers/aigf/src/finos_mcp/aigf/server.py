@@ -8,6 +8,7 @@ answer carries an ``aigf://`` resource URI an agent can cite.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -18,6 +19,7 @@ from mcp.server.mcpserver.exceptions import ResourceNotFoundError
 from pydantic import BaseModel, Field
 
 from finos_mcp.core import (
+    DEFAULT_EMBEDDING_MODEL,
     Catalog,
     Document,
     FinosToolError,
@@ -25,6 +27,7 @@ from finos_mcp.core import (
     RateLimit,
     SafetyPolicy,
     SearchHit,
+    SearchMode,
     SourceManifest,
     build_server,
     invalid_input,
@@ -197,6 +200,15 @@ class SearchResults(BaseModel):
     hits: list[SearchHit]
 
 
+class SearchStatus(BaseModel):
+    """Read-only introspection of `search_framework`'s retrieval mode."""
+
+    mode: SearchMode
+    semantic_enabled: bool
+    semantic_status: str
+    model: str | None = None
+
+
 class ReferenceFrameworkSummary(BaseModel):
     name: str
     title: str | None = None
@@ -291,19 +303,26 @@ def get_control(id: str, include_sections: bool = True) -> Control:
 def map_risks_to_controls(
     risk_ids: list[str] | None = None,
     query: str | None = None,
+    queries: list[str] | None = None,
     k: int = 5,
     control_type: ControlType | None = None,
 ) -> Mapping:
-    """Map risks to the controls that mitigate them. Pass explicit risk_ids (up to 25) or a
-    free-text query (the top k matching risks are used). Controls are ordered by how many
-    of the given risks they cover; control_type (PREV or DET) restricts the result.
-    Reports uncovered risks and any inputs that did not resolve."""
+    """Map risks to the controls that mitigate them. Pass explicit risk_ids (up to 25), a
+    free-text query (the top k matching risks are used), and/or up to 5 queries (each
+    contributing its own top k matches, unioned with everything else) -- useful for
+    "both X and Y" questions where a single query blurs together two distinct concepts.
+    Controls are ordered by how many of the given risks they cover; control_type (PREV or
+    DET) restricts the result. Reports uncovered risks and any inputs that did not resolve."""
     st = state()
     fw = st.framework
-    if not risk_ids and not query:
-        raise invalid_input("Pass risk_ids or query.", hint="e.g. query='prompt injection'")
+    if not risk_ids and not query and not queries:
+        raise invalid_input(
+            "Pass risk_ids, query, or queries.", hint="e.g. query='prompt injection'"
+        )
     if risk_ids and len(risk_ids) > 25:
         raise invalid_input("At most 25 risk_ids per call.", hint="Split the list.")
+    if queries and len(queries) > 5:
+        raise invalid_input("At most 5 queries per call.", hint="Split into multiple calls.")
     if k < 1 or k > 20:
         raise invalid_input("k must be between 1 and 20.")
     resolved: dict[str, Risk] = {}
@@ -317,6 +336,9 @@ def map_risks_to_controls(
         resolved[r.id] = r
     if query:
         for hit in st.risks.search(query, k=k):
+            resolved.setdefault(hit.id, fw.risks[hit.id])
+    for q in queries or []:
+        for hit in st.risks.search(q, k=k):
             resolved.setdefault(hit.id, fw.risks[hit.id])
     controls: dict[str, Control] = {}
     coverage: dict[str, int] = {}
@@ -382,6 +404,30 @@ def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchRes
     predicate = None if scope == "all" else (lambda d: d.kind == scope[:-1])
     hits: list[SearchHit] = st.combined.search(query, k=k, predicate=predicate)
     return SearchResults(query=query, scope=scope, hits=hits)
+
+
+_SEARCH_MODES: tuple[SearchMode, ...] = ("hybrid", "lexical", "dense")
+
+
+def search_status() -> SearchStatus:
+    """Report search_framework's active retrieval mode: whether it is BM25-only
+    (lexical) or fused with dense semantic search (hybrid), and why -- e.g. the
+    `semantic` extra is not installed, or a model failed to load."""
+    catalog = state().combined
+    raw_mode = os.environ.get("FINOS_MCP_SEARCH_MODE")
+    mode = raw_mode if raw_mode in _SEARCH_MODES else "hybrid"
+    semantic_enabled = catalog.semantic is not None and mode != "lexical"
+    model = (
+        (os.environ.get("FINOS_MCP_EMBEDDING_MODEL") or DEFAULT_EMBEDDING_MODEL)
+        if catalog.semantic is not None
+        else None
+    )
+    return SearchStatus(
+        mode=mode,
+        semantic_enabled=semantic_enabled,
+        semantic_status=catalog.semantic_status,
+        model=model,
+    )
 
 
 def list_reference_frameworks() -> ReferenceFrameworks:
@@ -529,6 +575,7 @@ def create_server() -> MCPServer[Any]:
         map_risks_to_controls,
         map_control_to_external,
         search_framework,
+        search_status,
         list_reference_frameworks,
         find_by_external_reference,
     ):

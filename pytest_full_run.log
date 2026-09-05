@@ -1,0 +1,18 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: E:\Projects\FINOS_Project
+configfile: pyproject.toml
+plugins: rerunfailures-16.6.1, xdist-3.8.0, anyio-4.15.0, cov-7.1.0, inline-snapshot-0.35.4, asyncio-1.4.0, repeat-0.9.4
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 82 items
+
+core\tests\test_catalog_schema_vendor.py ........                        [  9%]
+core\tests\test_semantic.py .......                                      [ 18%]
+core\tests\test_server_safety.py .........                               [ 29%]
+servers\aigf\tests\test_parser.py ..........                             [ 41%]
+servers\aigf\tests\test_server.py ..............                         [ 58%]
+servers\aigf\tests\test_stdio.py .                                       [ 59%]
+evals\test_golden.py ..............................                      [ 96%]
+evals\retrieval\test_retrieval.py ...                                    [100%]
+
+======================= 82 passed in 260.60s (0:04:20) ========================

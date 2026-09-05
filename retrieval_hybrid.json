@@ -1,0 +1,390 @@
+{
+  "retrieval": {
+    "misses": [
+      {
+        "expected": [
+          "AIR-OP-014"
+        ],
+        "id": "q02",
+        "kind": "direct",
+        "mode": "search_only",
+        "question": "What operational risk is about an AI system's behavior drifting away from what the organization actually intended it to do?",
+        "top5": [
+          "AIR-PREV-007",
+          "AIR-PREV-017",
+          "AIR-DET-016",
+          "AIR-SEC-010",
+          "AIR-DET-004"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-OP-014"
+        ],
+        "id": "q02",
+        "kind": "direct",
+        "mode": "tool_assisted",
+        "question": "What operational risk is about an AI system's behavior drifting away from what the organization actually intended it to do?",
+        "top5": [
+          "AIR-PREV-007",
+          "AIR-PREV-017",
+          "AIR-DET-016",
+          "AIR-SEC-010",
+          "AIR-DET-004"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-OP-005"
+        ],
+        "id": "q21",
+        "kind": "concept",
+        "mode": "search_only",
+        "question": "A vendor swaps out the underlying language model behind the scenes and the assistant's answers start behaving noticeably differently overnight.",
+        "top5": [
+          "AIR-OP-006",
+          "AIR-SEC-010",
+          "AIR-SEC-008",
+          "AIR-RC-001",
+          "AIR-OP-017"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-OP-005"
+        ],
+        "id": "q21",
+        "kind": "concept",
+        "mode": "tool_assisted",
+        "question": "A vendor swaps out the underlying language model behind the scenes and the assistant's answers start behaving noticeably differently overnight.",
+        "top5": [
+          "AIR-OP-006",
+          "AIR-SEC-010",
+          "AIR-SEC-008",
+          "AIR-RC-001",
+          "AIR-OP-017"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-RC-001"
+        ],
+        "id": "q24",
+        "kind": "concept",
+        "mode": "search_only",
+        "question": "An employee pastes a client's account number and balance into a public chatbot to get help drafting an email.",
+        "top5": [
+          "AIR-PREV-017",
+          "AIR-SEC-025",
+          "AIR-SEC-010",
+          "AIR-PREV-019",
+          "AIR-OP-016"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-RC-001"
+        ],
+        "id": "q24",
+        "kind": "concept",
+        "mode": "tool_assisted",
+        "question": "An employee pastes a client's account number and balance into a public chatbot to get help drafting an email.",
+        "top5": [
+          "AIR-PREV-017",
+          "AIR-SEC-025",
+          "AIR-SEC-010",
+          "AIR-PREV-019",
+          "AIR-OP-016"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-SEC-009"
+        ],
+        "id": "q25",
+        "kind": "concept",
+        "mode": "search_only",
+        "question": "Someone slips fabricated or mislabeled documents into the training set used to build a fraud-detection model, causing it to miss future fraud.",
+        "top5": [
+          "AIR-OP-016",
+          "AIR-SEC-010",
+          "AIR-OP-004",
+          "AIR-OP-019",
+          "AIR-OP-018"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-SEC-009"
+        ],
+        "id": "q25",
+        "kind": "concept",
+        "mode": "tool_assisted",
+        "question": "Someone slips fabricated or mislabeled documents into the training set used to build a fraud-detection model, causing it to miss future fraud.",
+        "top5": [
+          "AIR-OP-016",
+          "AIR-SEC-010",
+          "AIR-OP-004",
+          "AIR-OP-019",
+          "AIR-OP-018"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-001",
+          "AIR-PREV-007",
+          "AIR-PREV-014",
+          "AIR-PREV-020"
+        ],
+        "id": "q31",
+        "kind": "crosswalk",
+        "mode": "search_only",
+        "question": "Which AIGF controls map to NIST SP 800-53 r5 control SA-9 (External System Services)?",
+        "top5": [
+          "AIR-PREV-023",
+          "AIR-DET-001",
+          "AIR-PREV-019",
+          "AIR-PREV-018",
+          "AIR-PREV-012"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-OP-014"
+        ],
+        "id": "q32",
+        "kind": "crosswalk",
+        "mode": "search_only",
+        "question": "Which AIGF risk addresses OWASP LLM07:2025 System Prompt Leakage?",
+        "top5": [
+          "AIR-SEC-010",
+          "AIR-RC-001",
+          "AIR-DET-001",
+          "AIR-PREV-017",
+          "AIR-DET-011"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-004",
+          "AIR-PREV-022"
+        ],
+        "id": "q41",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "What controls should be in place both for an agent whose stored memory gets tampered with and for a multi-agent system where one compromised agent's output cascades to the others?",
+        "top5": [
+          "AIR-OP-028",
+          "AIR-SEC-027",
+          "AIR-PREV-022",
+          "AIR-SEC-029",
+          "AIR-PREV-018"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-004",
+          "AIR-PREV-020",
+          "AIR-PREV-023"
+        ],
+        "id": "q42",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which controls cover both a poisoned MCP server dependency and an agent that harvests credentials while using its granted tool access?",
+        "top5": [
+          "AIR-SEC-026",
+          "AIR-PREV-020",
+          "AIR-SEC-029",
+          "AIR-PREV-023",
+          "AIR-PREV-019"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-004",
+          "AIR-DET-021"
+        ],
+        "id": "q43",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which detective controls mitigate the risks around agents calling MCP servers, having their tool chains manipulated, or bypassing their authorization?",
+        "top5": [
+          "AIR-SEC-025",
+          "AIR-SEC-024",
+          "AIR-SEC-026",
+          "AIR-PREV-020",
+          "AIR-PREV-019"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-005",
+          "AIR-PREV-006"
+        ],
+        "id": "q44",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls address both an AI system that confidently states inaccurate facts and one whose behaviour has drifted out of alignment with its intended use?",
+        "top5": [
+          "AIR-OP-004",
+          "AIR-DET-016",
+          "AIR-PREV-005",
+          "AIR-DET-015",
+          "AIR-OP-019"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-004",
+          "AIR-DET-011",
+          "AIR-DET-015"
+        ],
+        "id": "q45",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which detective controls apply to both a model vendor silently swapping versions and a system that gives different answers to the identical query each time?",
+        "top5": [
+          "AIR-OP-006",
+          "AIR-OP-005",
+          "AIR-PREV-010",
+          "AIR-DET-001",
+          "AIR-PREV-003"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-002",
+          "AIR-PREV-006",
+          "AIR-PREV-007",
+          "AIR-PREV-012"
+        ],
+        "id": "q46",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls are relevant to both training data being poisoned and AI-generated outputs infringing on someone else's intellectual property?",
+        "top5": [
+          "AIR-RC-023",
+          "AIR-PREV-017",
+          "AIR-DET-001",
+          "AIR-SEC-010",
+          "AIR-PREV-002"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-003",
+          "AIR-PREV-007",
+          "AIR-PREV-008",
+          "AIR-PREV-017"
+        ],
+        "id": "q47",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls help with both the model host going down unexpectedly and damage to the firm's reputation from AI mistakes?",
+        "top5": [
+          "AIR-OP-020",
+          "AIR-OP-018",
+          "AIR-DET-009",
+          "AIR-SEC-010",
+          "AIR-PREV-010"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-003",
+          "AIR-PREV-007",
+          "AIR-PREV-008",
+          "AIR-PREV-017"
+        ],
+        "id": "q47",
+        "kind": "multihop",
+        "mode": "tool_assisted",
+        "question": "Which preventative controls help with both the model host going down unexpectedly and damage to the firm's reputation from AI mistakes?",
+        "top5": [
+          "AIR-PREV-003",
+          "AIR-PREV-017",
+          "AIR-PREV-007",
+          "AIR-PREV-018",
+          "AIR-PREV-002"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-002",
+          "AIR-PREV-006",
+          "AIR-PREV-012"
+        ],
+        "id": "q48",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls are common to both sensitive data leaking to a hosted model and an AI system's training data being poisoned?",
+        "top5": [
+          "AIR-RC-001",
+          "AIR-DET-001",
+          "AIR-PREV-017",
+          "AIR-SEC-009",
+          "AIR-DET-009"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-018",
+          "AIR-PREV-019",
+          "AIR-PREV-022",
+          "AIR-PREV-023"
+        ],
+        "id": "q49",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls guard against both an agent exceeding its authorization limits and an agent being used to harvest credentials?",
+        "top5": [
+          "AIR-PREV-023",
+          "AIR-PREV-018",
+          "AIR-PREV-022",
+          "AIR-SEC-024",
+          "AIR-SEC-029"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-013",
+          "AIR-DET-016",
+          "AIR-DET-021"
+        ],
+        "id": "q50",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which detective controls address both an AI system nobody can explain and gaps in meeting regulatory obligations?",
+        "top5": [
+          "AIR-DET-021",
+          "AIR-RC-022",
+          "AIR-DET-001",
+          "AIR-PREV-007",
+          "AIR-OP-018"
+        ]
+      }
+    ],
+    "mrr": 0.845,
+    "questions": 50,
+    "recall_at_5": 0.915,
+    "search_mode": "hybrid",
+    "search_only": {
+      "mrr": 0.6831666666666667,
+      "recall_at_1": 0.5216666666666666,
+      "recall_at_3": 0.7133333333333334,
+      "recall_at_5": 0.745
+    },
+    "search_only_non_multihop": {
+      "mrr": 0.7604166666666666,
+      "recall_at_1": 0.6375,
+      "recall_at_3": 0.83125,
+      "recall_at_5": 0.85625
+    },
+    "tool_assisted": {
+      "mrr": 0.845,
+      "recall_at_1": 0.6266666666666667,
+      "recall_at_3": 0.8516666666666667,
+      "recall_at_5": 0.915
+    }
+  }
+}

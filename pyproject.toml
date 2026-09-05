@@ -56,7 +56,7 @@ namespace_packages = true
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
-module = ["bm25s", "bm25s.*", "frontmatter", "frontmatter.*", "Stemmer"]
+module = ["bm25s", "bm25s.*", "frontmatter", "frontmatter.*", "Stemmer", "model2vec", "model2vec.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

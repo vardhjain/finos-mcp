@@ -1,0 +1,13 @@
+unformatted: File would be reformatted
+   --> servers\cdm\tests\test_server.py:139:37
+    |
+138 |     assert required_fields <= EXPECTED_REQUIRED_MISSES, required_fields - EXPECTED_REQUIRED_MISSES
+    -     assert valid == EXPECTED_VALID, f"{valid}/{len(samples)} valid; update EXPECTED_VALID if upstream changed"
+139 +     assert valid == EXPECTED_VALID, (
+140 +         f"{valid}/{len(samples)} valid; update EXPECTED_VALID if upstream changed"
+141 +     )
+142 |
+    |
+
+1 file would be reformatted, 125 files already formatted
+EXIT:1

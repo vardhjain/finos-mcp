@@ -21,6 +21,7 @@ EXPECTED_TOOLS = {
     "map_risks_to_controls",
     "map_control_to_external",
     "search_framework",
+    "search_status",
     "list_reference_frameworks",
     "find_by_external_reference",
     "server_info",
@@ -146,6 +147,45 @@ async def test_map_risks_to_controls_by_ids_and_query(client: Client) -> None:
     assert "AIR-SEC-010" in {r["id"] for r in q["risks"]}
     env = _error(await client.call_tool("map_risks_to_controls", {}))
     assert env.code == "invalid_input"
+
+
+@pytest.mark.anyio
+async def test_map_risks_to_controls_multi_query(client: Client) -> None:
+    single = _structured(
+        await client.call_tool("map_risks_to_controls", {"query": "prompt injection", "k": 2})
+    )
+    multi = _structured(
+        await client.call_tool(
+            "map_risks_to_controls",
+            {"queries": ["prompt injection", "MCP server supply chain compromise"], "k": 2},
+        )
+    )
+    # Two distinct concepts each contribute their own top-k risk hits, unioned.
+    assert {r["id"] for r in single["risks"]} < {r["id"] for r in multi["risks"]}
+    assert "AIR-SEC-010" in {r["id"] for r in multi["risks"]}
+    both = _structured(
+        await client.call_tool(
+            "map_risks_to_controls",
+            {
+                "query": "prompt injection",
+                "queries": ["MCP server supply chain compromise"],
+                "k": 2,
+            },
+        )
+    )
+    assert {r["id"] for r in both["risks"]} == {r["id"] for r in multi["risks"]}
+    env = _error(await client.call_tool("map_risks_to_controls", {"queries": ["a b c d"] * 6}))
+    assert env.code == "invalid_input"
+
+
+@pytest.mark.anyio
+async def test_search_status_reports_mode_and_semantic(client: Client) -> None:
+    status = _structured(await client.call_tool("search_status", {}))
+    assert status["mode"] in ("hybrid", "lexical", "dense")
+    assert isinstance(status["semantic_enabled"], bool)
+    assert isinstance(status["semantic_status"], str) and status["semantic_status"]
+    if not status["semantic_enabled"]:
+        assert status["model"] is None
 
 
 @pytest.mark.anyio

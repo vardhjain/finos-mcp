@@ -73,7 +73,15 @@ class SchemaRegistry:
                 raise NoSuchResource(uri)
             return Resource.from_contents(schema, default_specification=spec)
 
-        self._registry: Registry[Any] = Registry(retrieve=retrieve)  # type: ignore[call-arg]
+        # Pre-register every schema under every key it can be referenced by, then crawl
+        # once. Without this, `referencing` calls `retrieve` for every `$ref` on every
+        # validation (a CDM BusinessEvent resolves ~1000 refs), which dominated latency.
+        registry: Registry[Any] = Registry(retrieve=retrieve)  # type: ignore[call-arg]
+        registry = registry.with_resources(
+            (key, Resource.from_contents(schema, default_specification=spec))
+            for key, schema in self._by_key.items()
+        ).crawl()
+        self._registry = registry
         self._validator_cls = _VALIDATORS[dialect]
 
     @classmethod

@@ -1,7 +1,16 @@
 """finos-mcp-core: the shared safety layer for finos-mcp servers."""
 
 from .audit import AuditLog
-from .catalog import Catalog, Document, normalize_id, slugify, split_sections
+from .catalog import (
+    DEFAULT_EMBEDDING_MODEL,
+    Catalog,
+    Document,
+    SearchMode,
+    SemanticIndex,
+    normalize_id,
+    slugify,
+    split_sections,
+)
 from .errors import (
     ErrorEnvelope,
     FinosToolError,
@@ -30,6 +39,7 @@ from .vendor import SourceManifest, VendorIntegrityError, build_manifest, verify
 __version__ = "0.1.0"
 
 __all__ = [
+    "DEFAULT_EMBEDDING_MODEL",
     "READ_ONLY",
     "AuditLog",
     "Catalog",
@@ -44,7 +54,9 @@ __all__ = [
     "SafetyPolicy",
     "SchemaRegistry",
     "SearchHit",
+    "SearchMode",
     "Section",
+    "SemanticIndex",
     "ServerInfo",
     "SourceManifest",
     "ValidationIssue",

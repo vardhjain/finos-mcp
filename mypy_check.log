@@ -1,0 +1,3 @@
+servers\aigf\src\finos_mcp\aigf\server.py:418: error: Redundant cast to "Literal['hybrid', 'lexical', 'dense']"  [redundant-cast]
+Found 1 error in 1 file (checked 16 source files)
+EXIT:1
