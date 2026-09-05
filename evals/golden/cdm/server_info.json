@@ -1,0 +1,1 @@
+{"tool": "server_info", "args": {}, "expect": {"read_only": true, "standard_version": "7.2.0", "counts": {"root_types": 16, "qualify_functions": 35}}}

@@ -1,0 +1,2 @@
+{"tool": "describe_type", "args": {"name": "cdm.product.template.Payout"},
+ "expect": {"name": "Payout", "kind": "choice", "alternatives": {"$contains": ["InterestRatePayout", "CreditDefaultPayout", "OptionPayout"]}}}

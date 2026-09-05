@@ -1,11 +1,14 @@
 """Lazily-built, in-memory index over the vendored CDM JSON Schema distribution.
 
-``CdmRegistry`` loads every ``_vendor/schemas/*.schema.json`` file once, strips
-the non-standard top-level ``$anchor`` key CDM emits (draft-04 has no
-``$anchor``; see PLAN.md 1.2), and builds a ``finos_mcp.core.SchemaRegistry``
-over the result for validation plus a name/namespace/reverse-reference index
-for browsing. ``get_registry()`` exposes this as a process-wide lazy
-singleton so every tool call reuses the same parsed index.
+Every vendored vintage is bundled as a single
+``_vendor/schemas/cdm-json-schema-<version>.json`` file (``{"version", "source",
+"count", "schemas": {filename: schema, ...}}``) rather than one file per
+schema, so ``CdmRegistry`` reads that bundle once, strips the non-standard
+top-level ``$anchor`` key CDM emits (draft-04 has no ``$anchor``; see PLAN.md
+1.2) from each schema, and builds a ``finos_mcp.core.SchemaRegistry`` over the
+result for validation plus a name/namespace/reverse-reference index for
+browsing. ``get_registry()`` exposes this as a process-wide lazy singleton so
+every tool call reuses the same parsed index.
 """
 
 from __future__ import annotations
@@ -54,17 +57,27 @@ def _drop_bogus_type_keywords(node: Any) -> None:
             _drop_bogus_type_keywords(item)
 
 
-def _load_schema_dict(schemas_dir: Path) -> dict[str, dict[str, Any]]:
-    """Load every ``*.schema.json`` file in ``schemas_dir``, applying the same
-    fix-ups (drop the non-standard ``$anchor`` key; drop bogus Rosetta-basictype
-    ``"type"`` keywords) regardless of vendored vintage, since both defects are
-    generator artifacts of ``cdm-json-schema`` and not specific to 7.2.0."""
+def _bundle_path_for(vendor_dir: Path, version: str) -> Path:
+    """Path to the single-file bundle vendoring one CDM JSON Schema vintage,
+    e.g. ``_vendor/schemas/cdm-json-schema-7.2.0.json``."""
+    return vendor_dir / "schemas" / f"cdm-json-schema-{version}.json"
+
+
+def _load_schema_bundle(bundle_path: Path) -> dict[str, dict[str, Any]]:
+    """Load every schema out of a ``cdm-json-schema-<version>.json`` bundle
+    (written by ``scripts/sync_upstream.py`` via ``json.dumps``, so it is
+    always strict-parseable JSON even though a couple of source members
+    needed lenient parsing to ingest -- see the bundle's ``lenient_parse``
+    key), applying the same fix-ups (drop the non-standard ``$anchor`` key;
+    drop bogus Rosetta-basictype ``"type"`` keywords) regardless of vendored
+    vintage, since both defects are generator artifacts of ``cdm-json-schema``
+    and not specific to 7.2.0."""
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
     schemas: dict[str, dict[str, Any]] = {}
-    for path in sorted(schemas_dir.glob("*.schema.json")):
-        data = json.loads(path.read_text(encoding="utf-8"), strict=False)
+    for name, data in bundle["schemas"].items():
         data.pop("$anchor", None)
         _drop_bogus_type_keywords(data)
-        schemas[path.name] = data
+        schemas[name] = data
     return schemas
 
 
@@ -103,8 +116,8 @@ class CdmRegistry:
         self.vendor_dir = vendor_dir
         verify(vendor_dir)
 
-        schemas_dir = vendor_dir / "schemas"
-        schemas = _load_schema_dict(schemas_dir)
+        bundle_path = _bundle_path_for(vendor_dir, self.PRIMARY_VERSION)
+        schemas = _load_schema_bundle(bundle_path)
         self._schema_registry = SchemaRegistry(schemas, dialect="draft4")
         self._raw_schemas = schemas
         # Lazily-populated cache of `SchemaRegistry` instances for every
@@ -179,39 +192,36 @@ class CdmRegistry:
         """The primary (``PRIMARY_VERSION``) JSON Schema registry."""
         return self._schema_registry
 
-    def _schemas_dir_for(self, version: str) -> Path:
-        if version == self.PRIMARY_VERSION:
-            return self.vendor_dir / "schemas"
-        return self.vendor_dir / f"schemas-{version}"
-
     def schema_versions(self) -> list[str]:
         """Every vendored JSON Schema vintage, primary version first (e.g.
-        ``["7.2.0", "6.27.0"]``), discovered from the `_vendor/schemas*`
-        directories actually present on disk."""
-        versions = [self.PRIMARY_VERSION]
-        for path in sorted(self.vendor_dir.glob("schemas-*")):
-            if path.is_dir():
-                versions.append(path.name.removeprefix("schemas-"))
-        return versions
+        ``["7.2.0", "6.27.0"]``), discovered from the
+        `_vendor/schemas/cdm-json-schema-<version>.json` bundle files actually
+        present on disk."""
+        prefix, suffix = "cdm-json-schema-", ".json"
+        found = sorted(
+            path.name.removeprefix(prefix).removesuffix(suffix)
+            for path in (self.vendor_dir / "schemas").glob(f"{prefix}*{suffix}")
+        )
+        return [self.PRIMARY_VERSION] + [v for v in found if v != self.PRIMARY_VERSION]
 
     def schema_registry_for(self, version: str = PRIMARY_VERSION) -> SchemaRegistry:
         """The JSON Schema registry for one vendored vintage. Lazy and cached
         per version: the primary registry is built in `__init__`; every other
-        vintage (e.g. ``"6.27.0"``, vendored at `_vendor/schemas-6.27.0/`) is
-        parsed on first request and reused afterwards. Legacy-format samples
-        only validate meaningfully against a schema of matching vintage (see
-        PLAN.md 1.2) -- the primary 7.2.0 schema describes a different JSON
-        shape entirely."""
+        vintage (e.g. ``"6.27.0"``, vendored at
+        `_vendor/schemas/cdm-json-schema-6.27.0.json`) is parsed on first
+        request and reused afterwards. Legacy-format samples only validate
+        meaningfully against a schema of matching vintage (see PLAN.md 1.2) --
+        the primary 7.2.0 schema describes a different JSON shape entirely."""
         cached = self._schema_registries_by_version.get(version)
         if cached is not None:
             return cached
-        schemas_dir = self._schemas_dir_for(version)
-        if not schemas_dir.is_dir():
+        bundle_path = _bundle_path_for(self.vendor_dir, version)
+        if not bundle_path.is_file():
             raise ValueError(
-                f"unknown CDM schema version {version!r}: no {schemas_dir} directory. "
+                f"unknown CDM schema version {version!r}: no {bundle_path} bundle. "
                 f"Vendored versions: {self.schema_versions()}"
             )
-        schemas = _load_schema_dict(schemas_dir)
+        schemas = _load_schema_bundle(bundle_path)
         registry = SchemaRegistry(schemas, dialect="draft4")
         self._schema_registries_by_version[version] = registry
         return registry

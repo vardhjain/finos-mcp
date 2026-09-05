@@ -1,0 +1,1 @@
+{"tool": "validate_object", "args": {"object": {"eventDate": "2024-01-01"}}, "expect_error": "invalid_input"}

@@ -1,0 +1,2 @@
+{"tool": "validate_object", "args": {"object": {"@type": "cdm.event.common.TradeState", "trade": {"tradeDate": "2024-01-15"}}},
+ "expect": {"format_detected": "rune", "type": "cdm.event.common.TradeState"}}

@@ -1,0 +1,2 @@
+{"tool": "search_types", "args": {"query": "credit default payout", "k": 5},
+ "expect": {"result": {"$min_len": 1, "$contains": []}}}

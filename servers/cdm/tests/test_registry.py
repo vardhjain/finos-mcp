@@ -7,13 +7,17 @@ found by `sync_upstream.py`, and it records -- rather than hides -- the real
 outcome of validating older-tag legacy samples against the 7.2.0 schema (see
 `test_legacy_samples_validate_or_report_known_issues`).
 
-`_vendor/` also carries a second, older JSON Schema vintage at
-`_vendor/schemas-6.27.0/`, matching the vintage the vendored legacy-format
-samples were pulled from. `CdmRegistry.schema_registry_for` exposes it
-alongside the primary 7.2.0 registry; `test_legacy_samples_validate_against_matching_vintage_schema`
-is the counterpart to `test_legacy_samples_validate_or_report_known_issues`
-that actually exercises the legacy JSON Schema path meaningfully, same
-vintage against same vintage, rather than only proving the vintage mismatch.
+`_vendor/` also carries a second, older JSON Schema vintage bundled at
+`_vendor/schemas/cdm-json-schema-6.27.0.json`, matching the vintage the
+vendored legacy-format samples were pulled from (the primary 7.2.0 vintage is
+`_vendor/schemas/cdm-json-schema-7.2.0.json`; each bundle is one JSON file
+holding every `*.schema.json` member keyed by filename, rather than one file
+per schema -- see `scripts/sync_upstream.py`). `CdmRegistry.schema_registry_for`
+exposes it alongside the primary 7.2.0 registry;
+`test_legacy_samples_validate_against_matching_vintage_schema` is the
+counterpart to `test_legacy_samples_validate_or_report_known_issues` that
+actually exercises the legacy JSON Schema path meaningfully, same vintage
+against same vintage, rather than only proving the vintage mismatch.
 """
 
 from __future__ import annotations
@@ -31,8 +35,17 @@ from finos_mcp.core import verify
 
 VENDOR_DIR = Path(__file__).parents[1] / "src" / "finos_mcp" / "cdm" / "_vendor"
 SCHEMAS_DIR = VENDOR_DIR / "schemas"
+PRIMARY_SCHEMA_VERSION = "7.2.0"
 LEGACY_SCHEMA_VERSION = "6.27.0"
-LEGACY_SCHEMAS_DIR = VENDOR_DIR / f"schemas-{LEGACY_SCHEMA_VERSION}"
+
+# Two 7.2.0 enum files ship raw control characters inside string values, which
+# strict `json.loads` rejects; `sync_upstream.py` retries those members with
+# `strict=False` and records them here (see `_load_schema_bundle` in
+# registry.py, and PLAN.md 1.2).
+EXPECTED_LENIENT_PARSE_FILES = {
+    "cdm-legaldocumentation-csa-CollateralAssetDefinitionsEnum.schema.json",
+    "cdm-product-collateral-RatingPriorityResolutionEnum.schema.json",
+}
 
 EXPECTED_SCHEMA_COUNT = 1139
 EXPECTED_ROOT_TYPE_COUNT = 16
@@ -74,6 +87,18 @@ def _iter_refs(node: Any) -> Any:
             yield from _iter_refs(item)
 
 
+def _bundle_path(version: str) -> Path:
+    return SCHEMAS_DIR / f"cdm-json-schema-{version}.json"
+
+
+def _load_bundle(version: str) -> dict[str, Any]:
+    return json.loads(_bundle_path(version).read_text(encoding="utf-8"))
+
+
+def _load_bundle_schemas(version: str) -> dict[str, Any]:
+    return _load_bundle(version)["schemas"]
+
+
 # -- vendoring / provenance --------------------------------------------------
 
 
@@ -82,43 +107,52 @@ def test_verify_passes() -> None:
 
 
 def test_schema_count() -> None:
-    files = sorted(SCHEMAS_DIR.glob("*.schema.json"))
-    assert len(files) == EXPECTED_SCHEMA_COUNT
+    schemas = _load_bundle_schemas(PRIMARY_SCHEMA_VERSION)
+    assert len(schemas) == EXPECTED_SCHEMA_COUNT
+
+
+def test_primary_bundle_metadata_and_lenient_parse_files() -> None:
+    """The bundle's own `count`/`version` fields agree with its `schemas`
+    dict, and the two known 7.2.0 members with raw control characters are
+    recorded under `lenient_parse` (see `sync_upstream.py`'s
+    `_parse_schema_member`)."""
+    bundle = _load_bundle(PRIMARY_SCHEMA_VERSION)
+    assert bundle["version"] == PRIMARY_SCHEMA_VERSION
+    assert bundle["count"] == len(bundle["schemas"]) == EXPECTED_SCHEMA_COUNT
+    assert set(bundle.get("lenient_parse", [])) == EXPECTED_LENIENT_PARSE_FILES
 
 
 def test_no_dangling_refs() -> None:
     """Walk every vendored schema (independent of CdmRegistry's own loading)
     and assert every `$ref` resolves to an existing sibling filename."""
-    files = sorted(SCHEMAS_DIR.glob("*.schema.json"))
-    filenames = {f.name for f in files}
+    schemas = _load_bundle_schemas(PRIMARY_SCHEMA_VERSION)
+    filenames = set(schemas)
     dangling: list[tuple[str, str]] = []
-    for path in files:
-        schema = json.loads(path.read_text(encoding="utf-8"), strict=False)
+    for name, schema in schemas.items():
         for ref in _iter_refs(schema):
             if ref not in filenames:
-                dangling.append((path.name, ref))
+                dangling.append((name, ref))
     assert dangling == [], f"{len(dangling)} dangling $ref(s): {dangling[:10]}"
 
 
 def test_legacy_schema_count() -> None:
-    """`_vendor/schemas-6.27.0/` is vendored alongside the primary 7.2.0 set
-    (see `sync_upstream.py`) so legacy-format samples can be validated against
-    a schema of matching vintage."""
-    files = sorted(LEGACY_SCHEMAS_DIR.glob("*.schema.json"))
-    assert len(files) == EXPECTED_LEGACY_SCHEMA_COUNT
+    """`_vendor/schemas/cdm-json-schema-6.27.0.json` is vendored alongside the
+    primary 7.2.0 bundle (see `sync_upstream.py`) so legacy-format samples can
+    be validated against a schema of matching vintage."""
+    schemas = _load_bundle_schemas(LEGACY_SCHEMA_VERSION)
+    assert len(schemas) == EXPECTED_LEGACY_SCHEMA_COUNT
 
 
 def test_legacy_no_dangling_refs() -> None:
     """Same check as `test_no_dangling_refs`, against the vendored 6.27.0
-    schema set."""
-    files = sorted(LEGACY_SCHEMAS_DIR.glob("*.schema.json"))
-    filenames = {f.name for f in files}
+    schema bundle."""
+    schemas = _load_bundle_schemas(LEGACY_SCHEMA_VERSION)
+    filenames = set(schemas)
     dangling: list[tuple[str, str]] = []
-    for path in files:
-        schema = json.loads(path.read_text(encoding="utf-8"), strict=False)
+    for name, schema in schemas.items():
         for ref in _iter_refs(schema):
             if ref not in filenames:
-                dangling.append((path.name, ref))
+                dangling.append((name, ref))
     assert dangling == [], (
         f"{len(dangling)} dangling $ref(s) in {LEGACY_SCHEMA_VERSION}: {dangling[:10]}"
     )
@@ -140,16 +174,14 @@ def test_get_by_bare_name_and_fqn(registry: CdmRegistry) -> None:
 def test_trade_required_fields(registry: CdmRegistry) -> None:
     trade = registry.get("Trade")
     assert trade is not None
-    schema = json.loads((SCHEMAS_DIR / trade.filename).read_text(encoding="utf-8"), strict=False)
+    schema = _load_bundle_schemas(PRIMARY_SCHEMA_VERSION)[trade.filename]
     assert schema.get("required") == ["tradeDate"]
 
 
 def test_tradestate_required_fields(registry: CdmRegistry) -> None:
     trade_state = registry.get("TradeState")
     assert trade_state is not None
-    schema = json.loads(
-        (SCHEMAS_DIR / trade_state.filename).read_text(encoding="utf-8"), strict=False
-    )
+    schema = _load_bundle_schemas(PRIMARY_SCHEMA_VERSION)[trade_state.filename]
     assert schema.get("required") == ["trade"]
 
 

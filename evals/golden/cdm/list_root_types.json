@@ -1,0 +1,2 @@
+{"tool": "list_types", "args": {"root_only": true, "page_size": 100},
+ "expect": {"total": 16, "items": {"$len": 16}}}

@@ -34,11 +34,20 @@ CASES: dict[str, list[tuple[str, dict[str, Any], float]]] = {
         ("map_risks_to_controls", {"risk_ids": ["ri-10", "ri-26", "ri-1"]}, 10.0),
         ("find_by_external_reference", {"key": "sa-9"}, 10.0),
         ("list_risks", {"page_size": 50}, 10.0),
+        ("search_status", {}, 5.0),
     ],
     "cdm": [
         ("describe_type", {"name": "TradeState"}, 5.0),
         ("list_types", {"page_size": 50}, 10.0),
         ("search_types", {"query": "interest rate payout", "k": 5}, 25.0),
+        ("explain_event", {"qualifier": "Execution"}, 10.0),
+        # A full Rune-format Execution BusinessEvent (basis swap): normalisation + Draft 4
+        # over ~1000 resolved refs. Budget reflects a real document, not a toy object.
+        (
+            "validate_object",
+            {"object": "@sample:execution__execution-basis-swap-func-output.json"},
+            150.0,
+        ),
     ],
     "fdc3": [
         ("get_context_schema", {"type": "fdc3.instrument"}, 5.0),
@@ -55,6 +64,20 @@ CASES: dict[str, list[tuple[str, dict[str, Any], float]]] = {
         ("list_intents", {}, 10.0),
     ],
 }
+
+
+def _resolve_args(server: str, args: dict[str, Any]) -> dict[str, Any]:
+    """Expand "@sample:<name>" placeholders into vendored sample documents."""
+    out: dict[str, Any] = {}
+    for key, value in args.items():
+        if isinstance(value, str) and value.startswith("@sample:"):
+            wanted = value.removeprefix("@sample:")
+            registry = importlib.import_module(f"finos_mcp.{server}.registry").get_registry()
+            path = next(s.path for s in registry.samples() if s.name == wanted)
+            out[key] = json.loads(Path(path).read_text(encoding="utf-8"))
+        else:
+            out[key] = value
+    return out
 
 
 def percentile(data: list[float], p: float) -> float:
@@ -82,9 +105,10 @@ async def bench_server(name: str, n: int) -> dict[str, dict[str, float]]:
     rt.policy.per_tool.clear()
     async with Client(server, raise_exceptions=True) as client:
         available = {t.name for t in (await client.list_tools()).tools}
-        for tool, args, budget in CASES.get(name, []):
+        for tool, raw_args, budget in CASES.get(name, []):
             if tool not in available:
                 continue
+            args = _resolve_args(name, raw_args)
             # warm-up
             for _ in range(5):
                 await client.call_tool(tool, args)

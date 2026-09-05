@@ -1,0 +1,51 @@
+name: vendor-check
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  resync:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - run: uv sync --all-packages
+      - name: Re-sync every upstream
+        run: |
+          uv run python servers/aigf/scripts/sync_upstream.py --ref main
+          uv run python servers/cdm/scripts/sync_upstream.py --version 7.2.0 --legacy-version 6.27.0
+          uv run python servers/fdc3/scripts/sync_upstream.py --ref v2.2.3
+          uv run python servers/fdc3/scripts/generate_intents.py
+      - name: Summarise what changed
+        id: diff
+        run: |
+          git add -A
+          if git diff --cached --quiet -- ':!**/SOURCE.json'; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --cached --stat -- ':!**/SOURCE.json' | tail -40 > /tmp/stat.txt
+          fi
+      - name: Run the parser and drift tests against the new content
+        if: steps.diff.outputs.changed == 'true'
+        run: uv run pytest servers/aigf/tests servers/cdm/tests/test_registry.py servers/fdc3/tests -rf
+      - name: Open a pull request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/vendor-resync
+          title: "chore(vendor): resync AIGF, CDM and FDC3 upstream content"
+          commit-message: "chore(vendor): resync upstream content"
+          body-path: /tmp/stat.txt
+          labels: vendor

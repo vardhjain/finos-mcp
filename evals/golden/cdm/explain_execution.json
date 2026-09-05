@@ -1,0 +1,2 @@
+{"tool": "explain_event", "args": {"qualifier": "Execution"},
+ "expect": {"qualifier": "Execution", "qualify_function": {"name": "Qualify_Execution"}, "sample_uris": {"$min_len": 1}}}

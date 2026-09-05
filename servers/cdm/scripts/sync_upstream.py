@@ -9,12 +9,16 @@ Three upstream sources feed ``servers/cdm/src/finos_mcp/cdm/_vendor/``:
 1. The JSON Schema distribution is a zip on Maven Central
    (``org.finos.cdm:cdm-json-schema:<version>``), unrelated to GitHub releases
    (CDM ships no GitHub release assets). Every ``*.schema.json`` entry from the
-   primary ``--version`` zip is unzipped flat into ``_vendor/schemas/``. The
-   ``--legacy-version`` zip is *also* downloaded and unzipped, to
-   ``_vendor/schemas-<legacy-version>/``, so that legacy-format samples (see
-   point 2) can be validated against a JSON Schema of matching vintage instead
-   of only the newer primary schema, which describes a different JSON shape
-   (see PLAN.md 1.2 and ``CdmRegistry.schema_registry_for``).
+   primary ``--version`` zip is bundled into a single JSON file,
+   ``_vendor/schemas/cdm-json-schema-<version>.json`` (one bundle per vintage,
+   rather than one file per schema -- ~2,200 individual files made every
+   server start slow on this machine's filesystem/antivirus). The
+   ``--legacy-version`` zip is *also* downloaded and bundled the same way, to
+   ``_vendor/schemas/cdm-json-schema-<legacy-version>.json``, so that
+   legacy-format samples (see point 2) can be validated against a JSON Schema
+   of matching vintage instead of only the newer primary schema, which
+   describes a different JSON shape (see PLAN.md 1.2 and
+   ``CdmRegistry.schema_registry_for``).
 2. A curated set of Rune-format (CDM 7.x) and legacy-format (CDM <=6) sample
    BusinessEvent outputs is pulled from two different tags of
    ``finos/common-domain-model`` on GitHub via the git trees API, because the
@@ -138,13 +142,38 @@ def _clear(dir_path: Path) -> None:
 # --- 1. JSON Schema zip from Maven Central ---------------------------------
 
 
-def schemas_dir_for(version: str) -> Path:
-    """Vendor directory for a given CDM JSON Schema version: the primary
-    (7.2.0) set lives at ``_vendor/schemas/`` for backwards compatibility;
-    every other vendored vintage lives at ``_vendor/schemas-<version>/``."""
-    if version == "7.2.0":
-        return SCHEMAS_DIR
-    return VENDOR_DIR / f"schemas-{version}"
+def bundle_path_for(version: str) -> Path:
+    """Bundle file for a given CDM JSON Schema version: every vintage is
+    vendored as a single ``_vendor/schemas/cdm-json-schema-<version>.json``
+    file (one JSON document holding every schema, keyed by filename) rather
+    than one file per schema."""
+    return SCHEMAS_DIR / f"cdm-json-schema-{version}.json"
+
+
+def _cleanup_legacy_unbundled_layout() -> None:
+    """Remove artifacts from the pre-bundle vendoring layout: individual
+    ``*.schema.json`` files directly under ``_vendor/schemas/`` (old primary
+    layout) and any ``_vendor/schemas-<version>/`` directories (old per-vintage
+    layout). Safe to call even when nothing from that layout remains."""
+    if SCHEMAS_DIR.is_dir():
+        for path in SCHEMAS_DIR.glob("*.schema.json"):
+            path.unlink()
+    for path in VENDOR_DIR.glob("schemas-*"):
+        if path.is_dir():
+            shutil.rmtree(path)
+
+
+def _parse_schema_member(content: bytes) -> tuple[dict[str, Any], bool]:
+    """Parse one ``*.schema.json`` member. Two 7.2.0 enum files ship raw
+    control characters inside string values, which strict ``json.loads``
+    rejects; retried with ``strict=False`` (matching how the registry and
+    server already read vendored JSON) when that happens. Returns
+    ``(schema, was_lenient)``."""
+    text = content.decode("utf-8")
+    try:
+        return json.loads(text), False
+    except json.JSONDecodeError:
+        return json.loads(text, strict=False), True
 
 
 def _extract_schema_members(data: bytes) -> dict[str, bytes]:
@@ -180,7 +209,6 @@ def _extract_schema_members(data: bytes) -> dict[str, bytes]:
 
 
 def sync_schemas(version: str) -> int:
-    dest_dir = schemas_dir_for(version)
     url = f"{MAVEN_BASE}/{version}/cdm-json-schema-{version}.zip"
     print(f"Downloading {url}")
     data = _get_bytes(url)
@@ -195,10 +223,31 @@ def sync_schemas(version: str) -> int:
     if not members:
         raise SystemExit(f"No *.schema.json members found in cdm-json-schema-{version}.zip")
 
-    _clear(dest_dir)
-    for name, content in members.items():
-        (dest_dir / name).write_bytes(content)
-    print(f"Extracted {len(members)} *.schema.json files -> {dest_dir}")
+    schemas: dict[str, dict[str, Any]] = {}
+    lenient_parse: list[str] = []
+    for name, content in sorted(members.items()):
+        schema, was_lenient = _parse_schema_member(content)
+        schemas[name] = schema
+        if was_lenient:
+            lenient_parse.append(name)
+
+    bundle: dict[str, Any] = {
+        "version": version,
+        "source": url,
+        "count": len(schemas),
+        "schemas": schemas,
+    }
+    if lenient_parse:
+        bundle["lenient_parse"] = sorted(lenient_parse)
+        print(f"Lenient-parsed (raw control chars) {len(lenient_parse)} member(s): {lenient_parse}")
+
+    SCHEMAS_DIR.mkdir(parents=True, exist_ok=True)
+    bundle_path = bundle_path_for(version)
+    # sort_keys=True makes key order (top-level and within every nested schema)
+    # deterministic across runs; compact separators keep the bundle small.
+    bundle_text = json.dumps(bundle, sort_keys=True, separators=(",", ":"))
+    bundle_path.write_text(bundle_text, encoding="utf-8")
+    print(f"Bundled {len(members)} *.schema.json files -> {bundle_path} ({len(bundle_text)} bytes)")
     return len(members)
 
 
@@ -365,6 +414,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     VENDOR_DIR.mkdir(parents=True, exist_ok=True)
+    _cleanup_legacy_unbundled_layout()
 
     schema_count = sync_schemas(args.version)
     legacy_schema_count = sync_schemas(args.legacy_version)
@@ -398,10 +448,12 @@ def main(argv: list[str] | None = None) -> int:
         license="Community-Spec-1.0",
         license_url=LICENSE_URL,
         notes=(
-            f"cdm-json-schema-{args.version}.zip from Maven Central, extracted to _vendor/schemas/ "
-            f"(primary version={args.version}); cdm-json-schema-{args.legacy_version}.zip also "
-            f"vendored to _vendor/schemas-{args.legacy_version}/ so legacy-format samples can be "
-            "validated against a schema of matching vintage; samples from tags "
+            f"cdm-json-schema-{args.version}.zip from Maven Central, bundled into "
+            f"_vendor/schemas/cdm-json-schema-{args.version}.json (primary version={args.version}, "
+            "one JSON file holding every *.schema.json member keyed by filename, instead of one "
+            f"file per schema); cdm-json-schema-{args.legacy_version}.zip also vendored the same way "
+            f"to _vendor/schemas/cdm-json-schema-{args.legacy_version}.json so legacy-format samples "
+            "can be validated against a schema of matching vintage; samples from tags "
             f"{args.version} (Rune JSON) and {args.legacy_version} (legacy JSON); qualify.json and "
             "root_types.json extracted from .rosetta sources"
         ),

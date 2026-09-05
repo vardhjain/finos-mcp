@@ -1,0 +1,4 @@
+{"tool": "describe_type", "args": {"name": "TradeState"},
+ "expect": {"name": "TradeState", "namespace": "cdm.event.common", "kind": "type", "root_type": true,
+            "fields": {"$min_len": 3, "$any": {"name": "trade", "cardinality": "1..1", "type": "Trade"}},
+            "used_by": {"$contains": ["BusinessEvent"]}, "schema_uri": "cdm://schema/TradeState"}}

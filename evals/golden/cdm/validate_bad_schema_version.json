@@ -1,0 +1,1 @@
+{"tool": "validate_object", "args": {"object": {"trade": {}}, "type": "TradeState", "schema_version": "3.0.0"}, "expect_error": "not_found"}

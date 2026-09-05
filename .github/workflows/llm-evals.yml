@@ -1,0 +1,71 @@
+name: llm-evals
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model under test"
+        default: "claude-opus-5"
+      judge:
+        description: "Also run the rubric judge (EVAL_JUDGE=1)"
+        type: boolean
+        default: false
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  tier-c:
+    if: github.event_name != 'pull_request' || github.event.label.name == 'run-llm-evals'
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      EVAL_MODEL: ${{ github.event.inputs.model || 'claude-opus-5' }}
+      EVAL_JUDGE: ${{ github.event.inputs.judge == 'true' && '1' || '0' }}
+      DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
+      FINOS_MCP_AGENT_OUT: agent.json
+      FINOS_MCP_METRICS_OUT: retrieval.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - name: Sync workspace with the llm extra
+        run: uv sync --all-packages --extra llm
+      - name: Agent-in-the-loop (AIGF)
+        run: uv run pytest evals/agent -rA
+      - name: Retrieval (for the same metrics file)
+        run: uv run pytest evals/retrieval -rA
+      - name: Collect metrics
+        run: >-
+          uv run python -m finos_mcp_evals.metrics.collect
+          --extra agent.json --extra retrieval.json --out metrics-llm.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: llm-eval-results
+          path: |
+            agent.json
+            retrieval.json
+            metrics-llm.json
+          retention-days: 90
+      - name: Comment summary on the PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('metrics-llm.json', 'utf8'));
+            const a = m.agent || {};
+            const body = [
+              '### finos-mcp tier C evals',
+              `model: \`${a.model}\` · tasks: ${a.tasks}`,
+              `cited-valid-id rate: **${a.cited_valid_id_rate}** · must-cite rate: **${a.must_cite_rate}** · tool correctness: **${a.tool_correctness}**`,
+              `refusals: ${a.refusals} · errors: ${a.errors} · tokens: ${a.input_tokens} in / ${a.output_tokens} out`,
+            ].join('\n');
+            await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });

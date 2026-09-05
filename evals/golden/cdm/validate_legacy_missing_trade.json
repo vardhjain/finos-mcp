@@ -1,0 +1,2 @@
+{"tool": "validate_object", "args": {"object": {"state": {}}, "type": "TradeState", "format": "legacy"},
+ "expect": {"valid": false, "format_detected": "legacy", "issues": {"$min_len": 1, "$first": {"json_path": "$", "kind": "required"}}}}

@@ -8,7 +8,7 @@ Case format::
 
 ``expect`` is matched partially: dict keys present in ``expect`` must match; lists
 match exactly unless wrapped in ``{"$contains": [...]}``, ``{"$len": n}``,
-``{"$min_len": n}`` or ``{"$first": value}``; scalars must be equal.
+``{"$min_len": n}``, ``{"$first": value}`` or ``{"$any": value}``; scalars must be equal.
 """
 
 from __future__ import annotations
@@ -49,6 +49,10 @@ def matches(expected: Any, actual: Any, path: str = "$") -> list[str]:
         if "$first" in expected:
             first = (actual or [None])[0]
             problems += matches(expected["$first"], first, f"{path}[0]")
+        if "$any" in expected:
+            items = actual or []
+            if not any(not matches(expected["$any"], item, path) for item in items):
+                problems.append(f"{path}: no element matches {expected['$any']!r}")
         return problems
     if isinstance(expected, dict):
         if not isinstance(actual, dict):
