@@ -113,6 +113,10 @@ def coverage_from_xml(path: Path | None) -> dict[str, Any]:
     return {"coverage_pct": round(rate * 100, 2)}
 
 
+def _fmt(value: Any) -> str:
+    return f"{value:.3f}" if isinstance(value, float) else str(value)
+
+
 def render_summary(metrics: dict[str, Any]) -> str:
     lines = ["## finos-mcp metrics", "", "| Metric | Value |", "|---|---|"]
     for k, v in sorted(metrics.get("exposure", {}).items()):
@@ -124,7 +128,14 @@ def render_summary(metrics: dict[str, Any]) -> str:
             lines.append(f"| coverage | {t['coverage_pct']}% |")
     for section in ("retrieval", "agent"):
         for k, v in sorted(metrics.get(section, {}).items()):
-            lines.append(f"| {section}.{k} | {v} |")
+            # One level of nesting is flattened (retrieval.tool_assisted.recall_at_5);
+            # lists such as the miss log stay in the JSON only.
+            if isinstance(v, dict):
+                for sub_k, sub_v in sorted(v.items()):
+                    if not isinstance(sub_v, dict | list):
+                        lines.append(f"| {section}.{k}.{sub_k} | {_fmt(sub_v)} |")
+            elif not isinstance(v, list):
+                lines.append(f"| {section}.{k} | {_fmt(v)} |")
     for k, v in sorted(metrics.get("latency_ms_p95", {}).items()):
         lines.append(f"| p95 {k} | {v} ms |")
     return "\n".join(lines) + "\n"
