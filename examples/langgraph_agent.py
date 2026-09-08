@@ -40,7 +40,7 @@ async def main(questions: list[str]) -> None:
         }
     )
     tools = await client.get_tools()
-    model = ChatAnthropic(model="claude-opus-5", max_tokens=8000)
+    model = ChatAnthropic(model="claude-haiku-4-5", max_tokens=8000)
     agent = create_react_agent(model, tools, prompt=SYSTEM)
     for q in questions:
         print(f"\n=== {q}")

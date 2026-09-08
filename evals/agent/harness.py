@@ -28,7 +28,7 @@ from mcp.client import Client
 from pydantic import BaseModel, Field
 
 AIR_ID = re.compile(r"\bAIR-(?:RC|OP|SEC|PREV|DET)-\d{3}\b")
-DEFAULT_MODEL = "claude-opus-5"
+DEFAULT_MODEL = "claude-haiku-4-5"
 MAX_TURNS = 10
 
 SYSTEM_PROMPT = (
