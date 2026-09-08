@@ -118,12 +118,27 @@ def _load_static_model(model_source: str) -> Any:
     share a single loaded model instead of re-downloading/re-loading it each time.
     A failed load is never cached (the exception simply propagates to the caller,
     which retries on the next `Catalog` build)."""
+    import os
+
     from model2vec import StaticModel
 
     # model2vec defaults to force_download=True, which would re-fetch the model from
     # the Hub on every process start (every server, every test subprocess) even when
     # it is already cached locally -- exactly the network dependency the `semantic`
-    # extra's docs promise not to add after the first download.
+    # extra's docs promise not to add after the first download. Even with that off,
+    # huggingface_hub still checks the remote revision unless told it is offline, so
+    # the cached copy is tried offline first and the network is used only on a miss.
+    previous = os.environ.get("HF_HUB_OFFLINE")
+    os.environ["HF_HUB_OFFLINE"] = "1"
+    try:
+        return StaticModel.from_pretrained(model_source, force_download=False)
+    except Exception:
+        pass
+    finally:
+        if previous is None:
+            os.environ.pop("HF_HUB_OFFLINE", None)
+        else:
+            os.environ["HF_HUB_OFFLINE"] = previous
     return StaticModel.from_pretrained(model_source, force_download=False)
 
 
