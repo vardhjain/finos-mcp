@@ -1,0 +1,630 @@
+{
+  "agent": {},
+  "commit": "a047e0c23b8980f73fff04f322f933c43e4d710a",
+  "exposure": {
+    "aigf.controls": 23,
+    "aigf.crosswalk_refs": 765,
+    "aigf.reference_entries": 957,
+    "aigf.reference_frameworks": 13,
+    "aigf.risk_control_edges": 88,
+    "aigf.risks": 23,
+    "cdm.choice_types": 16,
+    "cdm.enums": 279,
+    "cdm.qualify_functions": 35,
+    "cdm.root_types": 16,
+    "cdm.samples": 40,
+    "cdm.schemas": 1139,
+    "cdm.schemas_legacy_vintage": 1066,
+    "cdm.types": 764,
+    "fdc3.context_types": 28,
+    "fdc3.intents": 19,
+    "fdc3.schemas": 29,
+    "resources_total": 14,
+    "tools_total": 29
+  },
+  "generated_at": "2026-09-08T19:58:40+00:00",
+  "latency_detail": {
+    "aigf.find_by_external_reference": {
+      "budget_p95": 10.0,
+      "mean": 1.662,
+      "n": 100,
+      "p50": 1.659,
+      "p95": 1.709,
+      "p99": 1.872
+    },
+    "aigf.get_control": {
+      "budget_p95": 10.0,
+      "mean": 1.554,
+      "n": 100,
+      "p50": 1.546,
+      "p95": 1.619,
+      "p99": 1.727
+    },
+    "aigf.get_risk": {
+      "budget_p95": 10.0,
+      "mean": 2.384,
+      "n": 100,
+      "p50": 2.356,
+      "p95": 2.478,
+      "p99": 2.727
+    },
+    "aigf.list_risks": {
+      "budget_p95": 10.0,
+      "mean": 2.136,
+      "n": 100,
+      "p50": 2.124,
+      "p95": 2.213,
+      "p99": 2.288
+    },
+    "aigf.map_risks_to_controls": {
+      "budget_p95": 10.0,
+      "mean": 2.186,
+      "n": 100,
+      "p50": 2.175,
+      "p95": 2.294,
+      "p99": 2.413
+    },
+    "aigf.search_framework": {
+      "budget_p95": 25.0,
+      "mean": 2.196,
+      "n": 100,
+      "p50": 2.176,
+      "p95": 2.326,
+      "p99": 2.438
+    },
+    "aigf.search_status": {
+      "budget_p95": 5.0,
+      "mean": 0.643,
+      "n": 100,
+      "p50": 0.645,
+      "p95": 0.688,
+      "p99": 0.816
+    },
+    "cdm.describe_type": {
+      "budget_p95": 5.0,
+      "mean": 1.398,
+      "n": 100,
+      "p50": 1.389,
+      "p95": 1.475,
+      "p99": 1.564
+    },
+    "cdm.explain_event": {
+      "budget_p95": 10.0,
+      "mean": 0.884,
+      "n": 100,
+      "p50": 0.875,
+      "p95": 0.956,
+      "p99": 1.07
+    },
+    "cdm.list_types": {
+      "budget_p95": 10.0,
+      "mean": 7.779,
+      "n": 100,
+      "p50": 7.025,
+      "p95": 8.139,
+      "p99": 8.549
+    },
+    "cdm.search_types": {
+      "budget_p95": 25.0,
+      "mean": 2.953,
+      "n": 100,
+      "p50": 2.932,
+      "p95": 3.182,
+      "p99": 3.485
+    },
+    "cdm.validate_object": {
+      "budget_p95": 150.0,
+      "mean": 20.452,
+      "n": 100,
+      "p50": 20.417,
+      "p95": 20.926,
+      "p99": 21.116
+    },
+    "fdc3.get_context_schema": {
+      "budget_p95": 5.0,
+      "mean": 1.17,
+      "n": 100,
+      "p50": 1.157,
+      "p95": 1.249,
+      "p99": 1.318
+    },
+    "fdc3.list_intents": {
+      "budget_p95": 10.0,
+      "mean": 2.367,
+      "n": 100,
+      "p50": 2.355,
+      "p95": 2.473,
+      "p99": 2.689
+    },
+    "fdc3.suggest_intent": {
+      "budget_p95": 10.0,
+      "mean": 1.739,
+      "n": 100,
+      "p50": 1.735,
+      "p95": 1.797,
+      "p99": 1.911
+    },
+    "fdc3.validate_context": {
+      "budget_p95": 10.0,
+      "mean": 0.848,
+      "n": 100,
+      "p50": 0.844,
+      "p95": 0.889,
+      "p99": 1.008
+    }
+  },
+  "latency_ms_p95": {
+    "aigf.find_by_external_reference": 1.709,
+    "aigf.get_control": 1.619,
+    "aigf.get_risk": 2.478,
+    "aigf.list_risks": 2.213,
+    "aigf.map_risks_to_controls": 2.294,
+    "aigf.search_framework": 2.326,
+    "aigf.search_status": 0.688,
+    "cdm.describe_type": 1.475,
+    "cdm.explain_event": 0.956,
+    "cdm.list_types": 8.139,
+    "cdm.search_types": 3.182,
+    "cdm.validate_object": 20.926,
+    "fdc3.get_context_schema": 1.249,
+    "fdc3.list_intents": 2.473,
+    "fdc3.suggest_intent": 1.797,
+    "fdc3.validate_context": 0.889
+  },
+  "retrieval": {
+    "misses": [
+      {
+        "expected": [
+          "AIR-OP-014"
+        ],
+        "id": "q02",
+        "kind": "direct",
+        "mode": "search_only",
+        "question": "What operational risk is about an AI system's behavior drifting away from what the organization actually intended it to do?",
+        "top5": [
+          "AIR-PREV-007",
+          "AIR-PREV-017",
+          "AIR-DET-016",
+          "AIR-SEC-010",
+          "AIR-DET-004"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-OP-014"
+        ],
+        "id": "q02",
+        "kind": "direct",
+        "mode": "tool_assisted",
+        "question": "What operational risk is about an AI system's behavior drifting away from what the organization actually intended it to do?",
+        "top5": [
+          "AIR-PREV-007",
+          "AIR-PREV-017",
+          "AIR-DET-016",
+          "AIR-SEC-010",
+          "AIR-DET-004"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-OP-005"
+        ],
+        "id": "q21",
+        "kind": "concept",
+        "mode": "search_only",
+        "question": "A vendor swaps out the underlying language model behind the scenes and the assistant's answers start behaving noticeably differently overnight.",
+        "top5": [
+          "AIR-OP-006",
+          "AIR-SEC-010",
+          "AIR-SEC-008",
+          "AIR-RC-001",
+          "AIR-OP-017"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-OP-005"
+        ],
+        "id": "q21",
+        "kind": "concept",
+        "mode": "tool_assisted",
+        "question": "A vendor swaps out the underlying language model behind the scenes and the assistant's answers start behaving noticeably differently overnight.",
+        "top5": [
+          "AIR-OP-006",
+          "AIR-SEC-010",
+          "AIR-SEC-008",
+          "AIR-RC-001",
+          "AIR-OP-017"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-RC-001"
+        ],
+        "id": "q24",
+        "kind": "concept",
+        "mode": "search_only",
+        "question": "An employee pastes a client's account number and balance into a public chatbot to get help drafting an email.",
+        "top5": [
+          "AIR-PREV-017",
+          "AIR-SEC-025",
+          "AIR-SEC-010",
+          "AIR-PREV-019",
+          "AIR-OP-016"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-RC-001"
+        ],
+        "id": "q24",
+        "kind": "concept",
+        "mode": "tool_assisted",
+        "question": "An employee pastes a client's account number and balance into a public chatbot to get help drafting an email.",
+        "top5": [
+          "AIR-PREV-017",
+          "AIR-SEC-025",
+          "AIR-SEC-010",
+          "AIR-PREV-019",
+          "AIR-OP-016"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-SEC-009"
+        ],
+        "id": "q25",
+        "kind": "concept",
+        "mode": "search_only",
+        "question": "Someone slips fabricated or mislabeled documents into the training set used to build a fraud-detection model, causing it to miss future fraud.",
+        "top5": [
+          "AIR-OP-016",
+          "AIR-SEC-010",
+          "AIR-OP-004",
+          "AIR-OP-019",
+          "AIR-OP-018"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-SEC-009"
+        ],
+        "id": "q25",
+        "kind": "concept",
+        "mode": "tool_assisted",
+        "question": "Someone slips fabricated or mislabeled documents into the training set used to build a fraud-detection model, causing it to miss future fraud.",
+        "top5": [
+          "AIR-OP-016",
+          "AIR-SEC-010",
+          "AIR-OP-004",
+          "AIR-OP-019",
+          "AIR-OP-018"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-001",
+          "AIR-PREV-007",
+          "AIR-PREV-014",
+          "AIR-PREV-020"
+        ],
+        "id": "q31",
+        "kind": "crosswalk",
+        "mode": "search_only",
+        "question": "Which AIGF controls map to NIST SP 800-53 r5 control SA-9 (External System Services)?",
+        "top5": [
+          "AIR-PREV-023",
+          "AIR-DET-001",
+          "AIR-PREV-019",
+          "AIR-PREV-018",
+          "AIR-PREV-012"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-OP-014"
+        ],
+        "id": "q32",
+        "kind": "crosswalk",
+        "mode": "search_only",
+        "question": "Which AIGF risk addresses OWASP LLM07:2025 System Prompt Leakage?",
+        "top5": [
+          "AIR-SEC-010",
+          "AIR-RC-001",
+          "AIR-DET-001",
+          "AIR-PREV-017",
+          "AIR-DET-011"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-004",
+          "AIR-PREV-022"
+        ],
+        "id": "q41",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "What controls should be in place both for an agent whose stored memory gets tampered with and for a multi-agent system where one compromised agent's output cascades to the others?",
+        "top5": [
+          "AIR-OP-028",
+          "AIR-SEC-027",
+          "AIR-PREV-022",
+          "AIR-SEC-029",
+          "AIR-PREV-018"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-004",
+          "AIR-PREV-020",
+          "AIR-PREV-023"
+        ],
+        "id": "q42",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which controls cover both a poisoned MCP server dependency and an agent that harvests credentials while using its granted tool access?",
+        "top5": [
+          "AIR-SEC-026",
+          "AIR-PREV-020",
+          "AIR-SEC-029",
+          "AIR-PREV-023",
+          "AIR-PREV-019"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-004",
+          "AIR-DET-021"
+        ],
+        "id": "q43",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which detective controls mitigate the risks around agents calling MCP servers, having their tool chains manipulated, or bypassing their authorization?",
+        "top5": [
+          "AIR-SEC-025",
+          "AIR-SEC-024",
+          "AIR-SEC-026",
+          "AIR-PREV-020",
+          "AIR-PREV-019"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-005",
+          "AIR-PREV-006"
+        ],
+        "id": "q44",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls address both an AI system that confidently states inaccurate facts and one whose behaviour has drifted out of alignment with its intended use?",
+        "top5": [
+          "AIR-OP-004",
+          "AIR-DET-016",
+          "AIR-PREV-005",
+          "AIR-DET-015",
+          "AIR-OP-019"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-004",
+          "AIR-DET-011",
+          "AIR-DET-015"
+        ],
+        "id": "q45",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which detective controls apply to both a model vendor silently swapping versions and a system that gives different answers to the identical query each time?",
+        "top5": [
+          "AIR-OP-006",
+          "AIR-OP-005",
+          "AIR-PREV-010",
+          "AIR-DET-001",
+          "AIR-PREV-003"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-002",
+          "AIR-PREV-006",
+          "AIR-PREV-007",
+          "AIR-PREV-012"
+        ],
+        "id": "q46",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls are relevant to both training data being poisoned and AI-generated outputs infringing on someone else's intellectual property?",
+        "top5": [
+          "AIR-RC-023",
+          "AIR-PREV-017",
+          "AIR-DET-001",
+          "AIR-SEC-010",
+          "AIR-PREV-002"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-003",
+          "AIR-PREV-007",
+          "AIR-PREV-008",
+          "AIR-PREV-017"
+        ],
+        "id": "q47",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls help with both the model host going down unexpectedly and damage to the firm's reputation from AI mistakes?",
+        "top5": [
+          "AIR-OP-020",
+          "AIR-OP-018",
+          "AIR-DET-009",
+          "AIR-SEC-010",
+          "AIR-PREV-010"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-003",
+          "AIR-PREV-007",
+          "AIR-PREV-008",
+          "AIR-PREV-017"
+        ],
+        "id": "q47",
+        "kind": "multihop",
+        "mode": "tool_assisted",
+        "question": "Which preventative controls help with both the model host going down unexpectedly and damage to the firm's reputation from AI mistakes?",
+        "top5": [
+          "AIR-PREV-003",
+          "AIR-PREV-017",
+          "AIR-PREV-007",
+          "AIR-PREV-018",
+          "AIR-PREV-002"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-002",
+          "AIR-PREV-006",
+          "AIR-PREV-012"
+        ],
+        "id": "q48",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls are common to both sensitive data leaking to a hosted model and an AI system's training data being poisoned?",
+        "top5": [
+          "AIR-RC-001",
+          "AIR-DET-001",
+          "AIR-PREV-017",
+          "AIR-SEC-009",
+          "AIR-DET-009"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-PREV-018",
+          "AIR-PREV-019",
+          "AIR-PREV-022",
+          "AIR-PREV-023"
+        ],
+        "id": "q49",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which preventative controls guard against both an agent exceeding its authorization limits and an agent being used to harvest credentials?",
+        "top5": [
+          "AIR-PREV-023",
+          "AIR-PREV-018",
+          "AIR-PREV-022",
+          "AIR-SEC-024",
+          "AIR-SEC-029"
+        ]
+      },
+      {
+        "expected": [
+          "AIR-DET-013",
+          "AIR-DET-016",
+          "AIR-DET-021"
+        ],
+        "id": "q50",
+        "kind": "multihop",
+        "mode": "search_only",
+        "question": "Which detective controls address both an AI system nobody can explain and gaps in meeting regulatory obligations?",
+        "top5": [
+          "AIR-DET-021",
+          "AIR-RC-022",
+          "AIR-DET-001",
+          "AIR-PREV-007",
+          "AIR-OP-018"
+        ]
+      }
+    ],
+    "mrr": 0.845,
+    "questions": 50,
+    "recall_at_5": 0.915,
+    "search_mode": "hybrid",
+    "search_only": {
+      "mrr": 0.6831666666666667,
+      "recall_at_1": 0.5216666666666666,
+      "recall_at_3": 0.7133333333333334,
+      "recall_at_5": 0.745
+    },
+    "search_only_non_multihop": {
+      "mrr": 0.7604166666666666,
+      "recall_at_1": 0.6375,
+      "recall_at_3": 0.83125,
+      "recall_at_5": 0.85625
+    },
+    "tool_assisted": {
+      "mrr": 0.845,
+      "recall_at_1": 0.6266666666666667,
+      "recall_at_3": 0.8516666666666667,
+      "recall_at_5": 0.915
+    }
+  },
+  "servers": {
+    "aigf": {
+      "resource_count": 6,
+      "standard_version": "v2",
+      "tool_count": 11,
+      "tools": [
+        "find_by_external_reference",
+        "get_control",
+        "get_risk",
+        "list_controls",
+        "list_reference_frameworks",
+        "list_risks",
+        "map_control_to_external",
+        "map_risks_to_controls",
+        "search_framework",
+        "search_status",
+        "server_info"
+      ],
+      "upstream_commit": "7728f95121602b50cc9f980b3a05cb80e8c733e2",
+      "upstream_ref": "main",
+      "version": "0.1.0"
+    },
+    "cdm": {
+      "resource_count": 4,
+      "standard_version": "7.2.0",
+      "tool_count": 9,
+      "tools": [
+        "describe_type",
+        "explain_event",
+        "get_sample",
+        "list_products",
+        "list_samples",
+        "list_types",
+        "search_types",
+        "server_info",
+        "validate_object"
+      ],
+      "upstream_commit": "c38016efca75017310375f59ac452f8e0724d50e",
+      "upstream_ref": "7.2.0",
+      "version": "0.1.0"
+    },
+    "fdc3": {
+      "resource_count": 4,
+      "standard_version": "2.2.3",
+      "tool_count": 9,
+      "tools": [
+        "find_intents_by_context",
+        "get_context_schema",
+        "get_intent",
+        "list_context_types",
+        "list_intents",
+        "search_intents",
+        "server_info",
+        "suggest_intent",
+        "validate_context"
+      ],
+      "upstream_commit": "0d71e7fb1b7a0f660c3efa7ba3ed20562673de40",
+      "upstream_ref": "v2.2.3",
+      "version": "0.1.0"
+    }
+  },
+  "tests": {
+    "count": 156,
+    "coverage_pct": 93.56,
+    "failed": 0,
+    "passed": 155,
+    "skipped": 1
+  }
+}
