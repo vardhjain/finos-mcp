@@ -25,6 +25,7 @@ Loading that file with any standard YAML front-matter parser:
 
 ```python
 import frontmatter
+
 p = frontmatter.load("docs/_risks/ri-1_information-leaked-to-hosted-model.md")
 
 p.metadata["related_risks"]
