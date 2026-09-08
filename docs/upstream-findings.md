@@ -7,7 +7,7 @@ an upstream fix shows up as a test diff on the next sync.
 
 ## AI Governance Framework (finos/ai-governance-framework)
 
-1. **Seven risk files lose their `related_risks` list to a YAML comment.** In
+1. **Eight risk files lose their `related_risks` list to a YAML comment.** In
    `docs/_risks/` the last `uk-regulations_references` entry's inline `# comment` has no
    newline before the following `related_risks:` key, so YAML folds the key into the comment
    and the stray `ri-N` tokens land in `uk-regulations_references` as bogus reference keys
