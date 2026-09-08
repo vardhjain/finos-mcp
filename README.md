@@ -1,5 +1,14 @@
 # finos-mcp
 
+[![ci](https://github.com/vardhjain/finos-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/vardhjain/finos-mcp/actions/workflows/ci.yml)
+[![controls](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.exposure%5B%27aigf.controls%27%5D&label=AIGF%20controls&color=0f7a68)](https://raw.githubusercontent.com/vardhjain/finos-mcp/metrics/metrics.json)
+[![schemas](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.exposure%5B%27cdm.schemas%27%5D&label=CDM%20schemas&color=0f7a68)](https://raw.githubusercontent.com/vardhjain/finos-mcp/metrics/metrics.json)
+[![tools](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.exposure.tools_total&label=tools&color=0f7a68)](docs/tools.md)
+[![tests](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.tests.passed&label=tests&color=0f7a68)](https://raw.githubusercontent.com/vardhjain/finos-mcp/metrics/metrics.json)
+[![recall@5](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.retrieval.recall_at_5&label=retrieval%20recall%405&color=0f7a68)](evals/retrieval)
+
+Every badge above reads the numbers CI publishes to the [`metrics`](https://github.com/vardhjain/finos-mcp/tree/metrics) branch on each push to `main`, so they resolve to a specific commit rather than a claim.
+
 Typed, read-only [MCP](https://modelcontextprotocol.io) servers for FINOS data standards, so any agent can query them safely:
 
 | Server | Standard | What it exposes |

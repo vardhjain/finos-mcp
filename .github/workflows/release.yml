@@ -28,8 +28,12 @@ jobs:
           name: dist
           path: dist/
 
+  # Opt-in: set the repository variable PUBLISH_TO_PYPI=true once a trusted publisher
+  # is configured on PyPI for each package. Until then, tagging builds artifacts and
+  # cuts a GitHub release without attempting to publish.
   publish-pypi:
     needs: build
+    if: vars.PUBLISH_TO_PYPI == 'true'
     runs-on: ubuntu-latest
     environment: pypi
     steps:

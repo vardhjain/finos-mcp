@@ -16,8 +16,18 @@ jobs:
           enable-cache: true
           python-version: "3.12"
       - run: uv sync --all-packages
-      - name: Warm the servers once so the recording is not dominated by start-up
-        run: uv run python -c "import finos_mcp.aigf.server, finos_mcp.cdm.server, finos_mcp.fdc3.server"
+      # Build the CDM schema registry and the AIGF catalog once, into the uv/HF caches,
+      # so the recording shows tool latency rather than first-call registry construction
+      # (the CDM registry parses ~1100 schemas the first time it is touched).
+      - name: Warm the servers and caches
+        run: |
+          uv run python -c "
+          from finos_mcp.cdm.registry import get_registry
+          from finos_mcp.aigf.server import state
+          from finos_mcp.fdc3.registry import get_registry as fdc3_registry
+          get_registry().schema_registry; state(); fdc3_registry()
+          print('warm')
+          "
       - name: Render examples/demo.tape
         uses: charmbracelet/vhs-action@v2
         with:
