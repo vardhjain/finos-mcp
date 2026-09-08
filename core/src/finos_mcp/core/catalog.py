@@ -118,27 +118,19 @@ def _load_static_model(model_source: str) -> Any:
     share a single loaded model instead of re-downloading/re-loading it each time.
     A failed load is never cached (the exception simply propagates to the caller,
     which retries on the next `Catalog` build)."""
-    import os
-
     from model2vec import StaticModel
 
     # model2vec defaults to force_download=True, which would re-fetch the model from
     # the Hub on every process start (every server, every test subprocess) even when
     # it is already cached locally -- exactly the network dependency the `semantic`
-    # extra's docs promise not to add after the first download. Even with that off,
-    # huggingface_hub still checks the remote revision unless told it is offline, so
-    # the cached copy is tried offline first and the network is used only on a miss.
-    previous = os.environ.get("HF_HUB_OFFLINE")
-    os.environ["HF_HUB_OFFLINE"] = "1"
-    try:
-        return StaticModel.from_pretrained(model_source, force_download=False)
-    except Exception:
-        pass
-    finally:
-        if previous is None:
-            os.environ.pop("HF_HUB_OFFLINE", None)
-        else:
-            os.environ["HF_HUB_OFFLINE"] = previous
+    # extra's docs promise not to add after the first download.
+    #
+    # Do NOT try to make this offline-first by setting HF_HUB_OFFLINE around the call:
+    # huggingface_hub freezes that env var into a module constant when it is first
+    # imported, which happens *inside* this call, so the setting outlives the block and
+    # a later retry stays offline for the life of the process -- a machine with no
+    # cached model could then never download one. Point FINOS_MCP_EMBEDDING_MODEL at a
+    # local directory for a genuinely offline deployment.
     return StaticModel.from_pretrained(model_source, force_download=False)
 
 

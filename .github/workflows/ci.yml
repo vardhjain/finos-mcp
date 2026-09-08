@@ -38,6 +38,14 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python }}
 
+      # The `semantic` extra downloads a 15 MB static embedding model on first use.
+      # Cache it so the hybrid-search tests do not depend on huggingface.co every run.
+      - name: Cache the embedding model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}-potion-base-4M
+
       - name: Sync workspace
         run: uv sync --all-packages --all-extras
 
