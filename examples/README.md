@@ -1,5 +1,25 @@
 # Using the servers
 
+## Demo
+
+[`demo_session.py`](demo_session.py) loads all three servers in one process and makes five
+real tool calls through the in-memory MCP client. Its captured output is committed as
+[`../docs/demo.md`](../docs/demo.md); reproduce it with:
+
+```bash
+uv run python examples/demo_session.py
+```
+
+[`demo.tape`](demo.tape) records the same session as a GIF with
+[VHS](https://github.com/charmbracelet/vhs) (`vhs examples/demo.tape`, and on Windows it needs
+Git Bash on `PATH`). **This is not wired into CI and is not currently reproducible on either a
+GitHub runner or a typical laptop.** The recording consistently dies partway through the CDM
+validation step, with output stopping mid-step and no Python traceback, which points at the
+process being killed rather than at the recorder: this one process holds all three servers,
+both CDM schema vintages (~2200 schemas) and the embedding model at once. That is unique to
+the demo harness, since each server normally runs in its own process. `docs/demo.md` is the
+supported artifact; the tape is kept for anyone who wants to render it on a larger machine.
+
 ## Claude Desktop
 
 Merge [`claude_desktop_config.json`](claude_desktop_config.json) into your Claude Desktop config

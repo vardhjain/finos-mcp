@@ -8,8 +8,8 @@ uv run python examples/demo_session.py
 ```
 
 Latencies are measured per call on the machine that produced this transcript, with the
-safety middleware (rate limiting, size caps, audit) in the path. `examples/demo.tape`
-renders the same session as a GIF via [VHS](https://github.com/charmbracelet/vhs).
+safety middleware (rate limiting, size caps, audit) in the path. `examples/demo.tape` records
+the same session as a GIF, with the caveats in [examples/README.md](../examples/README.md).
 
 ```console
 $ finos-mcp: read-only MCP servers for FINOS standards (AIGF, CDM, FDC3)
