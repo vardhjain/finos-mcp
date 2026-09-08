@@ -246,7 +246,7 @@ def sync_schemas(version: str) -> int:
     # sort_keys=True makes key order (top-level and within every nested schema)
     # deterministic across runs; compact separators keep the bundle small.
     bundle_text = json.dumps(bundle, sort_keys=True, separators=(",", ":"))
-    bundle_path.write_text(bundle_text, encoding="utf-8")
+    bundle_path.write_text(bundle_text, encoding="utf-8", newline="\n")
     print(f"Bundled {len(members)} *.schema.json files -> {bundle_path} ({len(bundle_text)} bytes)")
     return len(members)
 
@@ -356,7 +356,7 @@ def sync_rosetta(sha: str, tree: list[dict[str, Any]]) -> Path:
     tmp_dir = Path(tempfile.mkdtemp(prefix="finos-cdm-rosetta-"))
     for path in rosetta_paths:
         text = _get_bytes(f"{RAW_BASE}/{sha}/{path}").decode("utf-8")
-        (tmp_dir / Path(path).name).write_text(text, encoding="utf-8")
+        (tmp_dir / Path(path).name).write_text(text, encoding="utf-8", newline="\n")
     print(f".rosetta sources: {len(rosetta_paths)} file(s) downloaded to {tmp_dir} (not vendored)")
 
     if EVENT_QUALIFICATION_FILE not in {p.name for p in tmp_dir.glob("*.rosetta")}:
@@ -382,15 +382,19 @@ def run_extraction(rosetta_dir: Path) -> tuple[int, int, int]:
     choices = extract_choice_types(rosetta_dir)
 
     (VENDOR_DIR / "qualify.json").write_text(
-        json.dumps({"functions": qualify, "count": len(qualify)}, indent=2) + "\n", encoding="utf-8"
+        json.dumps({"functions": qualify, "count": len(qualify)}, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
     (VENDOR_DIR / "root_types.json").write_text(
         json.dumps({"root_types": root_types, "count": len(root_types)}, indent=2) + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     (VENDOR_DIR / "choice_types.json").write_text(
         json.dumps({"choice_types": choices, "count": len(choices)}, indent=2) + "\n",
         encoding="utf-8",
+        newline="\n",
     )
 
     print(f"qualify.json: {len(qualify)} function(s) (expected 35)")
