@@ -10,3 +10,7 @@ metrics.json
 dist/
 *.egg-info/
 .env
+
+# local credentials, never committed
+anthropic_api_key.txt
+*.key
