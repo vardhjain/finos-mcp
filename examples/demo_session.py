@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import sys
 import time
 from pathlib import Path
@@ -18,6 +19,11 @@ from mcp.client import Client
 from finos_mcp.aigf.server import create_server as aigf_server
 from finos_mcp.cdm.server import create_server as cdm_server
 from finos_mcp.fdc3.server import create_server as fdc3_server
+
+# Library debug chatter (bm25s index building, httpx) goes to stderr and would appear in the
+# recording beside the demo output. The audit log is redirected with FINOS_MCP_AUDIT_PATH by
+# the tape for the same reason. Both emit at runtime, so disabling here is early enough.
+logging.disable(logging.INFO)
 
 BROKEN = Path(__file__).with_name("broken_execution.json")
 
@@ -63,39 +69,44 @@ STEPS: list[tuple[str, str, str, dict[str, Any], int]] = [
 ]
 
 
-def say(text: str, pause: float = 0.0) -> None:
+async def say(text: str, pause: float = 0.0) -> None:
+    """Print one line, then yield.
+
+    `asyncio.sleep`, never `time.sleep`: an MCP `Client` runs a message-dispatch
+    task on this loop, and blocking it for seconds at a time while a session is
+    open starves that task and wedges the next `call_tool`.
+    """
     sys.stdout.write(text + "\n")
     sys.stdout.flush()
-    if pause:
-        time.sleep(pause)
+    await asyncio.sleep(pause if pause else 0)
 
 
 async def main() -> None:
-    say("loading finos-mcp servers ...")
+    await say("loading finos-mcp servers ...")
     servers = {"aigf": aigf_server(), "cdm": cdm_server(), "fdc3": fdc3_server()}
     clients: dict[str, Client] = {}
     for name, srv in servers.items():
         clients[name] = await Client(srv, raise_exceptions=True).__aenter__()
-    say("READY", 0.5)
-    say("")
-    say("$ finos-mcp: typed, read-only MCP servers for FINOS standards (AIGF, CDM, FDC3)", 2.0)
+    await say("READY", 0.5)
+    await say("")
+    await say("$ finos-mcp: read-only MCP servers for FINOS standards (AIGF, CDM, FDC3)", 2.0)
     for title, server, tool, args, width in STEPS:
-        say("")
-        say(f"# {title}", 1.5)
+        await say("")
+        await say(f"# {title}", 1.5)
         shown = {k: ("<broken_execution.json>" if k == "object" else v) for k, v in args.items()}
-        say(f"$ {server} > {tool} {json.dumps(shown)}", 1.0)
+        await say(f"$ {server} > {tool} {json.dumps(shown)}", 1.0)
         t0 = time.perf_counter()
         result = await clients[server].call_tool(tool, args)
         ms = (time.perf_counter() - t0) * 1000
         if result.is_error:
-            say(result.content[0].text)  # type: ignore[union-attr]
+            await say(result.content[0].text)  # type: ignore[union-attr]
         else:
             body = json.dumps(result.structured_content, indent=1)
-            say(body[:width] + (" ..." if len(body) > width else ""))
-        say(f"[{ms:.0f} ms, read-only, rate-limited, audited]", 4.0)
-    say("")
-    say("$ every tool is read-only; nothing here writes to any external system.", 3.0)
-    say("DEMO DONE")
+            await say(body[:width] + (" ..." if len(body) > width else ""))
+        await say(f"[{ms:.0f} ms, read-only, rate-limited, audited]", 3.0)
+    await say("")
+    await say("$ every tool is read-only; nothing here writes to any external system.", 2.5)
+    await say("DEMO DONE")
     for name in reversed(list(clients)):
         await clients[name].__aexit__(None, None, None)
 

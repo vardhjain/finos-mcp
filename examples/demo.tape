@@ -13,6 +13,10 @@ Set TypingSpeed 35ms
 Set WaitTimeout 600s
 
 Hide
+# The audit log defaults to stderr, which would interleave JSON audit records with the
+# demo output and make the recording unreadable. Send it to a file for the recording.
+Type "export FINOS_MCP_AUDIT_PATH=/tmp/finos-demo-audit.jsonl && clear"
+Enter
 Type "uv run python examples/demo_session.py"
 Enter
 Wait+Screen /READY/
