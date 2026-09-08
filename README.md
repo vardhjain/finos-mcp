@@ -19,6 +19,10 @@ Typed, read-only [MCP](https://modelcontextprotocol.io) servers for FINOS data s
 
 All three share [`finos-mcp-core`](core/), which is where the safety guarantees live.
 
+See [docs/demo.md](docs/demo.md) for a real transcript: five tool calls across the three
+servers, including CDM catching three planted defects in a Rune-format `BusinessEvent` and
+reporting each one's path in the submitted document.
+
 ## Safety model
 
 **These servers are read-only.** They contain no tool that writes to, posts to, or mutates any external system, file, or network endpoint. All framework content and schemas are vendored into the packages at build time with recorded upstream commit hashes (`SOURCE.json` in each `_vendor/` directory); the servers make **no network calls at runtime**. Every tool call is rate-limited per tool, input-capped, and written to an audit log. Any failure is returned as a structured error the calling agent can act on.
