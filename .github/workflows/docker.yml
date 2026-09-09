@@ -1,0 +1,92 @@
+name: docker
+
+on:
+  workflow_dispatch:
+    inputs:
+      push:
+        description: "Push to ghcr.io after the smoke test passes"
+        type: boolean
+        default: false
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  build-and-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      # Build amd64 only here so the image can be loaded and actually run. Publishing the
+      # multi-arch manifest happens below, and only after this has passed.
+      - name: Build (amd64, loaded locally)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: finos-mcp:smoke
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test the image over streamable-http
+        run: |
+          set -euo pipefail
+          # Locked down the way the docs describe: read-only root, no capabilities.
+          docker run -d --name finos --read-only --cap-drop ALL -p 8000:8000 finos-mcp:smoke
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null "http://127.0.0.1:8000/mcp" -X POST \
+                 -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' \
+                 --data '{"jsonrpc":"2.0","id":1,"method":"ping"}' 2>/dev/null; then break; fi
+            if ! docker ps --filter name=finos --filter status=running -q | grep -q .; then
+              echo "container exited early:"; docker logs finos; exit 1
+            fi
+            sleep 2
+          done
+          echo "--- container logs ---"; docker logs finos 2>&1 | tail -20
+          python -m pip install --quiet "mcp==2.1.1"
+          python - <<'PY'
+          import asyncio
+          from mcp.client import Client
+
+          async def main() -> None:
+              async with Client("http://127.0.0.1:8000/mcp", raise_exceptions=True) as c:
+                  tools = (await c.list_tools()).tools
+                  names = {t.name for t in tools}
+                  assert {"get_control", "search_framework"} <= names, names
+                  assert all(t.annotations and t.annotations.read_only_hint for t in tools)
+                  r = await c.call_tool("get_control", {"id": "mi-20", "include_sections": False})
+                  assert r.structured_content["id"] == "AIR-PREV-020", r.structured_content
+                  print(f"OK: {len(tools)} tools, get_control returned AIR-PREV-020")
+
+          asyncio.run(main())
+          PY
+          docker rm -f finos
+
+      - name: Log in to ghcr.io
+        if: inputs.push || startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push multi-arch with SBOM and provenance
+        if: inputs.push || startsWith(github.ref, 'refs/tags/v')
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
