@@ -209,6 +209,12 @@ def score(
     runs: list[TaskRun], tasks: dict[str, dict[str, Any]], known_ids: set[str]
 ) -> dict[str, Any]:
     n = len(runs)
+    # Two distinct failures, kept apart because they mean different things: citing an id that
+    # does not exist in the catalog is a correctness failure (the tools were there to check);
+    # citing no id at all is an instruction-following failure. Collapsing them into one rate
+    # hides which one happened.
+    hallucinated = {r.task_id: sorted(r.cited - known_ids) for r in runs if r.cited - known_ids}
+    cited_any = sum(1 for r in runs if r.cited)
     valid_ids = sum(1 for r in runs if r.cited and r.cited <= known_ids)
     must_cite = sum(1 for r in runs if r.cited & set(tasks[r.task_id].get("must_cite", [])))
     must_call = sum(
@@ -221,6 +227,10 @@ def score(
     out: dict[str, Any] = {
         "tasks": n,
         "cited_valid_id_rate": round(valid_ids / n, 3) if n else 0.0,
+        "hallucinated_id_rate": round(len(hallucinated) / n, 3) if n else 0.0,
+        "hallucinated_ids": hallucinated,
+        "cited_any_rate": round(cited_any / n, 3) if n else 0.0,
+        "no_citation_tasks": sorted(r.task_id for r in runs if not r.cited),
         "must_cite_rate": round(must_cite / n, 3) if n else 0.0,
         "tool_correctness": round(must_call / n, 3) if n else 0.0,
         "resource_citation_rate": round(cited_resource / n, 3) if n else 0.0,

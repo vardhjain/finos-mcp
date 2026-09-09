@@ -16,7 +16,7 @@ on:
     types: [labeled]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -40,13 +40,20 @@ jobs:
         run: uv sync --all-packages --extra llm
       - name: Agent-in-the-loop (AIGF)
         run: uv run pytest evals/agent -rA
+      # The steps below run even when a gate above fails: a failed eval is exactly when its
+      # numbers matter, and skipping them would leave nothing to diagnose from.
       - name: Retrieval (for the same metrics file)
+        if: always()
         run: uv run pytest evals/retrieval -rA
       - name: Collect metrics
+        if: always()
         run: >-
           uv run python -m finos_mcp_evals.metrics.collect
           --extra agent.json --extra retrieval.json --out metrics-llm.json
+      # always(): the eval results are the diagnostics for a failed gate, so they must survive
+      # the failure that makes them interesting.
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: llm-eval-results
           path: |
@@ -54,6 +61,7 @@ jobs:
             retrieval.json
             metrics-llm.json
           retention-days: 90
+
       - name: Comment summary on the PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -69,3 +77,33 @@ jobs:
               `refusals: ${a.refusals} · errors: ${a.errors} · tokens: ${a.input_tokens} in / ${a.output_tokens} out`,
             ].join('\n');
             await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });
+
+  # Publish the agent numbers to their own file on the metrics branch, from a clean checkout.
+  # A separate file rather than a merge into metrics.json, so this can never race the ci
+  # workflow's publish of the deterministic metrics.
+  publish-agent-metrics:
+    needs: tier-c
+    # always(): publish the numbers a run produced even when they failed a gate. A metrics
+    # feed that only records passing runs is not a measurement, it is advertising.
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: llm-eval-results
+          path: _agent
+      - name: Commit metrics-agent.json to the metrics branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin metrics || true
+          git checkout -B metrics origin/metrics 2>/dev/null || git checkout --orphan metrics
+          find . -maxdepth 1 -not -name . -not -name .git -not -name _agent -exec rm -rf {} +
+          cp _agent/metrics-llm.json metrics-agent.json
+          rm -rf _agent
+          git add -A metrics-agent.json
+          git commit -m "metrics(agent): ${GITHUB_SHA::7}" || echo "no change"
+          git push origin metrics

@@ -20,7 +20,12 @@ from finos_mcp.aigf.server import create_server, state
 from .harness import model_from_env, run_suite
 
 TASKS = Path(__file__).parent / "tasks_aigf.jsonl"
-MIN_VALID_ID_RATE = 0.95
+# Citing an id that is not in the catalog is a correctness failure with zero tolerance: the
+# agent had tools to look every id up, so inventing one is never acceptable. Whether it cites
+# any id at all is a separate, softer instruction-following measure, since a model may answer
+# correctly in prose and omit the identifier.
+MAX_HALLUCINATED_ID_RATE = 0.0
+MIN_CITED_ANY_RATE = 0.90
 MIN_MUST_CITE_RATE = 0.80
 MIN_TOOL_CORRECTNESS = 0.80
 
@@ -73,7 +78,12 @@ def test_agent_cites_valid_controls() -> None:
     )
     failures = [r.task_id for r in runs if r.error]
     assert metrics["refusals"] == 0, [r.to_json() for r in runs if r.error == "refusal"]
-    assert metrics["cited_valid_id_rate"] >= MIN_VALID_ID_RATE, metrics
+    assert metrics["hallucinated_id_rate"] <= MAX_HALLUCINATED_ID_RATE, (
+        f"cited ids absent from the catalog: {metrics['hallucinated_ids']}"
+    )
+    assert metrics["cited_any_rate"] >= MIN_CITED_ANY_RATE, (
+        f"tasks whose answer cited no AIR-* id: {metrics['no_citation_tasks']}; {metrics}"
+    )
     assert metrics["must_cite_rate"] >= MIN_MUST_CITE_RATE, metrics
     assert metrics["tool_correctness"] >= MIN_TOOL_CORRECTNESS, metrics
     assert not failures, failures
