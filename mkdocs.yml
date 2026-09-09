@@ -1,0 +1,45 @@
+site_name: finos-mcp
+site_description: Read-only MCP servers for FINOS data standards (AIGF, CDM, FDC3)
+site_url: https://vardhjain.github.io/finos-mcp/
+repo_url: https://github.com/vardhjain/finos-mcp
+repo_name: vardhjain/finos-mcp
+edit_uri: edit/main/docs/
+
+# Deliberately no extra plugins or dependencies beyond mkdocs-material: every page here is a
+# markdown file that also renders on GitHub, so the site is a convenience, never the only
+# place the documentation exists.
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle: { icon: material/brightness-7, name: Switch to dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      toggle: { icon: material/brightness-4, name: Switch to light mode }
+  features:
+    - navigation.instant
+    - navigation.sections
+    - content.code.copy
+    - search.highlight
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc: { permalink: true }
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Safety model: safety.md
+  - Tool reference: tools.md
+  - Demo transcript: demo.md
+  - Upstream findings: upstream-findings.md
+  - Outreach:
+      - Overview: outreach/README.md
+      - "AIGF: front-matter bug": outreach/aigf-issue-frontmatter.md
+
+strict: true

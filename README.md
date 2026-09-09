@@ -6,6 +6,7 @@
 [![tools](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.exposure.tools_total&label=tools&color=0f7a68)](docs/tools.md)
 [![tests](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.tests.passed&label=tests&color=0f7a68)](https://raw.githubusercontent.com/vardhjain/finos-mcp/metrics/metrics.json)
 [![recall@5](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.retrieval.recall_at_5&label=retrieval%20recall%405&color=0f7a68)](evals/retrieval)
+[![hallucinated ids](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics-agent.json&query=%24.agent.hallucinated_id_rate&label=agent%20hallucinated%20ids&color=0f7a68)](evals/agent)
 
 Every badge above reads the numbers CI publishes to the [`metrics`](https://github.com/vardhjain/finos-mcp/tree/metrics) branch on each push to `main`, so they resolve to a specific commit rather than a claim.
 
@@ -39,9 +40,29 @@ Policy can only be tightened from the environment (`FINOS_MCP_MAX_INPUT_BYTES`, 
 
 The default install is **lexical-only and makes no network calls**: `search_framework` is plain BM25 with a fuzzy title boost. Installing the optional `semantic` extra (`finos-mcp-core[semantic]` / `finos-mcp-aigf[semantic]`, pulling in `model2vec`) enables hybrid search — BM25 fused with a small (~15 MB, MIT-licensed) static-embedding model, `minishlab/potion-base-4M` by default — which downloads that model from Hugging Face on first use unless `FINOS_MCP_EMBEDDING_MODEL` points at a local copy. Loading the model never blocks correctness: any failure (extra not installed, no network, bad path) is caught and leaves the server in pure lexical mode. The active mode is visible via the `search_status` tool, and `FINOS_MCP_SEARCH_MODE=lexical` forces lexical-only explicitly regardless of what is installed.
 
+## Run it
+
+```bash
+uv run finos-mcp-aigf                 # stdio, for Claude Desktop / Claude Code
+uv run finos-mcp-aigf --transport streamable-http --port 8000
+```
+
+Or as a container, which needs no writable filesystem and no capabilities:
+
+```bash
+docker run --rm -p 8000:8000 --read-only --cap-drop ALL ghcr.io/vardhjain/finos-mcp
+docker run --rm -p 8000:8000 ghcr.io/vardhjain/finos-mcp \
+    finos-mcp-cdm --transport streamable-http --host 0.0.0.0 --port 8000
+```
+
+See [examples/](examples/) for Claude Desktop config, a LangGraph agent, and the demo.
+
 ## Status
 
-Under active development. See [PLAN.md](PLAN.md) for the design, milestones and the metrics that CI publishes.
+Released [v0.1.0](https://github.com/vardhjain/finos-mcp/releases/tag/v0.1.0). Documentation is
+published at <https://vardhjain.github.io/finos-mcp/>. See [PLAN.md](PLAN.md) for the design and
+the metrics CI publishes. Not on PyPI yet: publishing is gated behind a repository variable
+until trusted publishers are configured.
 
 ## Development
 

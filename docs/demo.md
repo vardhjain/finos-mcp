@@ -9,7 +9,7 @@ uv run python examples/demo_session.py
 
 Latencies are measured per call on the machine that produced this transcript, with the
 safety middleware (rate limiting, size caps, audit) in the path. `examples/demo.tape` records
-the same session as a GIF, with the caveats in [examples/README.md](../examples/README.md).
+the same session as a GIF, with the caveats in [examples/README.md](https://github.com/vardhjain/finos-mcp/blob/main/examples/README.md).
 
 ```console
 $ finos-mcp: read-only MCP servers for FINOS standards (AIGF, CDM, FDC3)
@@ -69,7 +69,7 @@ $ every tool is read-only; nothing here writes to any external system.
 DEMO DONE
 ```
 
-The CDM step validates [`examples/broken_execution.json`](../examples/broken_execution.json):
+The CDM step validates [`examples/broken_execution.json`](https://github.com/vardhjain/finos-mcp/blob/main/examples/broken_execution.json):
 a real CDM 7 Rune-format `BusinessEvent` with three deliberate defects (a misspelled payout
 alternative, a removed required `trade`, and a missing `executionDetails`). Each is reported
 with the JSON path *in the submitted document*, which is what lets an agent fix its own output.
