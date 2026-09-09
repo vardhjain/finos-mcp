@@ -38,9 +38,15 @@ def _server(tmp_path: Path) -> Iterator[str]:
     }
     proc = subprocess.Popen(
         [
-            sys.executable, "-m", "finos_mcp.aigf",
-            "--transport", "streamable-http",
-            "--host", "127.0.0.1", "--port", str(port),
+            sys.executable,
+            "-m",
+            "finos_mcp.aigf",
+            "--transport",
+            "streamable-http",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(port),
         ],
         env=env,
         stdout=subprocess.PIPE,
@@ -77,7 +83,9 @@ async def test_console_script_over_streamable_http(tmp_path: Path) -> None:
             assert {"get_control", "search_framework", "server_info"} <= {t.name for t in tools}
             assert all(t.annotations and t.annotations.read_only_hint for t in tools)
 
-            result = await client.call_tool("get_control", {"id": "mi-20", "include_sections": False})
+            result = await client.call_tool(
+                "get_control", {"id": "mi-20", "include_sections": False}
+            )
             assert result.is_error is False
             assert result.structured_content is not None
             assert result.structured_content["id"] == "AIR-PREV-020"
