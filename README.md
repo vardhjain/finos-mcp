@@ -62,7 +62,9 @@ See [examples/](examples/) for Claude Desktop config, a LangGraph agent, and the
 Released [v0.1.0](https://github.com/vardhjain/finos-mcp/releases/tag/v0.1.0). Documentation is
 published at <https://vardhjain.github.io/finos-mcp/>. See [PLAN.md](PLAN.md) for the design and
 the metrics CI publishes. Not on PyPI yet: publishing is gated behind a repository variable
-until trusted publishers are configured.
+until trusted publishers are registered, and the package names are an open question with FINOS
+(the `finos-` prefix on PyPI already denotes official FINOS packages). See
+[RELEASING.md](RELEASING.md).
 
 ## Development
 
