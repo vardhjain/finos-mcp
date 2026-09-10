@@ -45,4 +45,4 @@ on every push, and a nightly agent eval records whether a model citing these con
 invents an id. The badges on the repository read those files.
 
 Vendoring the standards also surfaced defects in them, which are written up in
-**[upstream findings](upstream-findings.md)** and are being reported back to FINOS.
+**[upstream findings](upstream-findings.md)**. The first has been reported back to FINOS as [issue #378](https://github.com/finos/ai-governance-framework/issues/378), with the fix in [PR #380](https://github.com/finos/ai-governance-framework/pull/380).

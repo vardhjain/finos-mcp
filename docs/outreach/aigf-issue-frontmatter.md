@@ -1,8 +1,12 @@
-# Draft issue: finos/ai-governance-framework
+# Filed: finos/ai-governance-framework issue #378
 
 **Title:** Eight risk files silently lose `related_risks` to an unterminated YAML comment
 
-**Not yet filed.** Prepared from the vendored content at commit `7728f95`.
+**Filed 2026-09-08** as
+[issue #378](https://github.com/finos/ai-governance-framework/issues/378); the fix is
+[PR #380](https://github.com/finos/ai-governance-framework/pull/380). Prepared from the
+vendored content at commit `7728f95`, and re-verified against upstream `main` before filing.
+The text below is what was submitted.
 
 ---
 

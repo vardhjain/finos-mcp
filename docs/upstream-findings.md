@@ -1,9 +1,14 @@
 # Upstream findings
 
 Defects and surprises in the FINOS sources discovered while vendoring them, verified on
-2026-09-04. Each is a candidate issue or pull request against the upstream project; the
-finos-mcp servers work around every one of them and pin the current behaviour in tests so
-an upstream fix shows up as a test diff on the next sync.
+2026-09-04. The finos-mcp servers work around every one of them and pin the current behaviour
+in tests, so an upstream fix shows up as a test diff on the next sync.
+
+Finding 1 has been reported and fixed upstream-facing:
+[issue #378](https://github.com/finos/ai-governance-framework/issues/378) and
+[PR #380](https://github.com/finos/ai-governance-framework/pull/380). The rest are candidates;
+[outreach/README.md](outreach/README.md) tracks which have been filed and why the others have
+not.
 
 ## AI Governance Framework (finos/ai-governance-framework)
 
