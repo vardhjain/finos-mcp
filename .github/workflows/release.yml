@@ -54,17 +54,29 @@ jobs:
           - package: fdc3
             environment: pypi-fdc3
     environment: ${{ matrix.environment }}
+    env:
+      # Comma-separated packages to leave out of this release, e.g. "fdc3". PyPI allows at
+      # most three *pending* publishers per account, so four new projects bootstrap in two
+      # rounds: publish three (which turns their pending publishers into ordinary ones and
+      # frees the slots), register the fourth, then publish it. See RELEASING.md.
+      SKIPPED: ${{ contains(format(',{0},', vars.PYPI_SKIP_PACKAGES), format(',{0},', matrix.package)) }}
     steps:
+      - name: Skipped this release
+        if: env.SKIPPED == 'true'
+        run: echo "::notice::finos-mcp-${{ matrix.package }} is listed in PYPI_SKIP_PACKAGES; not publishing it this release."
       - uses: actions/download-artifact@v4
+        if: env.SKIPPED != 'true'
         with:
           name: dist
           path: all-dist/
       - name: Select this package's wheel and sdist
+        if: env.SKIPPED != 'true'
         run: |
           mkdir dist
           cp all-dist/finos_mcp_${{ matrix.package }}-* dist/
           ls -la dist
       - name: Publish with trusted publishing (no token secret)
+        if: env.SKIPPED != 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:

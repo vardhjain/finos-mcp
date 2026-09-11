@@ -1,6 +1,6 @@
 [project]
 name = "finos-mcp-core"
-version = "0.1.0"
+version = "0.1.1"
 description = "Shared safety layer for finos-mcp servers: read-only enforcement, rate limits, audit, structured errors"
 readme = "README.md"
 requires-python = ">=3.12"

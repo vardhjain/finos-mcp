@@ -61,6 +61,21 @@ exactly one project.
 > publisher. Settle it before registering, because a PyPI name cannot practically be released
 > once claimed. All four names were unclaimed as of 2026-09-10.
 
+### PyPI allows three pending publishers at a time
+
+A PyPI account can hold at most **three pending publishers at once**, and this is not in
+PyPI's documentation either. A pending publisher becomes an ordinary one the first time it
+publishes, which frees its slot, so four brand-new projects have to bootstrap in two rounds:
+
+1. Register pending publishers for three projects, set `PYPI_SKIP_PACKAGES` to the fourth
+   (e.g. `fdc3`), and cut a release. The three are created on PyPI and their slots free up.
+   The skipped package's matrix job reports a notice and stays green.
+2. Register the fourth pending publisher, clear `PYPI_SKIP_PACKAGES`, and cut the next
+   release.
+
+`PYPI_SKIP_PACKAGES` is a comma-separated repository variable read by `release.yml`; it is
+also the way to hold back any single package from a release later.
+
 ### Switching it on
 
 Once the publishers exist:

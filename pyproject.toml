@@ -1,6 +1,6 @@
 [project]
 name = "finos-mcp-workspace"
-version = "0.1.0"
+version = "0.1.1"
 description = "Workspace root for finos-mcp: typed, read-only MCP servers for FINOS standards"
 requires-python = ">=3.12"
 # The virtual root depends on every workspace member so a plain `uv run` (which syncs

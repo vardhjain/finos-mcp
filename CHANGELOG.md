@@ -1,6 +1,30 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — 2026-09-11
+
+First release published to PyPI: `finos-mcp-core`, `finos-mcp-aigf` and `finos-mcp-cdm`.
+`finos-mcp-fdc3` follows in the next release, because PyPI allows at most three pending
+trusted publishers per account (see RELEASING.md).
+
+### Added
+- Streamable-HTTP transport covered by a test that spawns the real console script; it is the
+  only transport where rate limits key on the `Mcp-Session-Id` header.
+- Container image `ghcr.io/vardhjain/finos-mcp`, smoke-tested in CI by running it
+  `--read-only --cap-drop ALL` and driving it with a real MCP client before any push.
+- Documentation site at <https://vardhjain.github.io/finos-mcp/>, built with `--strict`.
+- Nightly agent-eval metrics published to the `metrics` branch as `metrics-agent.json`.
+
+### Changed
+- The agent eval now separates hallucinated control ids (zero tolerance) from answers that
+  cite no id at all, and its diagnostics upload even when a gate fails.
+- PyPI publishing runs one matrix job per package, each in its own tag-restricted GitHub
+  environment, with `PYPI_SKIP_PACKAGES` to hold a package back from a release.
+
+### Fixed
+- The LangGraph example: `langchain-mcp-adapters` requires MCP SDK 1.x, so it is no longer
+  declared beside the 2.x servers and the example documents running it in its own environment.
+
+## 0.1.0 — 2026-09-08
 
 ### Added
 - `finos-mcp-core`: read-only tool enforcement, per-tool token-bucket rate limits, input and

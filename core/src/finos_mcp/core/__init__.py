@@ -36,7 +36,7 @@ from .schema import SchemaRegistry
 from .server import READ_ONLY, build_server, register_server_info, register_tool, runtime_for
 from .vendor import SourceManifest, VendorIntegrityError, build_manifest, verify
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "DEFAULT_EMBEDDING_MODEL",
