@@ -28,19 +28,42 @@ jobs:
           name: dist
           path: dist/
 
-  # Opt-in: set the repository variable PUBLISH_TO_PYPI=true once a trusted publisher
-  # is configured on PyPI for each package. Until then, tagging builds artifacts and
-  # cuts a GitHub release without attempting to publish.
+  # Opt-in: set the repository variable PUBLISH_TO_PYPI=true once a trusted publisher is
+  # registered on PyPI for each package. Until then, tagging builds artifacts and cuts a
+  # GitHub release without attempting to publish.
+  #
+  # One job and one environment per package. PyPI keys a *pending* publisher on
+  # owner + repository + workflow + environment, and refuses to register the same
+  # configuration for a second project, so four packages bootstrapping from one workflow
+  # need four environments. It is also the tighter design: each environment can publish
+  # exactly one project. Every environment is restricted to v* tags.
   publish-pypi:
     needs: build
     if: vars.PUBLISH_TO_PYPI == 'true'
     runs-on: ubuntu-latest
-    environment: pypi
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: core
+            environment: pypi
+          - package: aigf
+            environment: pypi-aigf
+          - package: cdm
+            environment: pypi-cdm
+          - package: fdc3
+            environment: pypi-fdc3
+    environment: ${{ matrix.environment }}
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: dist
-          path: dist/
+          path: all-dist/
+      - name: Select this package's wheel and sdist
+        run: |
+          mkdir dist
+          cp all-dist/finos_mcp_${{ matrix.package }}-* dist/
+          ls -la dist
       - name: Publish with trusted publishing (no token secret)
         uses: pypa/gh-action-pypi-publish@release/v1
 

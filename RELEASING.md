@@ -23,8 +23,8 @@ repository sends. The repository half is already in place.
 | Piece | Value | Where |
 |---|---|---|
 | Workflow | `release.yml` | `.github/workflows/release.yml` |
-| Job | `publish-pypi` | gated on `vars.PUBLISH_TO_PYPI == 'true'` |
-| Environment | `pypi` | created, and restricted to tags matching `v*` so no branch can deploy to it |
+| Job | `publish-pypi`, a matrix with one job per package | gated on `vars.PUBLISH_TO_PYPI == 'true'` |
+| Environments | `pypi`, `pypi-aigf`, `pypi-cdm`, `pypi-fdc3` | one per package, each restricted to tags matching `v*` so no branch can deploy to them |
 | OIDC permission | `id-token: write` | workflow-level `permissions` |
 | Action | `pypa/gh-action-pypi-publish@release/v1` | no username, no password, no token |
 
@@ -35,16 +35,23 @@ automated from here. At <https://pypi.org/manage/account/publishing/>, with 2FA 
 **pending publisher** for each project name. Pending, rather than a project publisher, because
 none of these projects exist on PyPI yet.
 
-Identical for all four:
+Owner `vardhjain`, repository name `finos-mcp` and workflow name `release.yml` are the same
+for all four. The environment differs per project:
 
-| Field | Value |
+| PyPI project name | Environment name |
 |---|---|
-| Owner | `vardhjain` |
-| Repository name | `finos-mcp` |
-| Workflow name | `release.yml` |
-| Environment name | `pypi` |
+| `finos-mcp-core` | `pypi` |
+| `finos-mcp-aigf` | `pypi-aigf` |
+| `finos-mcp-cdm` | `pypi-cdm` |
+| `finos-mcp-fdc3` | `pypi-fdc3` |
 
-Project names: `finos-mcp-core`, `finos-mcp-aigf`, `finos-mcp-cdm`, `finos-mcp-fdc3`.
+**Why four environments.** PyPI keys a pending publisher on owner + repository + workflow +
+environment and refuses to register the same configuration for a second project, with the
+error "A pending trusted publisher matching this configuration has already been registered for
+a different project". Its documentation does not mention this. A shared environment can
+therefore bootstrap only one package, so `release.yml` publishes each package from its own
+matrix job and environment. That is also the tighter design: each environment can publish
+exactly one project.
 
 > **The names are not settled.** On PyPI, `finos-cdm` is the official FINOS Common Domain
 > Model package, so the `finos-` prefix there reads as "published by FINOS" and these could be
