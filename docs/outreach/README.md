@@ -12,7 +12,7 @@ submitted 2026-09-08/09.
 |---|---|---|
 | [Issue #378](https://github.com/finos/ai-governance-framework/issues/378) | Bug report: eight risk files silently lose `related_risks` to an unterminated YAML comment | Open |
 | [PR #380](https://github.com/finos/ai-governance-framework/pull/380) | The fix. 8 files, one newline each, no content edited. Restores **21** `related_risks` links and removes **19** reference keys that do not exist in `uk-regulations.yml`. DCO check green, mergeable, `Fixes #378` | Open, awaiting review |
-| [Issue #381](https://github.com/finos/ai-governance-framework/issues/381) | Introduces this project, asks whether a link would be useful and where, and offers to upstream the offline vendoring and `AIR-*` id derivation to `finos/aigf-mcp-server`. A comment asks whether the `finos-mcp-*` PyPI names are acceptable | Open |
+| [Issue #381](https://github.com/finos/ai-governance-framework/issues/381) | Introduces this project, asks whether a link would be useful and where, and offers to upstream the offline vendoring and `AIR-*` id derivation to `finos/aigf-mcp-server`. A comment asked whether the `finos-mcp-*` PyPI names are acceptable and said nothing was published; the packages were then published without waiting, and a [follow-up comment](https://github.com/finos/ai-governance-framework/issues/381#issuecomment-5629714120) says so, points to the non-affiliation notice on each PyPI page, and offers to transfer the names or republish under a neutral one | Open |
 
 Evidence submitted with PR #380, reproducible from a checkout of that branch: all 46 risk and
 mitigation documents parse, every restored link resolves to an existing risk, no `*_references`
