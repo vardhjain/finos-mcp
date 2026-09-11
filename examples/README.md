@@ -26,7 +26,7 @@ Merge [`claude_desktop_config.json`](claude_desktop_config.json) into your Claud
 (`%APPDATA%\Claude\claude_desktop_config.json` on Windows, `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS).
 It uses `uvx`, so nothing has to be installed first; the first launch downloads the packages.
 
-Until the packages are on PyPI, point at this checkout instead:
+To run from a checkout instead, for development:
 
 ```json
 {

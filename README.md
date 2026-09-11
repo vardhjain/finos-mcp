@@ -59,12 +59,18 @@ See [examples/](examples/) for Claude Desktop config, a LangGraph agent, and the
 
 ## Status
 
-Released [v0.1.0](https://github.com/vardhjain/finos-mcp/releases/tag/v0.1.0). Documentation is
-published at <https://vardhjain.github.io/finos-mcp/>. See [PLAN.md](PLAN.md) for the design and
-the metrics CI publishes. Not on PyPI yet: publishing is gated behind a repository variable
-until trusted publishers are registered, and the package names are an open question with FINOS
-(the `finos-` prefix on PyPI already denotes official FINOS packages). See
-[RELEASING.md](RELEASING.md).
+Released [v0.1.1](https://github.com/vardhjain/finos-mcp/releases/tag/v0.1.1), on PyPI as
+[`finos-mcp-core`](https://pypi.org/project/finos-mcp-core/),
+[`finos-mcp-aigf`](https://pypi.org/project/finos-mcp-aigf/),
+[`finos-mcp-cdm`](https://pypi.org/project/finos-mcp-cdm/) and
+[`finos-mcp-fdc3`](https://pypi.org/project/finos-mcp-fdc3/) (Python 3.12+), and as a
+multi-arch container. Documentation is published at <https://vardhjain.github.io/finos-mcp/>.
+See [PLAN.md](PLAN.md) for the design and the metrics CI publishes, and
+[RELEASING.md](RELEASING.md) for how releases work.
+
+**Not affiliated with or endorsed by FINOS.** These are independent, community packages. On
+PyPI the `finos-` prefix is also used by official FINOS packages such as `finos-cdm`; nothing
+here is one of them.
 
 ## Development
 

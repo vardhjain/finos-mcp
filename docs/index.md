@@ -21,7 +21,7 @@ standards, so an agent can query them without being able to change anything.
 
 ```bash
 # Claude Desktop / Claude Code, no install step
-uvx finos-mcp-aigf        # once published to PyPI
+uvx --python 3.12 finos-mcp-aigf
 
 # from a checkout
 uv run finos-mcp-aigf

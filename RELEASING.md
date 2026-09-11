@@ -53,13 +53,12 @@ therefore bootstrap only one package, so `release.yml` publishes each package fr
 matrix job and environment. That is also the tighter design: each environment can publish
 exactly one project.
 
-> **The names are not settled.** On PyPI, `finos-cdm` is the official FINOS Common Domain
-> Model package, so the `finos-` prefix there reads as "published by FINOS" and these could be
-> taken for official output. That question is open with FINOS at
-> [ai-governance-framework#381](https://github.com/finos/ai-governance-framework/issues/381);
-> the alternative is `mcp-finos-*`, where "finos" describes the subject rather than the
-> publisher. Settle it before registering, because a PyPI name cannot practically be released
-> once claimed. All four names were unclaimed as of 2026-09-10.
+> **The names are claimed.** All four were published at 0.1.1 on 2026-09-11. The `finos-`
+> prefix on PyPI is also used by official FINOS packages such as `finos-cdm`, so the README
+> states plainly that these are independent and not affiliated with FINOS. The naming question
+> raised with FINOS at
+> [ai-governance-framework#381](https://github.com/finos/ai-governance-framework/issues/381)
+> was not answered before publishing.
 
 ### PyPI allows three pending publishers at a time
 

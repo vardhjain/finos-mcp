@@ -2,9 +2,10 @@
 
 ## 0.1.1 — 2026-09-11
 
-First release published to PyPI: `finos-mcp-core`, `finos-mcp-aigf` and `finos-mcp-cdm`.
-`finos-mcp-fdc3` follows in the next release, because PyPI allows at most three pending
-trusted publishers per account (see RELEASING.md).
+First release published to PyPI, all four packages at 0.1.1. `finos-mcp-core`, `-aigf` and
+`-cdm` published with the tag; `finos-mcp-fdc3` followed by re-running only its publish job
+in the same release, because PyPI allows at most three pending trusted publishers per account
+(see RELEASING.md). All four share one version and one build.
 
 ### Added
 - Streamable-HTTP transport covered by a test that spawns the real console script; it is the
