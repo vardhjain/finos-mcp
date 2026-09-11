@@ -59,7 +59,7 @@ See [examples/](examples/) for Claude Desktop config, a LangGraph agent, and the
 
 ## Status
 
-Released [v0.1.1](https://github.com/vardhjain/finos-mcp/releases/tag/v0.1.1), on PyPI as
+Released [v0.1.2](https://github.com/vardhjain/finos-mcp/releases/tag/v0.1.2), on PyPI as
 [`finos-mcp-core`](https://pypi.org/project/finos-mcp-core/),
 [`finos-mcp-aigf`](https://pypi.org/project/finos-mcp-aigf/),
 [`finos-mcp-cdm`](https://pypi.org/project/finos-mcp-cdm/) and

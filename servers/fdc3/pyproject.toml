@@ -1,14 +1,22 @@
 [project]
 name = "finos-mcp-fdc3"
-version = "0.1.1"
-description = "Read-only MCP server exposing the FINOS fdc3 standard as typed tools"
+version = "0.1.2"
+description = "Read-only MCP server for FDC3: intents, context schemas, validation and intent suggestion. Not affiliated with FINOS."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
+keywords = ["mcp", "model-context-protocol", "finos", "llm", "agents"]
 dependencies = ["finos-mcp-core"]
 
 [project.scripts]
 finos-mcp-fdc3 = "finos_mcp.fdc3.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/vardhjain/finos-mcp"
+Documentation = "https://vardhjain.github.io/finos-mcp/"
+Repository = "https://github.com/vardhjain/finos-mcp"
+Changelog = "https://github.com/vardhjain/finos-mcp/blob/main/CHANGELOG.md"
+Issues = "https://github.com/vardhjain/finos-mcp/issues"
 
 [build-system]
 requires = ["hatchling"]

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.2 — 2026-09-11
+
+Metadata-only release: no code or vendored content changed.
+
+### Fixed
+- The PyPI pages were close to blank: each package's long description was a single heading.
+  Every package now has a real README with what it exposes, how to run it, the safety model,
+  and a notice that it is **not affiliated with or endorsed by FINOS**.
+- Added project URLs (docs, repository, changelog, issues), keywords, and summaries that name
+  each standard instead of its short code.
+
 ## 0.1.1 — 2026-09-11
 
 First release published to PyPI, all four packages at 0.1.1. `finos-mcp-core`, `-aigf` and

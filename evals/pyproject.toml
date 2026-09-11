@@ -1,6 +1,6 @@
 [project]
 name = "finos-mcp-evals"
-version = "0.1.1"
+version = "0.1.2"
 description = "Eval suites and metrics collection for finos-mcp (not published)"
 requires-python = ">=3.12"
 dependencies = [
