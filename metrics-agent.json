@@ -1,58 +1,61 @@
 {
   "agent": {
-    "cited_any_rate": 1.0,
-    "cited_valid_id_rate": 1.0,
+    "cited_any_rate": 0.9,
+    "cited_valid_id_rate": 0.9,
     "errors": 0,
     "hallucinated_id_rate": 0.0,
     "hallucinated_ids": {},
-    "input_tokens": 438344,
-    "mean_turns": 3.5,
+    "input_tokens": 408822,
+    "mean_turns": 3.45,
     "model": "claude-haiku-4-5",
-    "must_cite_rate": 0.95,
-    "no_citation_tasks": [],
-    "output_tokens": 11619,
+    "must_cite_rate": 0.85,
+    "no_citation_tasks": [
+      "t15",
+      "t17"
+    ],
+    "output_tokens": 11093,
     "refusals": 0,
-    "resource_citation_rate": 0.65,
+    "resource_citation_rate": 0.75,
     "tasks": 20,
     "tool_correctness": 0.95
   },
   "agent_runs": [
     {
-      "answer": "**Top three AIGF risks for a RAG chatbot over internal policy documents and one mitigating control each:**\n\n1. **AIR-OP-014: Inadequate System Alignment** \u2013 RAG systems may generate responses that diverge from their business purpose, producing confident-sounding but inaccurate financial advice or policy guidance. *Mitigated by* **AIR-DET-011: Human Feedback Loop for AI Systems**, which systematically collects feedback from users and reviewers to identify misalignments and drive continuous improvement. (aigf://risk/AIR-OP-014)\n\n2. **AIR-SEC-002: Information Leaked to Vector Store** \u2013 Sensitive internal data indexed in vector stores can be exposed via inversion or inference attacks if security controls are insufficient. *Mitigated by* **AIR-PREV-014: Encryption of AI Data at Rest**, which protects stored embeddings and policy documents through cryptographic security.\n\n3. **AIR-OP-004: Hallucination and Inaccurate Outputs** \u2013 LLMs can generate plausible-sounding but false information when RAG retrieval is incomplete or misaligned, particularly risky for policy guidance. *Mitigated by* **AIR-DET-013: Providing Citations and Source Traceability for AI-Generated Information**, enabling users to verify responses against original policy documents.",
+      "answer": "**Top three AIGF risks for RAG chatbot deployment and mitigating controls:**\n\n1. **AIR-SEC-002: Information Leaked to Vector Store** \u2014 Sensitive data in embeddings and vector stores can be reconstructed via inversion or membership inference attacks, especially with weak access controls, encryption, or auditing. *Control: **AIR-PREV-006: Data Quality & Classification/Sensitivity** \u2014 implement proper data classification and encryption of AI data at rest.* ([aigf://risk/AIR-SEC-002](aigf://risk/AIR-SEC-002))\n\n2. **AIR-OP-014: Inadequate System Alignment** \u2014 LLM responses may diverge from policy intent, generating confident but inaccurate or biased advice that violates compliance constraints. *Control: **AIR-DET-015: Using Large Language Models for Automated Evaluation (LLM-as-a-Judge)** \u2014 detect misaligned outputs through automated evaluation.* \n\n3. **AIR-OP-004: Hallucination and Inaccurate Outputs** \u2014 Models fabricate facts despite RAG context, mixing retrieved data with invented information. *Control: **AIR-DET-013: Providing Citations and Source Traceability for AI-Generated Information** \u2014 enforce citation of retrieved sources so users can verify factual grounding.*",
       "cited": [
-        "AIR-DET-011",
         "AIR-DET-013",
+        "AIR-DET-015",
         "AIR-OP-004",
         "AIR-OP-014",
-        "AIR-PREV-014",
+        "AIR-PREV-006",
         "AIR-SEC-002"
       ],
-      "duration_s": 12.67,
+      "duration_s": 11.31,
       "error": null,
       "grade": null,
       "resources_read": [
-        "aigf://risk/AIR-OP-014"
+        "aigf://risk/AIR-SEC-002"
       ],
       "stop_reason": "end_turn",
       "task_id": "t01",
       "tools_called": [
         "search_framework",
+        "search_framework",
+        "map_risks_to_controls",
         "get_risk",
         "get_risk",
-        "get_risk",
-        "get_control",
-        "get_control",
-        "get_control"
+        "get_risk"
       ],
-      "turns": 5,
+      "turns": 4,
       "usage": {
-        "input": 53603,
-        "output": 923
+        "input": 32853,
+        "output": 871
       }
     },
     {
-      "answer": "**AIGF controls mitigating prompt injection:**\n\n- **AIR-PREV-003** (User/App/Model Firewalling/Filtering) \u2014 primary control\n- **AIR-PREV-017** (AI Firewall Implementation and Management)\n- **AIR-PREV-008** (Quality of Service (QoS) and DDoS Prevention for AI Systems)\n- **AIR-PREV-005** (System Acceptance Testing)\n- **AIR-PREV-019** (Tool Chain Validation and Sanitization)\n- **AIR-PREV-002** (Data Filtering From External Knowledge Bases)\n\n**NIST SP 800-53 r5 mappings for AIR-PREV-003:**\n- AC-4 (Information Flow Enforcement)\n- SC-5 (Denial-of-service Protection)\n- SC-7 (Boundary Protection)\n- SI-4 (System Monitoring)\n- SI-10 (Information Input Validation)\n- SI-15 (Information Output Filtering)\n\nSee [AIR-PREV-003 resource](aigf://control/AIR-PREV-003) for details on implementation including LLM-as-a-judge and advanced filtering techniques.",
+      "answer": "**AIGF controls mitigating prompt injection:**\n\n1. **AIR-PREV-003** \u2013 User/App/Model Firewalling/Filtering (primary)\n2. **AIR-PREV-017** \u2013 AI Firewall Implementation and Management  \n3. **AIR-PREV-008** \u2013 Quality of Service (QoS) and DDoS Prevention for AI Systems\n4. **AIR-PREV-005** \u2013 System Acceptance Testing\n5. **AIR-PREV-019** \u2013 Tool Chain Validation and Sanitization\n6. **AIR-PREV-002** \u2013 Data Filtering From External Knowledge Bases\n7. **AIR-DET-001** \u2013 AI Data Leakage Prevention and Detection\n\n**NIST SP 800-53 mappings for AIR-PREV-003:**\n- **AC-4** Information Flow Enforcement\n- **SC-5** Denial-of-service Protection\n- **SC-7** Boundary Protection\n- **SI-4** System Monitoring\n- **SI-10** Information Input Validation\n- **SI-15** Information Output Filtering\n\n[See AIR-PREV-003 full details](aigf://control/AIR-PREV-003)",
       "cited": [
+        "AIR-DET-001",
         "AIR-PREV-002",
         "AIR-PREV-003",
         "AIR-PREV-005",
@@ -60,7 +63,7 @@
         "AIR-PREV-017",
         "AIR-PREV-019"
       ],
-      "duration_s": 10.83,
+      "duration_s": 10.69,
       "error": null,
       "grade": null,
       "resources_read": [
@@ -71,18 +74,19 @@
       "tools_called": [
         "search_framework",
         "get_control",
+        "get_control",
         "map_control_to_external",
         "list_reference_frameworks",
         "map_control_to_external"
       ],
       "turns": 5,
       "usage": {
-        "input": 31908,
-        "output": 804
+        "input": 38198,
+        "output": 821
       }
     },
     {
-      "answer": "**Risk:** **AIR-SEC-026** (*MCP Server Supply Chain Compromise*) \u2014 third-party MCP servers operated by vendors may be compromised to inject malicious data or logic into agentic systems, corrupting agent decision-making at scale.\n\n**Control:** **AIR-PREV-020** (*MCP Server Security Governance*) \u2014 establishes comprehensive security controls including supply chain verification, secure communication, data integrity validation, and continuous monitoring across a tiered implementation approach (from centralized proxy with human-in-the-loop to distributed deployments with advanced anomaly detection).\n\nSee the full control at `aigf://control/AIR-PREV-020` for tiered implementation guidance and detailed vetting procedures.",
+      "answer": "**Risk:** **AIR-SEC-026** \u2013 *MCP Server Supply Chain Compromise*  \nCompromised or malicious MCP servers provide tainted data, capabilities, or execution environments to agentic AI systems, leading to systematic compromise of agent decision-making through corrupted external services.\n\n**Control:** **AIR-PREV-020** \u2013 *MCP Server Security Governance*  \nA preventative control establishing comprehensive security governance for MCP servers, including supply chain verification, secure communication channels, data integrity validation, and continuous monitoring to ensure MCP servers maintain appropriate security standards and cannot be compromised.\n\nReference: *AIR-SEC-026 directly addresses third-party MCP server supply chain risks, with documented attack vectors including third-party compromise, update poisoning, and insider threats. AIR-PREV-020 mitigates this risk through governance controls aligned with NIST supply chain frameworks (SR-3, SR-4, SR-5) and OWASP agentic supply chain guidance.*",
       "cited": [
         "AIR-PREV-020",
         "AIR-SEC-026"
@@ -90,31 +94,36 @@
       "duration_s": 6.95,
       "error": null,
       "grade": null,
-      "resources_read": [],
+      "resources_read": [
+        "aigf://risk/AIR-SEC-026"
+      ],
       "stop_reason": "end_turn",
       "task_id": "t03",
       "tools_called": [
-        "search_framework",
         "search_framework",
         "get_risk",
         "get_control"
       ],
       "turns": 3,
       "usage": {
-        "input": 18833,
-        "output": 489
+        "input": 14971,
+        "output": 544
       }
     },
     {
-      "answer": "Per FINOS AIGF, the primary risk is **AIR-RC-001** (Information Leaked To Hosted Model). The framework notes: \"Using third-party hosted LLMs creates a **two-way trust boundary** where neither inputs nor outputs can be fully trusted. Sensitive financial data sent for inference may be memorized by models, leaked through prompt attacks, or exposed via inadequate provider controls\" ([aigf://risk/AIR-RC-001](aigf://risk/AIR-RC-001)).\n\n**Controls addressing this:**\n- **AIR-DET-001** (AI Data Leakage Prevention and Detection)\n- **AIR-PREV-002** (Data Filtering From External Knowledge Bases)\n- **AIR-PREV-006** (Data Quality & Classification/Sensitivity)\n- **AIR-PREV-003** (User/App/Model Firewalling/Filtering)",
+      "answer": "**Risk:** **AIR-RC-001 \u2013 Information Leaked To Hosted Model** (see [aigf://risk/AIR-RC-001](aigf://risk/AIR-RC-001)). When an employee enters sensitive data like a client's account number into a public chatbot, it enters an uncontrolled third-party system where it may be memorized, retained, or exposed via model leakage or inadequate provider controls.\n\n**Mitigating controls:**\n- **AIR-DET-001** \u2013 AI Data Leakage Prevention and Detection\n- **AIR-PREV-006** \u2013 Data Quality & Classification/Sensitivity\n- **AIR-PREV-012** \u2013 Role-Based Access Control for AI Data\n- **AIR-PREV-002** \u2013 Data Filtering From External Knowledge Bases\n- **AIR-DET-004** \u2013 AI System Observability\n- **AIR-DET-015** \u2013 Using Large Language Models for Automated Evaluation\n- **AIR-PREV-007** \u2013 Legal and Contractual Frameworks for AI Systems\n- **AIR-PREV-020** \u2013 MCP Server Security Governance",
       "cited": [
         "AIR-DET-001",
+        "AIR-DET-004",
+        "AIR-DET-015",
         "AIR-PREV-002",
-        "AIR-PREV-003",
         "AIR-PREV-006",
+        "AIR-PREV-007",
+        "AIR-PREV-012",
+        "AIR-PREV-020",
         "AIR-RC-001"
       ],
-      "duration_s": 8.78,
+      "duration_s": 9.21,
       "error": null,
       "grade": null,
       "resources_read": [
@@ -124,23 +133,25 @@
       "task_id": "t04",
       "tools_called": [
         "search_framework",
-        "search_framework"
+        "search_framework",
+        "get_risk",
+        "map_risks_to_controls"
       ],
-      "turns": 3,
+      "turns": 4,
       "usage": {
-        "input": 15602,
-        "output": 660
+        "input": 27979,
+        "output": 680
       }
     },
     {
-      "answer": "**AIR-PREV-020** (MCP Server Security Governance) establishes comprehensive security controls for Model Context Protocol servers, covering supply chain verification, secure communication, data integrity validation, and continuous monitoring to prevent MCP servers from being exploited as attack vectors against agentic AI systems.\n\nIt mitigates three risks:\n- **AIR-SEC-026**: MCP Server Supply Chain Compromise\n- **AIR-SEC-008**: Tampering With the Foundational Model\n- **AIR-RC-001**: Information Leaked To Hosted Model\n\n**Quote from the resource:** \"This preventive control ensures that MCP servers providing specialized capabilities to agentic AI systems maintain appropriate security standards and cannot be used as vectors for systematic compromise of agent decision-making.\" ([aigf://control/AIR-PREV-020](aigf://control/AIR-PREV-020))",
+      "answer": "**AIR-PREV-020** (\"MCP Server Security Governance\") is a preventative control establishing comprehensive security for Model Context Protocol servers used by agentic AI systems. It covers supply chain verification, secure communication, data integrity validation, and continuous monitoring across three implementation tiers (Tier 1 for basic deployments through Tier 3 for fully autonomous high-risk systems).\n\n**Risks it mitigates:**\n- AIR-SEC-026 (MCP Server Supply Chain Compromise)\n- AIR-SEC-008 (Tampering With the Foundational Model)\n- AIR-RC-001 (Information Leaked To Hosted Model)\n\n**Quoted sentence:** \"This preventive control ensures that MCP servers providing specialized capabilities to agentic AI systems maintain appropriate security standards and cannot be used as vectors for systematic compromise of agent decision-making.\" (cited from: aigf://control/AIR-PREV-020)",
       "cited": [
         "AIR-PREV-020",
         "AIR-RC-001",
         "AIR-SEC-008",
         "AIR-SEC-026"
       ],
-      "duration_s": 4.45,
+      "duration_s": 4.71,
       "error": null,
       "grade": null,
       "resources_read": [
@@ -154,11 +165,11 @@
       "turns": 2,
       "usage": {
         "input": 14666,
-        "output": 305
+        "output": 319
       }
     },
     {
-      "answer": "## Detective Controls in AIGF (8 total)\n\n| Control ID | Title | Agent-Behavior Risks Covered |\n|---|---|---|\n| **AIR-DET-004** | AI System Observability | AIR-OP-028 (Multi-Agent Trust Boundary Violations), AIR-SEC-024 (Agent Action Authorization Bypass), AIR-SEC-025 (Tool Chain Manipulation), AIR-SEC-026 (MCP Server Supply Chain Compromise), AIR-SEC-027 (Agent State Persistence Poisoning), AIR-SEC-029 (Credential Discovery) |\n| **AIR-DET-021** | Agent Decision Audit and Explainability | AIR-SEC-024 (Agent Action Authorization Bypass), AIR-SEC-025 (Tool Chain Manipulation) |\n| AIR-DET-001 | AI Data Leakage Prevention and Detection | \u2014 |\n| AIR-DET-009 | AI System Alerting and Spend Monitoring | \u2014 |\n| AIR-DET-011 | Human Feedback Loop for AI Systems | \u2014 |\n| AIR-DET-013 | Citations and Source Traceability | \u2014 |\n| AIR-DET-015 | LLM-as-a-Judge Evaluation | \u2014 |\n| AIR-DET-016 | Preserving Source Data Access Controls | \u2014 |\n\n**Key Coverage:** AIR-DET-004 (observability) covers all six agent-behavior risks; AIR-DET-021 (audit/explainability) specifically addresses authorization bypass and tool manipulation. Per [aigf://control/AIR-DET-021](aigf://control/AIR-DET-021), this control implements decision logging, explainability, and audit trails to detect and investigate agent security incidents\u2014critical for financial services regulatory compliance.",
+      "answer": "**Detective Controls (8 total) and Agent-Behavior Risk Coverage:**\n\nThe eight detective controls in AIGF address agent-related risks as follows:\n\n| Control | Agent-Behavior Risks Covered |\n|---------|------------------------------|\n| **AIR-DET-004** \u2013 AI System Observability | AIR-OP-005 (Foundation Model Versioning), AIR-OP-006 (Non-Deterministic Behaviour), AIR-OP-028 (Multi-Agent Trust Boundary Violations), AIR-SEC-024 (Agent Action Authorization Bypass), AIR-SEC-026 (MCP Server Supply Chain Compromise), AIR-SEC-027 (Agent State Persistence Poisoning), AIR-SEC-029 (Agent-Mediated Credential Discovery) |\n| **AIR-DET-011** \u2013 Human Feedback Loop | AIR-OP-005, AIR-OP-006 |\n| **AIR-DET-015** \u2013 LLM-as-a-Judge | AIR-OP-005, AIR-OP-006 |\n| **AIR-DET-021** \u2013 Agent Decision Audit and Explainability | AIR-SEC-024 |\n| AIR-DET-001, AIR-DET-009, AIR-DET-013, AIR-DET-016 | (No direct agent-behavior risk coverage) |\n\n**Citation:** [aigf://control/AIR-DET-004](aigf://control/AIR-DET-004)",
       "cited": [
         "AIR-DET-001",
         "AIR-DET-004",
@@ -168,19 +179,18 @@
         "AIR-DET-015",
         "AIR-DET-016",
         "AIR-DET-021",
+        "AIR-OP-005",
+        "AIR-OP-006",
         "AIR-OP-028",
         "AIR-SEC-024",
-        "AIR-SEC-025",
         "AIR-SEC-026",
         "AIR-SEC-027",
         "AIR-SEC-029"
       ],
-      "duration_s": 9.52,
+      "duration_s": 7.74,
       "error": null,
       "grade": null,
-      "resources_read": [
-        "aigf://control/AIR-DET-021"
-      ],
+      "resources_read": [],
       "stop_reason": "end_turn",
       "task_id": "t06",
       "tools_called": [
@@ -190,44 +200,46 @@
       ],
       "turns": 3,
       "usage": {
-        "input": 17687,
-        "output": 784
+        "input": 12424,
+        "output": 681
       }
     },
     {
-      "answer": "**Risk:** **AIR-OP-005** (Foundation Model Versioning)\u2014when a model provider silently swaps or updates the foundation model without explicit notification or version pinning, causing unpredictable changes in behavior even when inputs remain unchanged.\n\n**Control:** **AIR-PREV-010** (AI Model Version Pinning)\u2014a preventative control that requires deliberately selecting and using a specific, fixed version of an AI model in production rather than automatically adopting the latest version. This ensures operational stability and enables controlled, risk-managed adoption of model updates.\n\nAs documented in the risk resource (aigf://risk/AIR-OP-005), \"The model provider may alter the model or its configuration without explicit customer notification. Such silent changes can result in outputs that deviate from tested expectations.\"",
+      "answer": "**Risk:** **AIR-OP-005** (Foundation Model Versioning) \u2013 describes exactly this scenario: \"The model provider may alter the model or its configuration without explicit customer notification. Such silent changes can result in outputs that deviate from tested expectations.\"\n\n**Control:** **AIR-PREV-010** (AI Model Version Pinning) \u2013 the preventative control that pins versions. It requires establishing expectations with suppliers for \"clear versioning scheme,\" \"advance notification,\" and API mechanisms to \"explicitly select and pin to a specific model version,\" plus internal practices to document and monitor pinned versions in production.",
       "cited": [
         "AIR-OP-005",
         "AIR-PREV-010"
       ],
-      "duration_s": 6.79,
+      "duration_s": 6.51,
       "error": null,
       "grade": null,
       "resources_read": [
-        "aigf://risk/AIR-OP-005"
+        "aigf://risk/AIR-OP-005",
+        "aigf://control/AIR-PREV-010"
       ],
       "stop_reason": "end_turn",
       "task_id": "t07",
       "tools_called": [
         "search_framework",
-        "search_framework",
-        "get_risk",
-        "get_control"
+        "search_framework"
       ],
       "turns": 3,
       "usage": {
-        "input": 18661,
-        "output": 524
+        "input": 17347,
+        "output": 425
       }
     },
     {
-      "answer": "The AIGF framework contains **three risks** and **no controls** that cite OWASP LLM01:2025 (Prompt Injection):\n\n**Risks:**\n- **AIR-SEC-010** \u2013 Prompt Injection [(aigf://risk/AIR-SEC-010)](aigf://risk/AIR-SEC-010)\n- **AIR-SEC-025** \u2013 Tool Chain Manipulation and Injection\n- **AIR-SEC-029** \u2013 Agent-Mediated Credential Discovery and Harvesting",
+      "answer": "**Risks citing OWASP LLM01:2025:**\n- **AIR-SEC-010** (Prompt Injection)\n- **AIR-SEC-025** (Tool Chain Manipulation and Injection)\n- **AIR-SEC-029** (Agent-Mediated Credential Discovery and Harvesting)\n\n**Controls:** The search did not return controls with explicit LLM01:2025 citations. However, AIR-SEC-010 is mitigated by three preventative controls: **AIR-PREV-017**, **AIR-PREV-019**, and **AIR-PREV-003**.\n\nSource: [aigf://risk/AIR-SEC-010](aigf://risk/AIR-SEC-010)",
       "cited": [
+        "AIR-PREV-003",
+        "AIR-PREV-017",
+        "AIR-PREV-019",
         "AIR-SEC-010",
         "AIR-SEC-025",
         "AIR-SEC-029"
       ],
-      "duration_s": 6.27,
+      "duration_s": 7.68,
       "error": null,
       "grade": null,
       "resources_read": [
@@ -238,16 +250,18 @@
       "tools_called": [
         "find_by_external_reference",
         "list_reference_frameworks",
-        "find_by_external_reference"
+        "find_by_external_reference",
+        "get_risk",
+        "search_framework"
       ],
       "turns": 5,
       "usage": {
-        "input": 20429,
-        "output": 513
+        "input": 22377,
+        "output": 650
       }
     },
     {
-      "answer": "Both risks are covered:\n\n- **AIR-SEC-009 (ri-9) \"Data Poisoning\"** is mitigated by 3 controls: AIR-PREV-006 \"Data Quality & Classification/Sensitivity\" (mi-6), AIR-PREV-002 \"Data Filtering From External Knowledge Bases\" (mi-2), and AIR-PREV-012 \"Role-Based Access Control for AI Data\" (mi-12).\n\n- **AIR-SEC-002 (ri-2) \"Information Leaked to Vector Store\"** is mitigated by 3 controls: AIR-PREV-006 (mi-6), AIR-DET-016 \"Preserving Source Data Access Controls in AI Systems\" (mi-16), and AIR-PREV-014 \"Encryption of AI Data at Rest\" (mi-14).\n\nNo uncovered risks reported.",
+      "answer": "Both risks are covered:\n\n**AIR-SEC-009 (ri-9, Data Poisoning)** is mitigated by 3 controls:\n- AIR-PREV-006 (mi-6, Data Quality & Classification/Sensitivity)\n- AIR-PREV-002 (mi-2, Data Filtering From External Knowledge Bases)\n- AIR-PREV-012 (mi-12, Role-Based Access Control for AI Data)\n\n**AIR-SEC-002 (ri-2, Information Leaked to Vector Store)** is mitigated by 3 controls:\n- AIR-PREV-006 (mi-6, Data Quality & Classification/Sensitivity)\n- AIR-DET-016 (mi-16, Preserving Source Data Access Controls in AI Systems)\n- AIR-PREV-014 (mi-14, Encryption of AI Data at Rest)\n\nNo uncovered risks reported.",
       "cited": [
         "AIR-DET-016",
         "AIR-PREV-002",
@@ -257,7 +271,7 @@
         "AIR-SEC-002",
         "AIR-SEC-009"
       ],
-      "duration_s": 3.22,
+      "duration_s": 3.23,
       "error": null,
       "grade": null,
       "resources_read": [],
@@ -269,44 +283,43 @@
       "turns": 2,
       "usage": {
         "input": 6082,
-        "output": 280
+        "output": 289
       }
     },
     {
-      "answer": "**Risk:** **AIR-OP-007** \"Availability of Foundational Model\" \u2014 Foundation models hosted by third-party providers face outages, Denial of Wallet attacks, and VRAM exhaustion, causing service disruption (see [aigf://risk/AIR-OP-007](aigf://risk/AIR-OP-007)).\n\n**Preventative Controls:**\n- **AIR-PREV-003** \u2014 User/App/Model Firewalling/Filtering\n- **AIR-PREV-008** \u2014 Quality of Service (QoS) and DDoS Prevention for AI Systems  \n- **AIR-PREV-017** \u2014 AI Firewall Implementation and Management",
+      "answer": "**Risk:** **AIR-OP-007** (Availability of Foundational Model) \u2014 covers third-party provider outages, Denial of Wallet, and VRAM exhaustion that disrupt LLM-based applications. [Source](aigf://risk/AIR-OP-007)\n\n**Preventative Controls:**\n- **AIR-PREV-017** (AI Firewall Implementation and Management)\n- **AIR-PREV-008** (Quality of Service and DDoS Prevention for AI Systems)\n- **AIR-PREV-003** (User/App/Model Firewalling/Filtering)",
       "cited": [
         "AIR-OP-007",
         "AIR-PREV-003",
         "AIR-PREV-008",
         "AIR-PREV-017"
       ],
-      "duration_s": 7.52,
+      "duration_s": 6.37,
       "error": null,
       "grade": null,
-      "resources_read": [
-        "aigf://risk/AIR-OP-007"
-      ],
+      "resources_read": [],
       "stop_reason": "end_turn",
       "task_id": "t10",
       "tools_called": [
         "search_framework",
+        "search_framework",
         "get_risk",
         "map_risks_to_controls"
       ],
-      "turns": 4,
+      "turns": 3,
       "usage": {
-        "input": 19559,
-        "output": 547
+        "input": 15996,
+        "output": 506
       }
     },
     {
-      "answer": "## Summary\n\n**Explainability in AIGF:**\nThe AIGF identifies **Lack of Explainability (AIR-OP-017)** as a key operational risk: AI systems\u2014especially those using complex foundation models\u2014operate as \"black boxes,\" making it difficult for firms to explain outcomes to regulators, stakeholders, or customers. This creates trust and compliance risks and can conceal errors and biases. [*aigf://risk/AIR-OP-017*]\n\n**Controls for Source Traceability:**\n\n1. **AIR-DET-013: Providing Citations and Source Traceability for AI-Generated Information**  \n   This detective control requires AI systems (particularly LLMs and RAG systems) to provide verifiable citations and traceable links back to original source data. It enables users and auditors to verify the AI's informational basis, detect hallucinations, and assess source quality\u2014enhancing transparency and accountability. Implementation covers RAG pipeline design, metadata preservation, user-facing citation UI, and handling of uncitable content. [*aigf://control/AIR-DET-013*]\n\n2. **AIR-DET-021: Agent Decision Audit and Explainability**  \n   This detective control implements comprehensive logging, documentation, and explainability for agent decisions, capturing all actions, reasoning processes, and decision factors to support regulatory compliance and forensic analysis.",
+      "answer": "## Explainability in the AIGF\n\nThe AIGF addresses explainability through the operational risk **AIR-OP-017 (Lack of Explainability)**, which describes how complex AI systems\u2014especially foundation models\u2014often operate as \"black boxes,\" making it difficult for firms to interpret decisions and explain outcomes to regulators, stakeholders, or customers. This opacity can conceal errors, biases, and vulnerabilities, undermining transparency and accountability fundamental to financial services (aigf://risk/AIR-OP-017).\n\n## Controls Providing Source Traceability\n\n**AIR-DET-013 (Providing Citations and Source Traceability for AI-Generated Information)** is the primary detective control for this risk. It designs AI systems\u2014particularly LLMs and RAG systems\u2014to provide verifiable citations and traceable links back to original source data. Key implementation includes:\n\n- **RAG source tracking:** Maintaining auditable links between retrieved document chunks and generated output segments\n- **Metadata preservation:** Capturing document titles, IDs, page numbers, and timestamps for constructing precise citations\n- **User presentation:** Clear visual indicators and accessible source snippets to enable independent verification\n- **Citation integrity:** Managing link rot, document versioning, and distinguishing source types\n\n**AIR-DET-021 (Agent Decision Audit and Explainability)** complements this for automated decision-making, implementing comprehensive logging and reasoning capture across four tiers (from basic flow reconstruction to full audit trails with decision trees, confidence scores, and regulatory compliance integration).\n\nBoth controls cite ISO 42001 (A.8.2: system documentation for users; A.6.2.7: technical documentation) and EU AI Act transparency requirements (Articles 13, 50, 86).",
       "cited": [
         "AIR-DET-013",
         "AIR-DET-021",
         "AIR-OP-017"
       ],
-      "duration_s": 10.41,
+      "duration_s": 8.6,
       "error": null,
       "grade": null,
       "resources_read": [
@@ -317,48 +330,48 @@
       "tools_called": [
         "search_framework",
         "search_framework",
-        "get_control",
         "get_risk",
+        "get_control",
         "get_control"
       ],
-      "turns": 4,
+      "turns": 3,
       "usage": {
-        "input": 42832,
-        "output": 762
+        "input": 31123,
+        "output": 748
       }
     },
     {
-      "answer": "**18 controls** cite ISO/IEC 42001. Example: **AIR-DET-001** (\"AI Data Leakage Prevention and Detection\", [aigf://control/AIR-DET-001](aigf://control/AIR-DET-001)) cites ISO 42001 sections A-7-2, A-6-2-6, and A-5-2.",
+      "answer": "The AIGF crosswalks to 13 external reference frameworks:\n\n1. **Agent Threat Rules (ATR)**\n2. **Canada AI & Financial-Sector Regulatory References**\n3. **EU AI Act**\n4. **FFIEC IT Examination Handbook**\n5. **IOSCO Supervisory Toolkit for AI Use in Capital Markets**\n6. **ISO/IEC 42001**\n7. **NIST AI 600-1**\n8. **NIST SP 800-53 Rev 5**\n9. **OWASP Top 10 for Agentic Applications**\n10. **OWASP LLM Top 10**\n11. **OWASP ML Security Top 10**\n12. **SR 11-7: Model Risk Management**\n13. **UK Financial Services AI Regulations**\n\n**ISO 42001 is cited by 18 controls.** One example is **AIR-DET-001** (AI Data Leakage Prevention and Detection), which maps to ISO 42001 A-6-2-6 \"AI system operation and monitoring\" [aigf://control/AIR-DET-001].",
       "cited": [
         "AIR-DET-001"
       ],
-      "duration_s": 9.07,
+      "duration_s": 8.81,
       "error": null,
       "grade": null,
-      "resources_read": [],
+      "resources_read": [
+        "aigf://control/AIR-DET-001"
+      ],
       "stop_reason": "end_turn",
       "task_id": "t12",
       "tools_called": [
         "list_reference_frameworks",
-        "get_control",
-        "map_control_to_external",
-        "list_controls",
-        "map_control_to_external"
+        "find_by_external_reference",
+        "find_by_external_reference"
       ],
-      "turns": 6,
+      "turns": 5,
       "usage": {
-        "input": 25175,
-        "output": 669
+        "input": 22895,
+        "output": 583
       }
     },
     {
-      "answer": "**AIR-PREV-018: Agent Authority Least Privilege Framework** implements granular access controls ensuring agents access only APIs, tools, and data strictly necessary for their designated functions.\n\nIt mitigates two risks:\n- **AIR-SEC-024: Agent Action Authorization Bypass** \n- **AIR-OP-018: Model Overreach / Expanded Use**\n\n(Source: aigf://control/AIR-PREV-018)",
+      "answer": "**Control:** **AIR-PREV-018** \u2014 \"Agent Authority Least Privilege Framework\" explicitly implements granular access controls ensuring agents can only access APIs, tools, and data strictly necessary for their designated functions.\n\n**Mitigates these risks:**\n- **AIR-SEC-024** \u2014 Agent Action Authorization Bypass\n- **AIR-OP-018** \u2014 Model Overreach / Expanded Use\n\nSee full control details at `aigf://control/AIR-PREV-018`.",
       "cited": [
         "AIR-OP-018",
         "AIR-PREV-018",
         "AIR-SEC-024"
       ],
-      "duration_s": 4.74,
+      "duration_s": 5.04,
       "error": null,
       "grade": null,
       "resources_read": [
@@ -372,19 +385,19 @@
       ],
       "turns": 3,
       "usage": {
-        "input": 14771,
-        "output": 348
+        "input": 14772,
+        "output": 359
       }
     },
     {
-      "answer": "**Risk: AIR-SEC-009 Data Poisoning**\n\nYour fraud model is vulnerable to **AIR-SEC-009 (Data Poisoning)**, which occurs when adversaries tamper with training data by injecting misleading or malicious patterns\u2014such as marking fraudulent transactions as legitimate\u2014to manipulate model behavior. The framework warns that \"the effects are often subtle and difficult to detect, potentially remaining hidden until major failures, financial losses, or regulatory interventions occur.\" [aigf://risk/AIR-SEC-009]\n\n**Mitigating Controls:**\n\n1. **AIR-PREV-002** \u2013 Data Filtering From External Knowledge Bases\n2. **AIR-PREV-006** \u2013 Data Quality & Classification/Sensitivity  \n3. **AIR-PREV-012** \u2013 Role-Based Access Control for AI Data\n\nThese preventative controls address training data validation, data quality assurance, and access restrictions to prevent poisoning at the source.",
+      "answer": "**Risk:** **AIR-SEC-009 \u2013 Data Poisoning** [aigf://risk/AIR-SEC-009](aigf://risk/AIR-SEC-009)\n\nData poisoning occurs when adversaries tamper with training or fine-tuning data to manipulate model behavior\u2014for example, marking fraudulent transactions as legitimate or injecting hidden patterns. In fraud models, this leads to corrupted decision-making that may remain hidden until major failures occur.\n\n**Controls that mitigate AIR-SEC-009:**\n- **AIR-PREV-002** \u2013 Data Filtering From External Knowledge Bases\n- **AIR-PREV-006** \u2013 Data Quality & Classification/Sensitivity  \n- **AIR-PREV-012** \u2013 Role-Based Access Control for AI Data",
       "cited": [
         "AIR-PREV-002",
         "AIR-PREV-006",
         "AIR-PREV-012",
         "AIR-SEC-009"
       ],
-      "duration_s": 6.0,
+      "duration_s": 5.85,
       "error": null,
       "grade": null,
       "resources_read": [
@@ -394,73 +407,64 @@
       "task_id": "t14",
       "tools_called": [
         "search_framework",
+        "search_framework",
         "get_risk",
         "map_risks_to_controls"
       ],
       "turns": 3,
       "usage": {
-        "input": 14773,
-        "output": 485
+        "input": 15073,
+        "output": 516
       }
     },
     {
-      "answer": "The AIGF identifies five security-type risks (SEC) specific to agents:\n\n1. **AIR-SEC-024: Agent Action Authorization Bypass** \u2014 Agents bypass intended authorization controls and perform actions beyond their designated scope, potentially executing unauthorized financial transactions or accessing restricted data.\n\n2. **AIR-SEC-025: Tool Chain Manipulation and Injection** \u2014 Malicious inputs manipulate agents into selecting inappropriate tools or injecting malicious parameters into API calls through carefully crafted tool chain attacks.\n\n3. **AIR-SEC-026: MCP Server Supply Chain Compromise** \u2014 Compromised Model Context Protocol (MCP) servers provide tainted data and capabilities to agentic AI systems, allowing adversaries to influence agent behavior at scale.\n\n4. **AIR-SEC-027: Agent State Persistence Poisoning** \u2014 Agents retain malicious instructions or corrupted reasoning patterns across sessions through poisoned persistent state, creating long-term backdoors.\n\n5. **AIR-SEC-029: Agent-Mediated Credential Discovery and Harvesting** \u2014 Agents are manipulated to systematically discover, access, and exfiltrate authentication credentials and API keys, leveraging their autonomous tool selection capabilities.\n\n[Source: aigf://risk/AIR-SEC-024](aigf://risk/AIR-SEC-024)",
-      "cited": [
-        "AIR-SEC-024",
-        "AIR-SEC-025",
-        "AIR-SEC-026",
-        "AIR-SEC-027",
-        "AIR-SEC-029"
-      ],
-      "duration_s": 8.9,
+      "answer": "",
+      "cited": [],
+      "duration_s": 4.04,
       "error": null,
       "grade": null,
-      "resources_read": [],
+      "resources_read": [
+        "aigf://risk/AIR-SEC-024"
+      ],
       "stop_reason": "end_turn",
       "task_id": "t15",
       "tools_called": [
-        "list_risks",
-        "search_framework",
-        "get_risk",
-        "get_risk",
-        "get_risk",
-        "get_risk",
-        "get_risk"
+        "list_risks"
       ],
       "turns": 3,
       "usage": {
-        "input": 15912,
-        "output": 788
+        "input": 10984,
+        "output": 338
       }
     },
     {
-      "answer": "**AIR-DET-004** (AI System Observability) maps to the following external references:\n\n**NIST SP 800-53 r5 controls:**\n- AC-2 (Account Management)\n- AU-2 (Event Logging)\n- AU-3 (Content Of Audit Records)\n- AU-6 (Audit Record Review, Analysis, And Reporting)\n- AU-11 (Audit Record Retention)\n- AU-12 (Audit Record Generation)\n- CA-7 (Authorization)\n- IR-4 (Incident Handling)\n- IR-5 (Incident Monitoring)\n- RA-10 (Threat Hunting)\n- SI-4 (System Monitoring)\n- SI-7 (Software, Firmware, And Information Integrity)\n\n**ISO 42001:**\n- A-6-2-6 (AI system operation and monitoring)\n- A-6-2-8 (AI system recording of event logs)\n\n**Note:** The control does not have explicit EU AI Act article mappings in the AIGF framework. (aigf://control/AIR-DET-004)",
+      "answer": "**AIR-DET-004** (AI System Observability) maps to the following **NIST SP 800-53 Rev 5** controls:\n\n- AC-2 (Account Management)\n- AU-2 (Event Logging)\n- AU-3 (Content Of Audit Records)\n- AU-6 (Audit Record Review, Analysis, And Reporting)\n- AU-11 (Audit Record Retention)\n- AU-12 (Audit Record Generation)\n- CA-7 (Authorization)\n- IR-4 (Incident Handling)\n- IR-5 (Incident Monitoring)\n- RA-10 (Threat Hunting)\n- SI-4 (System Monitoring)\n- SI-7 (Software, Firmware, And Information Integrity)\n\n**EU AI Act**: No direct mapping found for AIR-DET-004 in the queried frameworks.\n\nThe control document also cites **ISO 42001** references (A-6-2-6 and A-6-2-8) and **IOSCO Supervisory Toolkit** references. See [aigf://control/AIR-DET-004](aigf://control/AIR-DET-004) for the full specification.",
       "cited": [
         "AIR-DET-004"
       ],
-      "duration_s": 4.55,
+      "duration_s": 9.09,
       "error": null,
       "grade": null,
-      "resources_read": [],
+      "resources_read": [
+        "aigf://control/AIR-DET-004"
+      ],
       "stop_reason": "end_turn",
       "task_id": "t16",
       "tools_called": [
         "map_control_to_external",
-        "get_control"
+        "list_reference_frameworks",
+        "map_control_to_external"
       ],
-      "turns": 2,
+      "turns": 4,
       "usage": {
-        "input": 8677,
-        "output": 441
+        "input": 25932,
+        "output": 605
       }
     },
     {
-      "answer": "**Risk:** **AIR-OP-028** (Multi-Agent Trust Boundary Violations) \u2014 In multi-agent systems, when agents can call each other freely without boundaries, compromised agents affect others through shared resources, communication channels, or state corruption, leading to cascading failures and systemic security incidents.\n\n**Control:** **AIR-PREV-022** (Multi-Agent Isolation and Segmentation) \u2014 Implements comprehensive security boundaries between agents using container or VM isolation, separate state storage, authenticated/encrypted inter-agent communications, controlled access matrices, and circuit breakers to prevent one agent's compromise from propagating to others. Key mechanisms include process isolation, state segregation, communication channel security, and trust boundary enforcement [aigf://control/AIR-PREV-022].",
-      "cited": [
-        "AIR-OP-028",
-        "AIR-PREV-022"
-      ],
-      "duration_s": 6.49,
+      "answer": "",
+      "cited": [],
+      "duration_s": 4.73,
       "error": null,
       "grade": null,
       "resources_read": [
@@ -470,23 +474,22 @@
       "task_id": "t17",
       "tools_called": [
         "search_framework",
-        "search_framework",
-        "get_risk"
+        "search_framework"
       ],
       "turns": 3,
       "usage": {
-        "input": 17343,
-        "output": 479
+        "input": 16002,
+        "output": 324
       }
     },
     {
-      "answer": "**Risk: AIR-SEC-027 \"Agent State Persistence Poisoning\"**\n\nThis risk covers tampering with an agent's persisted memory. According to the framework: \"Agents retain malicious instructions, corrupted reasoning patterns, or compromised decision-making logic across sessions through poisoned persistent state, creating long-term backdoors that systematically affect multiple transactions and user interactions.\" [aigf://risk/AIR-SEC-027](aigf://risk/AIR-SEC-027)\n\n**Mitigating Controls:**\n\n1. **AIR-PREV-022 \"Multi-Agent Isolation and Segmentation\"** \u2013 Preventative control implementing security boundaries to segregate agent state and memory, preventing cross-contamination through isolated state storage, encrypted storage with separate keys, and strict access controls on agent databases.\n\n2. **AIR-DET-004 \"AI System Observability\"** \u2013 Detective control providing comprehensive logging, monitoring, and anomaly detection of agent behavior, including changes to persistent state and learned behaviors, enabling rapid identification of poisoning attempts or suspicious state modifications.",
+      "answer": "**Risk:** **AIR-SEC-027 (Agent State Persistence Poisoning)** \u2014 agents retain malicious instructions or corrupted reasoning patterns across sessions through poisoned persistent state ([aigf://risk/AIR-SEC-027](aigf://risk/AIR-SEC-027)).\n\n**Mitigating Controls:**\n- **AIR-PREV-022 (Multi-Agent Isolation and Segmentation)** \u2014 implements security boundaries to prevent cross-agent compromise and limit blast radius\n- **AIR-DET-004 (AI System Observability)** \u2014 comprehensive monitoring and analysis of AI system behavior to detect anomalies and support incident response",
       "cited": [
         "AIR-DET-004",
         "AIR-PREV-022",
         "AIR-SEC-027"
       ],
-      "duration_s": 7.02,
+      "duration_s": 5.84,
       "error": null,
       "grade": null,
       "resources_read": [],
@@ -500,60 +503,55 @@
       ],
       "turns": 4,
       "usage": {
-        "input": 28860,
-        "output": 512
+        "input": 18916,
+        "output": 505
       }
     },
     {
-      "answer": "**AIR-DET-015: Using Large Language Models for Automated Evaluation (LLM-as-a-Judge)** describes your practice. \n\nKey cautions it emphasizes:\n\n- **\"Judge\" LLM biases and errors:** The evaluator LLM itself can have inherent biases, make errors, or hallucinate in its evaluations\n- **Indispensable human oversight:** LLM-as-a-Judge must augment rather than replace human review\u2014final accountability rests with humans, especially for critical, high-stakes applications\n- **Rigorous calibration required:** The judge's performance must be validated against human expert judgments; effectiveness depends heavily on prompt quality and clear rubrics\n- **Over-reliance risk:** Organizations may inappropriately reduce necessary human oversight\n- **Ongoing validation needed:** The judge system requires continuous calibration against human evaluations\n\nPer the control: \"While an emerging technique requiring careful implementation and oversight, LLM-as-a-Judge offers significant potential benefits\" but must remain \"a complement to, rather than a replacement for, rigorous human oversight and accountability.\" (aigf://control/AIR-DET-015)",
+      "answer": "**AIR-DET-015** (\"Using Large Language Models for Automated Evaluation / LLM-as-a-Judge\") describes this practice. \n\nKey cautions include:\n\n- **\"Judge\" LLM biases and errors:** The evaluator LLM itself can have inherent biases, make errors, or hallucinate in its evaluations\n- **Calibration is critical:** The judge's performance must be rigorously calibrated and validated against human expert judgments\u2014its evaluations are not inherently perfect\n- **Indispensable human oversight:** Should augment, not replace, human review, especially for critical applications and high-stakes decisions\n- **Dependence on prompt quality:** Effectiveness depends heavily on clarity and precision of rubrics and instructions\n- **Risk of over-reliance:** Organizations may reduce necessary human oversight for critical systems\n- **Ongoing validation required:** Continuous calibration against human judgments is essential\n\n[Source: AIR-DET-015, aigf://control/AIR-DET-015](aigf://control/AIR-DET-015)",
       "cited": [
         "AIR-DET-015"
       ],
-      "duration_s": 6.57,
+      "duration_s": 7.44,
       "error": null,
       "grade": null,
-      "resources_read": [],
+      "resources_read": [
+        "aigf://control/AIR-DET-015"
+      ],
       "stop_reason": "end_turn",
       "task_id": "t19",
       "tools_called": [
         "search_framework",
         "get_control"
       ],
-      "turns": 3,
+      "turns": 4,
       "usage": {
-        "input": 16694,
-        "output": 436
+        "input": 30361,
+        "output": 543
       }
     },
     {
-      "answer": "Based on the analysis, **AIR-PREV-020** mitigates AIR-SEC-026, AIR-SEC-008, and AIR-RC-001, while **AIR-PREV-018** mitigates AIR-SEC-024 and AIR-OP-018. From the agent-related risks identified, these two controls cover only those two risks.\n\n**Uncovered agent-related risks:**\n\n- **AIR-OP-028** (Multi-Agent Trust Boundary Violations)\n- **AIR-SEC-029** (Agent-Mediated Credential Discovery and Harvesting)\n- **AIR-SEC-027** (Agent State Persistence Poisoning)\n- **AIR-SEC-025** (Tool Chain Manipulation and Injection)\n- **AIR-SEC-010** (Prompt Injection)\n- **AIR-OP-007** (Availability of Foundational Model)\n- **AIR-OP-014** (Inadequate System Alignment)\n- **AIR-OP-017** (Lack of Explainability)\n- **AIR-RC-022** (Regulatory Compliance and Oversight)\n\nTo close these gaps, prioritize **AIR-DET-004** (AI System Observability) for comprehensive coverage, and consider **AIR-PREV-022** (Multi-Agent Isolation and Segmentation) for AIR-OP-028, AIR-SEC-027, and **AIR-PREV-023** (Agentic System Credential Protection Framework) for AIR-SEC-029 and AIR-SEC-027.",
+      "answer": "**Control Gap Analysis for Agent-Related Risks**\n\nYour two controls (AIR-PREV-018 and AIR-PREV-020) cover:\n- **AIR-PREV-018** (Agent Authority Least Privilege Framework) mitigates: AIR-OP-018, AIR-SEC-024\n- **AIR-PREV-020** (MCP Server Security Governance) mitigates: AIR-SEC-008, AIR-SEC-026\n\n**Uncovered agent-related risks:**\n\n1. **AIR-OP-028** (Multi-Agent Trust Boundary Violations) \u2013 requires AIR-PREV-022\n2. **AIR-SEC-029** (Agent-Mediated Credential Discovery and Harvesting) \u2013 requires AIR-PREV-023\n3. **AIR-SEC-027** (Agent State Persistence Poisoning) \u2013 requires AIR-PREV-022\n4. **AIR-SEC-025** (Tool Chain Manipulation and Injection) \u2013 requires AIR-PREV-019\n5. **AIR-OP-017** (Lack of Explainability) \u2013 no preventative control covers this\n\nTo fill gaps, prioritize AIR-PREV-022 (Multi-Agent Isolation and Segmentation) for multi-agent risks, AIR-PREV-023 (Agentic System Credential Protection Framework) for credential leakage, and AIR-PREV-019 (Tool Chain Validation and Sanitization) for tool injection.\n\nSource: [aigf://control/AIR-PREV-018](aigf://control/AIR-PREV-018)",
       "cited": [
-        "AIR-DET-004",
-        "AIR-OP-007",
-        "AIR-OP-014",
         "AIR-OP-017",
         "AIR-OP-018",
         "AIR-OP-028",
         "AIR-PREV-018",
+        "AIR-PREV-019",
         "AIR-PREV-020",
         "AIR-PREV-022",
         "AIR-PREV-023",
-        "AIR-RC-001",
-        "AIR-RC-022",
         "AIR-SEC-008",
-        "AIR-SEC-010",
         "AIR-SEC-024",
         "AIR-SEC-025",
         "AIR-SEC-026",
         "AIR-SEC-027",
         "AIR-SEC-029"
       ],
-      "duration_s": 10.0,
+      "duration_s": 11.28,
       "error": null,
       "grade": null,
-      "resources_read": [
-        "aigf://control/AIR-PREV-020"
-      ],
+      "resources_read": [],
       "stop_reason": "end_turn",
       "task_id": "t20",
       "tools_called": [
@@ -562,10 +560,10 @@
         "search_framework",
         "map_risks_to_controls"
       ],
-      "turns": 4,
+      "turns": 3,
       "usage": {
-        "input": 36277,
-        "output": 870
+        "input": 19871,
+        "output": 786
       }
     }
   ],
@@ -591,7 +589,7 @@
     "resources_total": 14,
     "tools_total": 29
   },
-  "generated_at": "2026-09-11T08:08:54+00:00",
+  "generated_at": "2026-09-12T08:00:11+00:00",
   "latency_ms_p95": {},
   "retrieval": {
     "misses": [
