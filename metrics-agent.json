@@ -1,563 +1,361 @@
 {
   "agent": {
-    "cited_any_rate": 0.95,
-    "cited_valid_id_rate": 0.95,
-    "errors": 0,
+    "cited_any_rate": 0.0,
+    "cited_valid_id_rate": 0.0,
+    "errors": 20,
     "hallucinated_id_rate": 0.0,
     "hallucinated_ids": {},
-    "input_tokens": 462967,
-    "mean_turns": 3.45,
+    "input_tokens": 0,
+    "mean_turns": 1.0,
     "model": "claude-haiku-4-5",
-    "must_cite_rate": 0.95,
+    "must_cite_rate": 0.0,
     "no_citation_tasks": [
-      "t08"
+      "t01",
+      "t02",
+      "t03",
+      "t04",
+      "t05",
+      "t06",
+      "t07",
+      "t08",
+      "t09",
+      "t10",
+      "t11",
+      "t12",
+      "t13",
+      "t14",
+      "t15",
+      "t16",
+      "t17",
+      "t18",
+      "t19",
+      "t20"
     ],
-    "output_tokens": 11517,
+    "output_tokens": 0,
     "refusals": 0,
-    "resource_citation_rate": 0.55,
+    "resource_citation_rate": 0.0,
     "tasks": 20,
-    "tool_correctness": 0.95
+    "tool_correctness": 0.0
   },
   "agent_runs": [
     {
-      "answer": "**Top three AIGF risks for RAG chatbots over internal policy documents:**\n\n1. **AIR-OP-014 (Inadequate System Alignment)** \u2014 RAG systems may generate responses diverging from intended business purpose, producing inaccurate financial advice or non-compliant guidance.  \n   **Mitigation:** **AIR-DET-015 (LLM-as-a-Judge)** \u2014 Use another LLM to automatically assess accuracy and compliance of outputs against policies.\n\n2. **AIR-OP-004 (Hallucination and Inaccurate Outputs)** \u2014 LLMs generate confident but false information, even in RAG systems where retrieved documents should reduce hallucinations.  \n   **Mitigation:** **AIR-DET-013 (Citations and Source Traceability)** \u2014 Provide verifiable citations linking outputs back to source documents, enabling verification and audit trails.\n\n3. **AIR-SEC-002 (Information Leaked to Vector Store)** \u2014 Sensitive policy data can be exposed via embeddings, caches, or logs when not properly secured.  \n   **Mitigation:** **AIR-PREV-014 (Encryption of AI Data at Rest)** \u2014 Encrypt all vector store and cached data using robust cryptographic algorithms.\n\n[Source](aigf://risk/AIR-OP-014)",
-      "cited": [
-        "AIR-DET-013",
-        "AIR-DET-015",
-        "AIR-OP-004",
-        "AIR-OP-014",
-        "AIR-PREV-014",
-        "AIR-SEC-002"
-      ],
-      "duration_s": 11.83,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.35,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4UZwiQQrmPvSE3JWk'}",
       "grade": null,
-      "resources_read": [
-        "aigf://risk/AIR-OP-014"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t01",
-      "tools_called": [
-        "search_framework",
-        "search_framework",
-        "search_framework",
-        "get_risk",
-        "get_risk",
-        "get_risk",
-        "get_control",
-        "get_control",
-        "get_control"
-      ],
-      "turns": 5,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 61704,
-        "output": 1080
-      }
-    },
-    {
-      "answer": "Three AIGF controls mitigate prompt injection (AIR-SEC-010):\n\n1. **AIR-PREV-003** \u2013 User/App/Model Firewalling/Filtering (primary)\n2. **AIR-PREV-017** \u2013 AI Firewall Implementation and Management\n3. **AIR-PREV-019** \u2013 Tool Chain Validation and Sanitization\n\n**AIR-PREV-003** maps to the following NIST SP 800-53 Rev 5 controls:\n- **AC-4** \u2013 Information Flow Enforcement\n- **SC-5** \u2013 Denial-of-service Protection\n- **SC-7** \u2013 Boundary Protection\n- **SI-4** \u2013 System Monitoring\n- **SI-10** \u2013 Information Input Validation\n- **SI-15** \u2013 Information Output Filtering\n\nSource: [aigf://control/AIR-PREV-003](aigf://control/AIR-PREV-003)",
-      "cited": [
-        "AIR-PREV-003",
-        "AIR-PREV-017",
-        "AIR-PREV-019",
-        "AIR-SEC-010"
-      ],
-      "duration_s": 14.35,
-      "error": null,
-      "grade": null,
-      "resources_read": [
-        "aigf://control/AIR-PREV-003"
-      ],
-      "stop_reason": "end_turn",
-      "task_id": "t02",
-      "tools_called": [
-        "search_framework",
-        "get_risk",
-        "get_control",
-        "map_control_to_external",
-        "list_reference_frameworks",
-        "map_control_to_external"
-      ],
-      "turns": 5,
-      "usage": {
-        "input": 36360,
-        "output": 747
-      }
-    },
-    {
-      "answer": "**Risk:** **AIR-SEC-026** (MCP Server Supply Chain Compromise)\u2014covers third-party MCP servers that may be compromised by adversaries, injecting malicious data or logic that systematically influence agent decision-making.\n\n**Governing Control:** **AIR-PREV-020** (MCP Server Security Governance)\u2014establishes supply chain verification, secure communication channels, data integrity validation, and continuous monitoring across three implementation tiers.\n\nSee the full control at aigf://control/AIR-PREV-020 for vetting requirements, communication security, monitoring, and incident response procedures tailored to Tier 1 (centralized proxy + human approval), Tier 2 (pre-approved servers + anomaly detection), and Tier 3 (distributed with comprehensive due diligence).",
-      "cited": [
-        "AIR-PREV-020",
-        "AIR-SEC-026"
-      ],
-      "duration_s": 6.82,
-      "error": null,
-      "grade": null,
-      "resources_read": [],
-      "stop_reason": "end_turn",
-      "task_id": "t03",
-      "tools_called": [
-        "search_framework",
-        "search_framework",
-        "get_risk",
-        "get_control"
-      ],
-      "turns": 3,
-      "usage": {
-        "input": 18848,
-        "output": 507
-      }
-    },
-    {
-      "answer": "**Controls addressing AIR-RC-001:**\n\n**Preventative:**\n- **AIR-PREV-006** (Data Quality & Classification/Sensitivity) \u2013 identify and mark sensitive data so employees know not to paste it into public tools\n- **AIR-PREV-007** (Legal and Contractual Frameworks for AI Systems) \u2013 governance and employee policies restricting data sharing with external AI services\n- **AIR-PREV-012** (Role-Based Access Control for AI Data) \u2013 restrict who can access sensitive data in the first place\n- **AIR-PREV-002** (Data Filtering From External Knowledge Bases) \u2013 filter sensitive data before use\n\n**Detective:**\n- **AIR-DET-001** (AI Data Leakage Prevention and Detection) \u2013 detect when sensitive data is sent to external models\n- **AIR-DET-004** (AI System Observability) \u2013 monitor and log all interactions with third-party AI services\n- **AIR-DET-015** (Using Large Language Models for Automated Evaluation) \u2013 audit outputs for leaked PII\n\nCitation: <aigf://risk/AIR-RC-001>",
-      "cited": [
-        "AIR-DET-001",
-        "AIR-DET-004",
-        "AIR-DET-015",
-        "AIR-PREV-002",
-        "AIR-PREV-006",
-        "AIR-PREV-007",
-        "AIR-PREV-012",
-        "AIR-RC-001"
-      ],
-      "duration_s": 7.78,
-      "error": null,
-      "grade": null,
-      "resources_read": [],
-      "stop_reason": "end_turn",
-      "task_id": "t04",
-      "tools_called": [
-        "search_framework",
-        "search_framework",
-        "get_risk",
-        "map_risks_to_controls"
-      ],
-      "turns": 3,
-      "usage": {
-        "input": 17666,
-        "output": 643
-      }
-    },
-    {
-      "answer": "**AIR-PREV-020: MCP Server Security Governance** is a preventive control that establishes comprehensive security for Model Context Protocol servers used by agentic AI systems, covering supply chain verification, secure communication, data integrity, monitoring, and incident response.\n\n**Risks mitigated:**\n- AIR-SEC-026 (MCP Server Supply Chain Compromise)\n- AIR-SEC-008 (Tampering With the Foundational Model)\n- AIR-RC-001 (Information Leaked To Hosted Model)\n\n**Quote from aigf://control/AIR-PREV-020:**\n> \"This preventive control ensures that MCP servers providing specialized capabilities to agentic AI systems maintain appropriate security standards and cannot be used as vectors for systematic compromise of agent decision-making.\"",
-      "cited": [
-        "AIR-PREV-020",
-        "AIR-RC-001",
-        "AIR-SEC-008",
-        "AIR-SEC-026"
-      ],
-      "duration_s": 4.93,
-      "error": null,
-      "grade": null,
-      "resources_read": [
-        "aigf://control/AIR-PREV-020"
-      ],
-      "stop_reason": "end_turn",
-      "task_id": "t05",
-      "tools_called": [
-        "get_control"
-      ],
-      "turns": 2,
-      "usage": {
-        "input": 14666,
-        "output": 287
-      }
-    },
-    {
-      "answer": "**Detective Controls in AIGF:**\n\n1. **AIR-DET-001** \u2013 AI Data Leakage Prevention and Detection\n2. **AIR-DET-004** \u2013 AI System Observability\n3. **AIR-DET-009** \u2013 AI System Alerting and Denial of Wallet (DoW) / Spend Monitoring\n4. **AIR-DET-011** \u2013 Human Feedback Loop for AI Systems\n5. **AIR-DET-013** \u2013 Providing Citations and Source Traceability for AI-Generated Information\n6. **AIR-DET-015** \u2013 Using Large Language Models for Automated Evaluation (LLM-as-a-Judge)\n7. **AIR-DET-016** \u2013 Preserving Source Data Access Controls in AI Systems\n8. **AIR-DET-021** \u2013 Agent Decision Audit and Explainability\n\n**Agent-Behaviour Risks Covered:**\n\nThe primary agent-specific detective control is **AIR-DET-021** (Agent Decision Audit and Explainability), which mitigates three risks per [aigf://control/AIR-DET-021](aigf://control/AIR-DET-021):\n- **AIR-SEC-024** \u2013 Agent Action Authorization Bypass\n- **AIR-SEC-025** \u2013 Agent Context Exfiltration\n- **AIR-RC-022** \u2013 Regulatory Audit Trail Deficiencies\n\nAdditionally, **AIR-DET-004** (AI System Observability) covers agent-related risks by mitigating:\n- **AIR-OP-028** \u2013 Multi-Agent Trust Boundary Violations\n- **AIR-SEC-029** \u2013 Agent-Mediated Credential Discovery and Harvesting",
-      "cited": [
-        "AIR-DET-001",
-        "AIR-DET-004",
-        "AIR-DET-009",
-        "AIR-DET-011",
-        "AIR-DET-013",
-        "AIR-DET-015",
-        "AIR-DET-016",
-        "AIR-DET-021",
-        "AIR-OP-028",
-        "AIR-RC-022",
-        "AIR-SEC-024",
-        "AIR-SEC-025",
-        "AIR-SEC-029"
-      ],
-      "duration_s": 9.36,
-      "error": null,
-      "grade": null,
-      "resources_read": [],
-      "stop_reason": "end_turn",
-      "task_id": "t06",
-      "tools_called": [
-        "list_controls",
-        "search_framework",
-        "get_control",
-        "get_risk",
-        "get_risk",
-        "get_risk"
-      ],
-      "turns": 3,
-      "usage": {
-        "input": 16978,
-        "output": 828
-      }
-    },
-    {
-      "answer": "**Risk:** **AIR-OP-005** (Foundation Model Versioning) captures silent model swaps. Per [aigf://risk/AIR-OP-005](aigf://risk/AIR-OP-005), \"The model provider may alter the model or its configuration without explicit customer notification. Such silent changes can result in outputs that deviate from tested expectations.\"\n\n**Control:** **AIR-PREV-010** (AI Model Version Pinning) pins versions. It mandates \"Explicit Version Selection and Pinning\" to formally select and implement specific model versions, coupled with supplier contracts requiring \"clear versioning schemes\" and \"API flexibility for version selection\" to prevent forced upgrades.",
-      "cited": [
-        "AIR-OP-005",
-        "AIR-PREV-010"
-      ],
-      "duration_s": 13.08,
-      "error": null,
-      "grade": null,
-      "resources_read": [],
-      "stop_reason": "end_turn",
-      "task_id": "t07",
-      "tools_called": [
-        "search_framework",
-        "search_framework",
-        "get_risk",
-        "get_control"
-      ],
-      "turns": 3,
-      "usage": {
-        "input": 20103,
-        "output": 478
+        "input": 0,
+        "output": 0
       }
     },
     {
       "answer": "",
       "cited": [],
-      "duration_s": 10.83,
-      "error": null,
+      "duration_s": 0.32,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4UWyA3vJVDk9xG9Gi'}",
       "grade": null,
-      "resources_read": [
-        "aigf://risk/AIR-SEC-010"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
+      "task_id": "t02",
+      "tools_called": [],
+      "turns": 1,
+      "usage": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.37,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4UZwwAx41LkUQ19sG'}",
+      "grade": null,
+      "resources_read": [],
+      "stop_reason": null,
+      "task_id": "t03",
+      "tools_called": [],
+      "turns": 1,
+      "usage": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.14,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4VTH3mQGMXK1nJukQ'}",
+      "grade": null,
+      "resources_read": [],
+      "stop_reason": null,
+      "task_id": "t04",
+      "tools_called": [],
+      "turns": 1,
+      "usage": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.22,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4VgftRVdsjhmH6zom'}",
+      "grade": null,
+      "resources_read": [],
+      "stop_reason": null,
+      "task_id": "t05",
+      "tools_called": [],
+      "turns": 1,
+      "usage": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.19,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4VgB41gLAM2yxfQrP'}",
+      "grade": null,
+      "resources_read": [],
+      "stop_reason": null,
+      "task_id": "t06",
+      "tools_called": [],
+      "turns": 1,
+      "usage": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.14,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4WTZ1Hfbum6NUo12d'}",
+      "grade": null,
+      "resources_read": [],
+      "stop_reason": null,
+      "task_id": "t07",
+      "tools_called": [],
+      "turns": 1,
+      "usage": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.12,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4WU3TZhpQG1BgEjiH'}",
+      "grade": null,
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t08",
-      "tools_called": [
-        "find_by_external_reference",
-        "list_reference_frameworks",
-        "find_by_external_reference"
-      ],
-      "turns": 5,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 20468,
-        "output": 393
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "Neither risk is uncovered. \n\n**AIR-SEC-009 (ri-9, Data Poisoning)** is mitigated by 3 controls:\n- AIR-PREV-006 (mi-6, Data Quality & Classification/Sensitivity)\n- AIR-PREV-002 (mi-2, Data Filtering From External Knowledge Bases)\n- AIR-PREV-012 (mi-12, Role-Based Access Control for AI Data)\n\n**AIR-SEC-002 (ri-2, Information Leaked to Vector Store)** is mitigated by 3 controls:\n- AIR-PREV-006 (mi-6, Data Quality & Classification/Sensitivity)\n- AIR-DET-016 (mi-16, Preserving Source Data Access Controls in AI Systems)\n- AIR-PREV-014 (mi-14, Encryption of AI Data at Rest)",
-      "cited": [
-        "AIR-DET-016",
-        "AIR-PREV-002",
-        "AIR-PREV-006",
-        "AIR-PREV-012",
-        "AIR-PREV-014",
-        "AIR-SEC-002",
-        "AIR-SEC-009"
-      ],
-      "duration_s": 3.28,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.11,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4WUYXqNPAEdxqKjiG'}",
       "grade": null,
       "resources_read": [],
-      "stop_reason": "end_turn",
+      "stop_reason": null,
       "task_id": "t09",
-      "tools_called": [
-        "map_risks_to_controls"
-      ],
-      "turns": 2,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 6082,
-        "output": 284
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**Risk:** AIR-OP-007 \u2013 Availability of Foundational Model\n\nThis captures the scenario where a hosted model provider outage stops your AI assistant. The risk specifically addresses \"TSP Outage or Degradation\" when LLMs rely on external GPU infrastructure and lack redundancy to alternative services. ([aigf://risk/AIR-OP-007](aigf://risk/AIR-OP-007))\n\n**Preventative Controls:**\n\n1. **AIR-PREV-008** \u2013 Quality of Service (QoS) and DDoS Prevention for AI Systems: Ensures resilience through rate limiting, traffic prioritization, and protection against resource-exhausting attacks.\n\n2. **AIR-PREV-007** \u2013 Legal and Contractual Frameworks for AI Systems: Establishes SLAs with providers that define availability commitments, failover obligations, and incident response terms.\n\n3. **AIR-PREV-022** \u2013 Multi-Agent Isolation and Segmentation: Implements circuit breakers and failure isolation so one service outage doesn't cascade; enables service degradation instead of complete failure.",
-      "cited": [
-        "AIR-OP-007",
-        "AIR-PREV-007",
-        "AIR-PREV-008",
-        "AIR-PREV-022"
-      ],
-      "duration_s": 10.84,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.16,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4X13XHK2w6fouizXE'}",
       "grade": null,
-      "resources_read": [
-        "aigf://risk/AIR-OP-007"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t10",
-      "tools_called": [
-        "search_framework",
-        "search_framework",
-        "get_risk",
-        "get_control",
-        "get_control",
-        "get_control"
-      ],
-      "turns": 4,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 36463,
-        "output": 790
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**On explainability:** The AIGF identifies **AIR-OP-017 (Lack of Explainability)** as a core operational risk. Per [aigf://risk/AIR-OP-017](https://air-governance-framework.finos.org), complex foundation models often operate as \"black boxes,\" making it difficult for firms to articulate rationales to regulators, customers, and stakeholders. This opacity conceals errors, biases, and vulnerabilities, and violates financial-services principles of transparency and accountability. The risk directly relates to compliance (EU AI Act Articles 13, 14, 50, 86; Canadian KYP/suitability rules; GDPR Article 22; UK Consumer Duty; OSFI and AMF guidelines).\n\n**Controls for source traceability:**\n\n1. **AIR-DET-013** (*Providing Citations and Source Traceability for AI-Generated Information*) \u2013 Directly mitigates AIR-OP-017 and AIR-OP-004 (hallucination). Implements verifiable citations and traceable links to source data in LLMs and RAG systems, enabling independent verification of claims and detection of misinformation.\n\n2. **AIR-DET-021** (*Agent Decision Audit and Explainability*) \u2013 Comprehensive logging of agent reasoning, decision factors, and contextual information across four tiers (Tier 0\u20133), with support for regulatory compliance (EU AI Act Article 12 record-keeping, GDPR right-to-explanation, OSFI/IOSCO requirements).\n\n3. **AIR-PREV-007** (*Legal and Contractual Frameworks for AI Systems*) \u2013 Establishes contractual rights to model transparency and explainability support from vendors; includes demands for training-data provenance and vendor accountability.",
-      "cited": [
-        "AIR-DET-013",
-        "AIR-DET-021",
-        "AIR-OP-004",
-        "AIR-OP-017",
-        "AIR-PREV-007"
-      ],
-      "duration_s": 10.51,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.1,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4Ww5KiDNB5SsfgHQb'}",
       "grade": null,
-      "resources_read": [
-        "aigf://risk/AIR-OP-017"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t11",
-      "tools_called": [
-        "search_framework",
-        "search_framework",
-        "get_risk",
-        "get_control",
-        "get_control",
-        "get_control"
-      ],
-      "turns": 4,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 59135,
-        "output": 918
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**External Reference Frameworks:**\n\nThe AIGF crosswalks to 13 external frameworks: NIST SP 800-53 Rev 5, NIST AI 600-1, ISO/IEC 42001, EU AI Act, OWASP LLM Top 10, OWASP ML Top 10, OWASP ASI, Agent Threat Rules (ATR), FFIEC IT Handbook, IOSCO Supervisory Toolkit, SR 11-7, Canada AI Regulations, and UK Financial Services AI Regulations.\n\n**ISO 42001 Controls:**\n\n**18 controls cite ISO 42001**. One example is **AIR-DET-001** (AI Data Leakage Prevention and Detection), which per its specification cites ISO 42001 references A-7-2, A-6-2-6, and A-5-2 covering data for development, AI system operation and monitoring, and impact assessment processes: https://air-governance-framework.finos.org",
-      "cited": [
-        "AIR-DET-001"
-      ],
-      "duration_s": 8.34,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.47,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4X6W5oEvVEedYBJS5'}",
       "grade": null,
-      "resources_read": [
-        "aigf://control/AIR-DET-001"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t12",
-      "tools_called": [
-        "list_reference_frameworks",
-        "find_by_external_reference",
-        "find_by_external_reference"
-      ],
-      "turns": 4,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 19121,
-        "output": 526
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**Control:** **AIR-PREV-018** (Agent Authority Least Privilege Framework) \u2014 implements granular access controls ensuring agents can only access APIs, tools, and data strictly necessary for their designated functions.\n\n**Risks mitigated:**\n- **AIR-SEC-024** (Agent Action Authorization Bypass)\n- **AIR-OP-018** (Model Overreach / Expanded Use)\n\nPer the framework: \"Agents should have access only to specific API endpoints and methods required for their designated use case, with restrictions enforced at the tool manager and API gateway levels\" ([aigf://control/AIR-PREV-018](aigf://control/AIR-PREV-018)).",
-      "cited": [
-        "AIR-OP-018",
-        "AIR-PREV-018",
-        "AIR-SEC-024"
-      ],
-      "duration_s": 5.74,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.17,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4XYnKEBPLBTjpHCba'}",
       "grade": null,
-      "resources_read": [
-        "aigf://control/AIR-PREV-018"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t13",
-      "tools_called": [
-        "search_framework",
-        "get_control"
-      ],
-      "turns": 3,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 13594,
-        "output": 397
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**Risk:** **AIR-SEC-009 \u2013 Data Poisoning**\n\nPer the AIGF resource (aigf://risk/AIR-SEC-009), data poisoning occurs when adversaries tamper with training or fine-tuning data to manipulate an AI model's behavior by injecting misleading or malicious patterns. In fraud detection systems, this can lead to incorrectly approving fraudulent transactions or degrading model performance in subtle ways, especially in systems that continuously learn from unvalidated or third-party data.\n\n**Mitigating Controls:**\n- **AIR-PREV-002** \u2013 Data Filtering From External Knowledge Bases\n- **AIR-PREV-006** \u2013 Data Quality & Classification/Sensitivity\n- **AIR-PREV-012** \u2013 Role-Based Access Control for AI Data",
-      "cited": [
-        "AIR-PREV-002",
-        "AIR-PREV-006",
-        "AIR-PREV-012",
-        "AIR-SEC-009"
-      ],
-      "duration_s": 5.67,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.18,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4XhiMQcTrxpCcSzYp'}",
       "grade": null,
-      "resources_read": [
-        "aigf://risk/AIR-SEC-009"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t14",
-      "tools_called": [
-        "search_framework",
-        "get_risk",
-        "map_risks_to_controls"
-      ],
-      "turns": 3,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 13612,
-        "output": 453
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**AIR-SEC-024** (Agent Action Authorization Bypass) exemplifies the agent-specific security concerns: agents performing unauthorized financial transactions, accessing restricted data, or bypassing approval workflows through API exploitation, tool chain privilege escalation, and business logic circumvention. [Read full risk at aigf://risk/AIR-SEC-024]",
-      "cited": [
-        "AIR-SEC-024"
-      ],
-      "duration_s": 6.94,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.17,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4YJBNaJD1fNaNr7qp'}",
       "grade": null,
-      "resources_read": [
-        "aigf://risk/AIR-SEC-024"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t15",
-      "tools_called": [
-        "search_framework",
-        "list_risks",
-        "search_framework"
-      ],
-      "turns": 4,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 17022,
-        "output": 520
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**AIR-DET-004** (AI System Observability) maps to:\n\n**EU AI Act references:** None\u2014the control does not cite EU AI Act articles.\n\n**NIST SP 800-53 Rev 5 references:**\n- AC-2 (Account Management)\n- AU-2 (Event Logging)\n- AU-3 (Content of Audit Records)\n- AU-6 (Audit Record Review, Analysis, and Reporting)\n- AU-11 (Audit Record Retention)\n- AU-12 (Audit Record Generation)\n- CA-7 (Authorization)\n- IR-4 (Incident Handling)\n- IR-5 (Incident Monitoring)\n- RA-10 (Threat Hunting)\n- SI-4 (System Monitoring)\n- SI-7 (Software, Firmware, and Information Integrity)\n\nThe control also maps to ISO 42001 (A-6-2-6, A-6-2-8) and IOSCO Supervisory Toolkit references. [Citation: aigf://control/AIR-DET-004]",
-      "cited": [
-        "AIR-DET-004"
-      ],
-      "duration_s": 5.97,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.16,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4YWaXxu8rWmUNJtbH'}",
       "grade": null,
       "resources_read": [],
-      "stop_reason": "end_turn",
+      "stop_reason": null,
       "task_id": "t16",
-      "tools_called": [
-        "map_control_to_external",
-        "get_control",
-        "list_reference_frameworks"
-      ],
-      "turns": 3,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 15821,
-        "output": 484
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**Risk:** **AIR-OP-028** \u2014 *Multi-Agent Trust Boundary Violations* occurs when compromised agents propagate compromise to other agents through shared resources, communication channels, or state corruption. \"Agent-to-Agent Communication Compromise\" is specifically called out: malicious agents inject harmful data into communication channels, causing receiving agents to adopt compromised behaviors (aigf://risk/AIR-OP-028).\n\n**Control:** **AIR-PREV-022** \u2014 *Multi-Agent Isolation and Segmentation* implements comprehensive security boundaries between agents to prevent cross-agent compromise and limit blast radius. It includes container-based isolation, runtime isolation, and network segmentation to ensure one agent's compromise cannot systematically affect others (aigf://control/AIR-PREV-022).",
-      "cited": [
-        "AIR-OP-028",
-        "AIR-PREV-022"
-      ],
-      "duration_s": 6.85,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.16,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4Yw8TDHRE6c9FD79N'}",
       "grade": null,
-      "resources_read": [
-        "aigf://risk/AIR-OP-028"
-      ],
-      "stop_reason": "end_turn",
+      "resources_read": [],
+      "stop_reason": null,
       "task_id": "t17",
-      "tools_called": [
-        "search_framework",
-        "search_framework",
-        "get_risk",
-        "get_control"
-      ],
-      "turns": 3,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 18480,
-        "output": 526
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**Risk:** **AIR-SEC-027** (Agent State Persistence Poisoning) covers tampering with an agent's persisted memory\u2014attackers embed malicious instructions or corrupted reasoning patterns in the agent's persistent state, which then influence behavior across multiple sessions and transactions without requiring repeated attacks. [aigf://risk/AIR-SEC-027](aigf://risk/AIR-SEC-027)\n\n**Mitigating Controls:**\n1. **AIR-PREV-022** (Multi-Agent Isolation and Segmentation) \u2014 implements security boundaries between agents to prevent cross-agent compromise and limit the blast radius of state poisoning\n2. **AIR-DET-004** (AI System Observability) \u2014 provides comprehensive monitoring and analysis of AI system behavior to detect anomalies and state changes, enabling rapid detection of poisoned memory",
-      "cited": [
-        "AIR-DET-004",
-        "AIR-PREV-022",
-        "AIR-SEC-027"
-      ],
-      "duration_s": 9.08,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.18,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4ZAGngNrnRLjqfX2u'}",
       "grade": null,
       "resources_read": [],
-      "stop_reason": "end_turn",
+      "stop_reason": null,
       "task_id": "t18",
-      "tools_called": [
-        "search_framework",
-        "get_risk",
-        "get_control",
-        "get_control"
-      ],
-      "turns": 4,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 23213,
-        "output": 535
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**AIR-DET-015** (\"Using Large Language Models for Automated Evaluation [LLM-as-a-Judge]\") describes your practice. It defines an LLM evaluator assessing outputs from another AI system for quality, accuracy, safety, and compliance.\n\nThe control cautions on several fronts: (1) **Judge LLM biases and errors**\u2014the evaluator itself can hallucinate or have inherent biases; (2) **dependence on prompt quality**\u2014effectiveness hinges on clarity of rubrics; (3) **cost of capable models**; (4) **difficulty with nuance**\u2014LLMs may struggle with culturally specific criteria; (5) **risk of over-reliance**\u2014organizations may reduce necessary human oversight for critical systems; (6) **limited novel issue detection**\u2014may not capture full real-world user experiences; (7) **ongoing validation required**\u2014the judge system needs continuous calibration against human judgments. \n\nCritically, per [aigf://control/AIR-DET-015](aigf://control/AIR-DET-015), the control emphasizes: **\"LLM-as-a-Judge should be viewed as a tool to *augment and assist* human review, not as a complete replacement, especially for critical applications, high-stakes decisions, or nuanced evaluations. Final accountability for system performance rests with humans.\"**",
-      "cited": [
-        "AIR-DET-015"
-      ],
-      "duration_s": 7.05,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.17,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4ZDzRKbevQxQFrNDB'}",
       "grade": null,
       "resources_read": [],
-      "stop_reason": "end_turn",
+      "stop_reason": null,
       "task_id": "t19",
-      "tools_called": [
-        "search_framework",
-        "get_control"
-      ],
-      "turns": 3,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 16658,
-        "output": 467
+        "input": 0,
+        "output": 0
       }
     },
     {
-      "answer": "**Control Gap Analysis: Agent-Related Risks**\n\nYour two controls (AIR-PREV-020 and AIR-PREV-018) cover only 2 of the 6 major agent risks:\n\n- **Covered by your controls:**\n  - **AIR-SEC-024** (Agent Action Authorization Bypass) \u2014 covered by AIR-PREV-018\n  - **AIR-SEC-026** (MCP Server Supply Chain Compromise) \u2014 covered by AIR-PREV-020\n\n- **Uncovered agent-related risks:**\n  - **AIR-OP-028** (Multi-Agent Trust Boundary Violations)\n  - **AIR-SEC-025** (Tool Chain Manipulation and Injection)\n  - **AIR-SEC-027** (Agent State Persistence Poisoning)\n  - **AIR-SEC-029** (Agent-Mediated Credential Discovery and Harvesting)\n\nTo close the gaps, consider adding: **AIR-PREV-019** (Tool Chain Validation and Sanitization), **AIR-PREV-022** (Multi-Agent Isolation and Segmentation), and **AIR-PREV-023** (Agentic System Credential Protection Framework). See [aigf://control/AIR-PREV-018](aigf://control/AIR-PREV-018) for your current mitigation details.",
-      "cited": [
-        "AIR-OP-028",
-        "AIR-PREV-018",
-        "AIR-PREV-019",
-        "AIR-PREV-020",
-        "AIR-PREV-022",
-        "AIR-PREV-023",
-        "AIR-SEC-024",
-        "AIR-SEC-025",
-        "AIR-SEC-026",
-        "AIR-SEC-027",
-        "AIR-SEC-029"
-      ],
-      "duration_s": 5.7,
-      "error": null,
+      "answer": "",
+      "cited": [],
+      "duration_s": 0.1,
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cf4w4Zb4yJTqoyuEfXXem'}",
       "grade": null,
       "resources_read": [],
-      "stop_reason": "end_turn",
+      "stop_reason": null,
       "task_id": "t20",
-      "tools_called": [
-        "get_control",
-        "get_control",
-        "search_framework",
-        "map_risks_to_controls"
-      ],
-      "turns": 3,
+      "tools_called": [],
+      "turns": 1,
       "usage": {
-        "input": 16973,
-        "output": 654
+        "input": 0,
+        "output": 0
       }
     }
   ],
@@ -583,7 +381,7 @@
     "resources_total": 14,
     "tools_total": 29
   },
-  "generated_at": "2026-09-14T09:03:00+00:00",
+  "generated_at": "2026-09-15T08:46:34+00:00",
   "latency_ms_p95": {},
   "retrieval": {
     "misses": [
