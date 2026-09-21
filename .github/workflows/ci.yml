@@ -104,8 +104,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin metrics || true
-          git checkout -B metrics origin/metrics 2>/dev/null || git checkout --orphan metrics
-          git rm -rfq . 2>/dev/null || true
+          # Only clear the tree when creating the branch: it also holds metrics-agent.json,
+          # written by the nightly llm-evals workflow, which this job must not delete.
+          if ! git checkout -B metrics origin/metrics 2>/dev/null; then
+            git checkout --orphan metrics
+            git rm -rfq . 2>/dev/null || true
+          fi
           cp _metrics/metrics.json metrics.json
           git add metrics.json
           git commit -m "metrics: ${GITHUB_SHA::7}" || echo "no change"
