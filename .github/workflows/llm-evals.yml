@@ -31,8 +31,8 @@ jobs:
       FINOS_MCP_AGENT_OUT: agent.json
       FINOS_MCP_METRICS_OUT: retrieval.json
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           python-version: "3.12"
@@ -52,7 +52,7 @@ jobs:
           --extra agent.json --extra retrieval.json --out metrics-llm.json
       # always(): the eval results are the diagnostics for a failed gate, so they must survive
       # the failure that makes them interesting.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: llm-eval-results
@@ -64,7 +64,7 @@ jobs:
 
       - name: Comment summary on the PR
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -90,8 +90,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: llm-eval-results
           path: _agent

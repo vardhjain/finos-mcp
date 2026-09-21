@@ -15,8 +15,8 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           python-version: "3.12"
@@ -42,7 +42,7 @@ jobs:
         run: uv run pytest servers/aigf/tests servers/cdm/tests/test_registry.py servers/fdc3/tests -rf
       - name: Open a pull request
         if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: chore/vendor-resync
           title: "chore(vendor): resync AIGF, CDM and FDC3 upstream content"
