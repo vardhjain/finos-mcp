@@ -76,7 +76,13 @@ def test_agent_cites_valid_controls() -> None:
         json.dumps({"agent": metrics, "agent_runs": [r.to_json() for r in runs]}, indent=2),
         encoding="utf-8",
     )
-    failures = [r.task_id for r in runs if r.error]
+    # API errors first: if calls never reached the model (no credit, bad key, outage), every
+    # quality rate below is 0 and would misreport the outage as "the agent cited nothing".
+    failures = [r.task_id for r in runs if r.error and r.error != "refusal"]
+    assert not failures, (
+        f"{len(failures)}/{len(runs)} tasks errored before the model answered: "
+        f"{sorted({r.error for r in runs if r.error and r.error != 'refusal'})}"
+    )
     assert metrics["refusals"] == 0, [r.to_json() for r in runs if r.error == "refusal"]
     assert metrics["hallucinated_id_rate"] <= MAX_HALLUCINATED_ID_RATE, (
         f"cited ids absent from the catalog: {metrics['hallucinated_ids']}"
@@ -86,4 +92,3 @@ def test_agent_cites_valid_controls() -> None:
     )
     assert metrics["must_cite_rate"] >= MIN_MUST_CITE_RATE, metrics
     assert metrics["tool_correctness"] >= MIN_TOOL_CORRECTNESS, metrics
-    assert not failures, failures

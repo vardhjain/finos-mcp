@@ -95,7 +95,24 @@ jobs:
         with:
           name: llm-eval-results
           path: _agent
+      # A run where no call reached the model (exhausted credit, bad key, outage) measured
+      # nothing: its rates are all 0, and a 0.000 hallucination rate reads as a perfect score.
+      # Keep the last real measurement instead. Runs that reached the model and then failed a
+      # gate still publish.
+      - name: Check the run measured something
+        id: measured
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          a = json.load(open("_agent/metrics-llm.json")).get("agent") or {}
+          ok = bool(a.get("tasks")) and a.get("errors", 0) < a["tasks"] and a.get("input_tokens", 0) > 0
+          print(f"ok={'true' if ok else 'false'}")
+          PY
+      - name: Not publishing an unmeasured run
+        if: steps.measured.outputs.ok != 'true'
+        run: echo "::warning::No task reached the model (see the tier-c job); metrics-agent.json keeps the last real run."
       - name: Commit metrics-agent.json to the metrics branch
+        if: steps.measured.outputs.ok == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
