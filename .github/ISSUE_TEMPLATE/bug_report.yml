@@ -1,0 +1,44 @@
+name: Bug report
+description: A tool returns a wrong result, an error, or behaves differently from the docs
+labels: [bug]
+body:
+  - type: dropdown
+    id: server
+    attributes:
+      label: Server
+      options:
+        - finos-mcp-aigf
+        - finos-mcp-cdm
+        - finos-mcp-fdc3
+        - finos-mcp-core
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The `server_info` tool reports it, or run `pip show finos-mcp-aigf`.
+      placeholder: 0.1.2
+    validations:
+      required: true
+  - type: textarea
+    id: call
+    attributes:
+      label: Tool call
+      description: The tool name and the arguments you sent. Remove anything confidential.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        If the content of a FINOS standard itself looks wrong, please report it to that
+        standard's own repository. Security problems go through a
+        [private advisory](https://github.com/vardhjain/finos-mcp/security/advisories/new), not an issue.

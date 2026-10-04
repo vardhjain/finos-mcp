@@ -35,4 +35,10 @@ model on first use; it is optional.
 
 ## Commit messages
 
-Conventional-ish: `feat(cdm): ...`, `fix(core): ...`, `chore(vendor): ...`. Explain the why.
+A short imperative summary line that says what changed and why, for example
+`Fix the demo hang: await asyncio.sleep`. Automated vendor resyncs use `chore(vendor): ...`.
+
+## Conduct and security
+
+Everyone taking part is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report
+security problems privately, as described in [SECURITY.md](SECURITY.md).

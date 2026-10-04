@@ -1,5 +1,11 @@
 # finos-mcp — Implementation Plan
 
+> **This is a design record, not a to-do list.** The plan below was written before any code
+> and has been carried out: the project shipped as v0.1.0 on 2026-09-08. Where the build
+> diverged from the plan, the code, [README](README.md) and [CHANGELOG](CHANGELOG.md) are
+> correct. The main divergence is CDM 7 validation, which does not use the `finos-cdm`
+> package (see finding 9 in [docs/upstream-findings.md](docs/upstream-findings.md)).
+
 Typed, read-only MCP servers for three FINOS standards (AIGF, CDM, FDC3), a shared safety core, and a measurable eval suite.
 
 Date: 2026-09-04. All upstream facts below were verified against live sources on that date; links are inline. Decisions that deviate from the original brief are called out in §13.

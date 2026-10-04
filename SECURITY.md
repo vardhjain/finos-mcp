@@ -5,8 +5,8 @@ model is described in [docs/safety.md](docs/safety.md).
 
 ## Reporting a vulnerability
 
-Please open a private security advisory on GitHub for this repository, or email the
-maintainer listed in `pyproject.toml`. Include the server, the tool call that triggers the
+Please open a [private security advisory](https://github.com/vardhjain/finos-mcp/security/advisories/new)
+on GitHub for this repository. Do not file a public issue. Include the server, the tool call that triggers the
 issue, and the version (`server_info` reports it). You will get an acknowledgement within
 five working days.
 

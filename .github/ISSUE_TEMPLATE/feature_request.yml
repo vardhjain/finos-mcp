@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest a new tool, a new standard, or an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The question an assistant could not answer, or the task that was harder than it should be.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help?
+      description: A tool, an argument, a resource. Tools must stay read-only.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you tried already

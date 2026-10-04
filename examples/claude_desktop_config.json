@@ -2,15 +2,15 @@
   "mcpServers": {
     "finos-aigf": {
       "command": "uvx",
-      "args": ["finos-mcp-aigf"]
+      "args": ["--python", "3.12", "finos-mcp-aigf"]
     },
     "finos-cdm": {
       "command": "uvx",
-      "args": ["--from", "finos-mcp-cdm[rune]", "finos-mcp-cdm"]
+      "args": ["--python", "3.12", "finos-mcp-cdm"]
     },
     "finos-fdc3": {
       "command": "uvx",
-      "args": ["finos-mcp-fdc3"]
+      "args": ["--python", "3.12", "finos-mcp-fdc3"]
     }
   }
 }

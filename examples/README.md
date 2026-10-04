@@ -33,7 +33,7 @@ To run from a checkout instead, for development:
   "mcpServers": {
     "finos-aigf": {
       "command": "uv",
-      "args": ["run", "--directory", "E:/Projects/FINOS_Project", "finos-mcp-aigf"]
+      "args": ["run", "--directory", "/path/to/finos-mcp", "finos-mcp-aigf"]
     }
   }
 }
@@ -44,7 +44,7 @@ Then ask, for example: *"Which AIGF controls mitigate prompt injection, and what
 ## Claude Code
 
 ```bash
-claude mcp add finos-aigf -- uvx finos-mcp-aigf
+claude mcp add finos-aigf -- uvx --python 3.12 finos-mcp-aigf
 ```
 
 or, for a project-scoped `.mcp.json`:
@@ -52,7 +52,7 @@ or, for a project-scoped `.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "finos-aigf": { "command": "uvx", "args": ["finos-mcp-aigf"] }
+    "finos-aigf": { "command": "uvx", "args": ["--python", "3.12", "finos-mcp-aigf"] }
   }
 }
 ```
@@ -60,7 +60,7 @@ or, for a project-scoped `.mcp.json`:
 ## MCP Inspector
 
 ```bash
-npx @modelcontextprotocol/inspector uv run --directory E:/Projects/FINOS_Project finos-mcp-aigf
+npx @modelcontextprotocol/inspector uv run --directory /path/to/finos-mcp finos-mcp-aigf
 ```
 
 Open the Tools tab: every tool shows an input schema and an output schema, and every result

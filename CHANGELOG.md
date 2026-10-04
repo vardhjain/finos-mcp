@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- MCP Python SDK 2.1.1 -> 2.2.0. Over streamable HTTP, idle sessions now expire after 30
+  minutes and a server holds at most 10 000 sessions; nothing else this repo uses changed.
+- Refreshed every other locked dependency (anthropic 1.8.0, starlette 1.7.0, uvicorn 0.54.0, ...).
+- The llm-evals workflow offers claude-sonnet-5 and claude-opus-5-5 for manual runs; only
+  claude-haiku-4-5 runs publish to the metrics branch, so the badge series stays comparable.
+
+### Fixed
+- Removed scratch logs and retrieval dumps committed at the repository root, and ignored them.
+- docs/safety.md now says a new HTTP session gets a fresh rate-limit budget.
+- The Claude Desktop example asked for a `rune` extra that `finos-mcp-cdm` does not define; all
+  `uvx` examples now pass `--python 3.12`.
+- SECURITY.md pointed to a maintainer email that was never listed; it now links the private
+  advisory form.
+
+### Added
+- A plain-language README: what the project is, example questions, quick start, measured results.
+- Code of conduct, issue templates and a pull request template.
+
 ## 0.1.2 — 2026-09-11
 
 Metadata-only release: no code or vendored content changed.
