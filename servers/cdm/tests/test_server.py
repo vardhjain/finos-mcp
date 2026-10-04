@@ -108,10 +108,10 @@ async def test_list_types_and_products(client: Client) -> None:
 
 @pytest.mark.anyio
 async def test_validate_rune_samples_normalise_cleanly(client: Client) -> None:
-    """Every official 7.2.0 Rune sample normalises without structural errors.
+    """Every official 7.4.0 Rune sample normalises without structural errors.
 
-    Pinned upstream discrepancy: the published cdm-json-schema 7.2.0 marks fields as
-    required that CDM's own 7.2.0 function-output samples omit (ClosedState.activityDate,
+    Pinned upstream discrepancy: the published cdm-json-schema 7.4.0 marks fields as
+    required that CDM's own 7.4.0 function-output samples omit (ClosedState.activityDate,
     ExecutionDetails, Underlier, DateAdjustments, ExerciseNoticeGiver). The validator
     reports those truthfully; anything *other* than a `required` miss would indicate a
     defect in the Rune-to-legacy normalisation, so that is what this test forbids.
@@ -191,13 +191,13 @@ async def test_validate_legacy_sample_against_matching_vintage(client: Client) -
     primary = _ok(
         await client.call_tool("validate_object", {"object": doc, "type": "BusinessEvent"})
     )
-    assert primary["format_detected"] == "legacy" and "6.27.0" in " ".join(primary["warnings"])
+    assert primary["format_detected"] == "legacy" and "6.29.0" in " ".join(primary["warnings"])
     vintage = _ok(
         await client.call_tool(
-            "validate_object", {"object": doc, "type": "BusinessEvent", "schema_version": "6.27.0"}
+            "validate_object", {"object": doc, "type": "BusinessEvent", "schema_version": "6.29.0"}
         )
     )
-    assert "6.27.0" in vintage["validator"]
+    assert "6.29.0" in vintage["validator"]
     assert vintage["stats"]["schema_files"] > 1000
     env = _err(
         await client.call_tool(
@@ -247,7 +247,7 @@ async def test_search_samples_resources_and_info(client: Client) -> None:
     rule = (await client.read_resource("cdm://qualify/Execution")).contents[0].text  # type: ignore[union-attr]
     assert rule.startswith("# Qualify_Execution")
     index = json.loads((await client.read_resource("cdm://index")).contents[0].text)  # type: ignore[union-attr]
-    assert len(index["qualifiers"]) == 35 and "6.27.0" in index["schema_versions"]
+    assert len(index["qualifiers"]) == 35 and "6.29.0" in index["schema_versions"]
     info = _ok(await client.call_tool("server_info", {}))
     assert info["counts"]["root_types"] == 16 and info["counts"]["qualify_functions"] == 35
-    assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.2.0"
+    assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.4.0"

@@ -34,7 +34,7 @@ _JSON_SCHEMA_TYPES = frozenset(
 
 
 def _drop_bogus_type_keywords(node: Any) -> None:
-    """Work around a cdm-json-schema 7.2.0 generator defect: a handful of
+    """Work around a cdm-json-schema 7.4.0 generator defect: a handful of
     property schemas (``ValuationTime``, ``CreditEventNotice``, ...) emit a
     literal Rosetta basictype name as the JSON Schema ``"type"`` keyword --
     e.g. ``{"type": "BusinessCenter"}`` or ``{"type": "NonNegativeNumber"}` --
@@ -45,7 +45,7 @@ def _drop_bogus_type_keywords(node: Any) -> None:
     a real instance value there. This mutates ``node`` in place, dropping any
     such non-standard ``type`` keyword so that property is merely unconstrained
     (rather than un-validatable) -- confirmed narrow: 9 + 5 occurrences across
-    1139 vendored schema files at the time this was written."""
+    1142 vendored schema files at the time this was written."""
     if isinstance(node, dict):
         type_value = node.get("type")
         if isinstance(type_value, str) and type_value not in _JSON_SCHEMA_TYPES:
@@ -59,7 +59,7 @@ def _drop_bogus_type_keywords(node: Any) -> None:
 
 def _bundle_path_for(vendor_dir: Path, version: str) -> Path:
     """Path to the single-file bundle vendoring one CDM JSON Schema vintage,
-    e.g. ``_vendor/schemas/cdm-json-schema-7.2.0.json``."""
+    e.g. ``_vendor/schemas/cdm-json-schema-7.4.0.json``."""
     return vendor_dir / "schemas" / f"cdm-json-schema-{version}.json"
 
 
@@ -71,7 +71,7 @@ def _load_schema_bundle(bundle_path: Path) -> dict[str, dict[str, Any]]:
     key), applying the same fix-ups (drop the non-standard ``$anchor`` key;
     drop bogus Rosetta-basictype ``"type"`` keywords) regardless of vendored
     vintage, since both defects are generator artifacts of ``cdm-json-schema``
-    and not specific to 7.2.0."""
+    and not specific to 7.4.0."""
     bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
     schemas: dict[str, dict[str, Any]] = {}
     for name, data in bundle["schemas"].items():
@@ -110,7 +110,7 @@ class CdmRegistry:
     #: The version whose schemas back type indexing (`types()`, `get()`,
     #: `fields()`, `used_by()`) and the default `schema_registry` property.
     #: Vendored at ``_vendor/schemas/``.
-    PRIMARY_VERSION = "7.2.0"
+    PRIMARY_VERSION = "7.4.0"
 
     def __init__(self, vendor_dir: Path = DEFAULT_VENDOR_DIR) -> None:
         self.vendor_dir = vendor_dir
@@ -121,7 +121,7 @@ class CdmRegistry:
         self._schema_registry = SchemaRegistry(schemas, dialect="draft4")
         self._raw_schemas = schemas
         # Lazily-populated cache of `SchemaRegistry` instances for every
-        # non-primary vendored vintage (e.g. "6.27.0"), keyed by version string.
+        # non-primary vendored vintage (e.g. "6.29.0"), keyed by version string.
         self._schema_registries_by_version: dict[str, SchemaRegistry] = {
             self.PRIMARY_VERSION: self._schema_registry
         }
@@ -194,7 +194,7 @@ class CdmRegistry:
 
     def schema_versions(self) -> list[str]:
         """Every vendored JSON Schema vintage, primary version first (e.g.
-        ``["7.2.0", "6.27.0"]``), discovered from the
+        ``["7.4.0", "6.29.0"]``), discovered from the
         `_vendor/schemas/cdm-json-schema-<version>.json` bundle files actually
         present on disk."""
         prefix, suffix = "cdm-json-schema-", ".json"
@@ -207,11 +207,11 @@ class CdmRegistry:
     def schema_registry_for(self, version: str = PRIMARY_VERSION) -> SchemaRegistry:
         """The JSON Schema registry for one vendored vintage. Lazy and cached
         per version: the primary registry is built in `__init__`; every other
-        vintage (e.g. ``"6.27.0"``, vendored at
-        `_vendor/schemas/cdm-json-schema-6.27.0.json`) is parsed on first
+        vintage (e.g. ``"6.29.0"``, vendored at
+        `_vendor/schemas/cdm-json-schema-6.29.0.json`) is parsed on first
         request and reused afterwards. Legacy-format samples only validate
         meaningfully against a schema of matching vintage (see PLAN.md 1.2) --
-        the primary 7.2.0 schema describes a different JSON shape entirely."""
+        the primary 7.4.0 schema describes a different JSON shape entirely."""
         cached = self._schema_registries_by_version.get(version)
         if cached is not None:
             return cached

@@ -40,7 +40,7 @@ Each answer comes with an identifier or link the reader can check against the st
 | Server | Standard | What an assistant can do with it |
 |---|---|---|
 | `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | Look up 23 risks and 23 controls by their published ids, see which controls address which risks, cross-reference 13 outside frameworks (NIST, ISO 42001, EU AI Act, OWASP), and search in plain language |
-| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | Describe any of 1,139 data types, browse products and trade events, and check a trade document for errors, with the location of each one |
+| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | Describe any of 1,142 data types, browse products and trade events, and check a trade document for errors, with the location of each one |
 | `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | Look up 19 standard actions ("intents") and 28 data types, check a data object, and suggest which actions fit it |
 
 All three are built on [`finos-mcp-core`](core/), a shared package that holds the safety rules

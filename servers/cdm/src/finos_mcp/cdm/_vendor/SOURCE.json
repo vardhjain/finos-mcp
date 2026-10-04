@@ -1,12 +1,12 @@
 {
   "upstream_repo": "finos/common-domain-model",
-  "ref": "7.2.0",
-  "commit_sha": "c38016efca75017310375f59ac452f8e0724d50e",
-  "version": "7.2.0",
-  "fetched_at": "2026-09-05T01:44:45+00:00",
+  "ref": "7.4.0",
+  "commit_sha": "efe1cb15c950ec28ddcd1e18f56c9dd53737958d",
+  "version": "7.4.0",
+  "fetched_at": "2026-10-04T17:10:01+00:00",
   "license": "Community-Spec-1.0",
   "license_url": "https://github.com/finos/common-domain-model/blob/master/LICENSE.md",
-  "notes": "cdm-json-schema-7.2.0.zip from Maven Central, bundled into _vendor/schemas/cdm-json-schema-7.2.0.json (primary version=7.2.0, one JSON file holding every *.schema.json member keyed by filename, instead of one file per schema); cdm-json-schema-6.27.0.zip also vendored the same way to _vendor/schemas/cdm-json-schema-6.27.0.json so legacy-format samples can be validated against a schema of matching vintage; samples from tags 7.2.0 (Rune JSON) and 6.27.0 (legacy JSON); qualify.json and root_types.json extracted from .rosetta sources",
+  "notes": "cdm-json-schema-7.4.0.zip from Maven Central, bundled into _vendor/schemas/cdm-json-schema-7.4.0.json (primary version=7.4.0, one JSON file holding every *.schema.json member keyed by filename, instead of one file per schema); cdm-json-schema-6.29.0.zip also vendored the same way to _vendor/schemas/cdm-json-schema-6.29.0.json so legacy-format samples can be validated against a schema of matching vintage; samples from tags 7.4.0 (Rune JSON) and 6.29.0 (legacy JSON); qualify.json and root_types.json extracted from .rosetta sources",
   "files": {
     "choice_types.json": "e11fbb0709e83140652680eea2754a48f57d45e63f677086453d48eb353f775b",
     "qualify.json": "6493d2f778c5baee6ef5194bb3b81b83e53b39afe090dad392f08f52e6da209b",
@@ -52,7 +52,7 @@
     "samples/rune/quantity-change__increase-equity-swap-existing-trade-lot-func-output.json": "d774a52fe96c6245b6381a526edcbe374bd4200fad2b8031c329e9a2fc332ece",
     "samples/rune/quantity-change__increase-equity-swap-func-output.json": "06ea468c3704c989f292b0119ce24db07ddf977b2e59c8f70225c481747a1a57",
     "samples/rune/stock-split__stock-split-equity-swap-func-output.json": "d4c6fca511857f1a52771780186472505146f96f6cb52f3aa3aa902da359448d",
-    "schemas/cdm-json-schema-6.27.0.json": "d5173f7f063c79a33a90aab1618c053fcc0a85b96bfeea1113a90e5a5434048d",
-    "schemas/cdm-json-schema-7.2.0.json": "d7082e3d856f3a448e494117ccb56959f706f32f7b721f65fa2c1d3e9f520550"
+    "schemas/cdm-json-schema-6.29.0.json": "97f14d112bc0e601ea4c43f90bb4afefe7f781565ba86b6cdfa77c33e5b3f17b",
+    "schemas/cdm-json-schema-7.4.0.json": "c9282efe62b426ae0d6403ea498007245ed02c6f6bf87b93e1ff374b28e9387c"
   }
 }

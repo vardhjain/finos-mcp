@@ -6,7 +6,7 @@ standards, so an agent can query them without being able to change anything.
 | Server | Standard | What it exposes |
 |---|---|---|
 | `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | 23 risks and 23 controls under their published `AIR-*` ids, the risk-to-control graph, crosswalks to 13 reference frameworks, search, citable resources |
-| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | 1139 schemas, 16 root types, 35 event-qualification rules, and validation of CDM JSON in both the Rune (CDM 7) and legacy shapes |
+| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | 1142 schemas, 16 root types, 35 event-qualification rules, and validation of CDM JSON in both the Rune (CDM 7) and legacy shapes |
 | `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | 19 intents with a generated intent-to-context table, 28 context types, context validation and intent suggestion |
 
 ## Start here

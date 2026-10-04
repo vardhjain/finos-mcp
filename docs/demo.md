@@ -45,7 +45,7 @@ $ aigf > search_framework {"query": "an employee pastes client data into a publi
 # CDM: validate a Rune BusinessEvent an agent got wrong (3 planted defects)
 $ cdm > validate_object {"object": "<broken_execution.json>"}
 valid=False   format=rune   type=cdm.event.common.BusinessEvent
-validator: json-schema draft4 (cdm-json-schema 7.2.0) via Rune normalisation
+validator: json-schema draft4 (cdm-json-schema 7.4.0) via Rune normalisation
 3 issue(s):
   [enum       ] $.instruction[0].primitiveInstruction.execution.product.economicTerms.payout[0].@type
       'InterestRatePayoutt' is not an alternative of Payout; expected one of ['AssetPayout', 'Commodit

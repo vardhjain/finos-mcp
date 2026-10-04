@@ -265,7 +265,7 @@ def validate_object(
     """Validate a CDM JSON object against the published schema. The format (Rune with
     '@type'/'@key'/'@ref' keys, or legacy 'value'/'meta' wrappers) is detected unless
     given. The type comes from '@type' or the type argument (e.g. TradeState). Use
-    schema_version='6.27.0' for legacy documents produced by CDM 6. Every issue carries
+    schema_version='6.29.0' for legacy documents produced by CDM 6. Every issue carries
     the JSON path in your document and a kind (required, cardinality, type, enum, ...)."""
     return _validate(registry(), object, type=type, format=format, schema_version=schema_version)
 
@@ -344,7 +344,7 @@ def get_sample(name: str) -> Sample:
 
 
 def list_samples(format: Literal["rune", "legacy"] | None = None) -> Samples:
-    """List the vendored sample documents (Rune-format from CDM 7.2.0, legacy from 6.27.0)."""
+    """List the vendored sample documents (Rune-format from CDM 7.4.0, legacy from 6.29.0)."""
     return Samples(
         samples=[
             SampleSummary(

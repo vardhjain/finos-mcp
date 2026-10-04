@@ -1,2 +1,2 @@
 {"tool": "list_products", "args": {},
- "expect": {"cdm_version": "7.2.0", "entries": {"$min_len": 10, "$first": {"name": "NonTransferableProduct", "role": "template"}}}}
+ "expect": {"cdm_version": "7.4.0", "entries": {"$min_len": 10, "$first": {"name": "NonTransferableProduct", "role": "template"}}}}

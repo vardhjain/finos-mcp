@@ -40,7 +40,7 @@ FINOS AI Governance Framework v2 — upstream `finos/ai-governance-framework@mai
 
 ## finos-mcp-cdm
 
-FINOS Common Domain Model 7.2.0 — upstream `finos/common-domain-model@7.2.0` (c38016efca75). Exposes: choice_types=16, enums=279, qualify_functions=35, root_types=16, samples=40, schemas=1139, schemas_legacy_vintage=1066, types=764.
+FINOS Common Domain Model 7.4.0 — upstream `finos/common-domain-model@7.4.0` (efe1cb15c950). Exposes: choice_types=16, enums=280, qualify_functions=35, root_types=16, samples=40, schemas=1142, schemas_legacy_vintage=1066, types=766.
 
 ### Tools
 
@@ -50,11 +50,11 @@ FINOS Common Domain Model 7.2.0 — upstream `finos/common-domain-model@7.2.0` (
 | `explain_event` | `event`: object/null, `qualifier`: string/null | Explain a CDM BusinessEvent. Pass the event JSON to read its qualifier, instruction kinds, before/after trade states and the products involved; or pass a qualifier name (Execution, Termination, ...) to get the Qualify_* rule from the CDM sources and a sample that exercises it. |
 | `get_sample` | `name`*: string | Fetch one vendored sample document by name (see list_samples), e.g. a Rune-format Execution BusinessEvent for an interest-rate swap, to use as a template. |
 | `list_products` | - | Catalogue of product types: the product template types (NonTransferableProduct, TransferableProduct, TradableProduct, EconomicTerms, Payout) and every Payout alternative (InterestRatePayout, CreditDefaultPayout, OptionPayout, ...), with the vendored samples that use each. |
-| `list_samples` | `format`: string/null | List the vendored sample documents (Rune-format from CDM 7.2.0, legacy from 6.27.0). |
+| `list_samples` | `format`: string/null | List the vendored sample documents (Rune-format from CDM 7.4.0, legacy from 6.29.0). |
 | `list_types` | `namespace`: string/null, `kind`: string/null, `root_only`: boolean, `page`: integer, `page_size`: integer | List CDM types. Filter by namespace prefix (cdm.product), kind (type, enum, choice, meta) or root types only (the 16 top-level document types such as TradeState). |
 | `search_types` | `query`*: string, `k`: integer | Keyword search over CDM type names and descriptions (e.g. 'floating rate payout'). |
 | `server_info` | - | Describe this server: standard version, upstream provenance, exposed counts, latency, policy. |
-| `validate_object` | `object`*: object, `type`: string/null, `format`: string, `schema_version`: string/null | Validate a CDM JSON object against the published schema. The format (Rune with '@type'/'@key'/'@ref' keys, or legacy 'value'/'meta' wrappers) is detected unless given. The type comes from '@type' or the type argument (e.g. TradeState). Use schema_version='6.27.0' for legacy documents produced by CDM 6. Every issue carries the JSON path in your document and a kind (required, cardinality, type, enum, ...). |
+| `validate_object` | `object`*: object, `type`: string/null, `format`: string, `schema_version`: string/null | Validate a CDM JSON object against the published schema. The format (Rune with '@type'/'@key'/'@ref' keys, or legacy 'value'/'meta' wrappers) is detected unless given. The type comes from '@type' or the type argument (e.g. TradeState). Use schema_version='6.29.0' for legacy documents produced by CDM 6. Every issue carries the JSON path in your document and a kind (required, cardinality, type, enum, ...). |
 
 ### Resources
 

@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Changed
+- `finos-mcp-cdm`: vendored CDM 7.4.0 (1142 schemas, three new since 7.2.0) and the 6.29.0
+  legacy vintage, replacing 7.2.0 and 6.27.0. `schema_version='6.29.0'` is now the value for
+  same-vintage validation of legacy documents. The sync script removes the previous bundles,
+  and the weekly vendor check tracks the new versions.
 - MCP Python SDK 2.1.1 -> 2.2.0. Over streamable HTTP, idle sessions now expire after 30
   minutes and a server holds at most 10 000 sessions; nothing else this repo uses changed.
 - Refreshed every other locked dependency (anthropic 1.8.0, starlette 1.7.0, uvicorn 0.54.0, ...).

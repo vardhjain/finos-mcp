@@ -24,7 +24,7 @@ jobs:
       - name: Re-sync every upstream
         run: |
           uv run python servers/aigf/scripts/sync_upstream.py --ref main
-          uv run python servers/cdm/scripts/sync_upstream.py --version 7.2.0 --legacy-version 6.27.0
+          uv run python servers/cdm/scripts/sync_upstream.py --version 7.4.0 --legacy-version 6.29.0
           uv run python servers/fdc3/scripts/sync_upstream.py --ref v2.2.3
           uv run python servers/fdc3/scripts/generate_intents.py
       - name: Summarise what changed

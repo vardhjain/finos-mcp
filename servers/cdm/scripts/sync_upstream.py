@@ -2,7 +2,7 @@
 
 Stdlib only (urllib, zipfile, json, pathlib, argparse). Usage::
 
-    uv run python servers/cdm/scripts/sync_upstream.py --version 7.2.0 --legacy-version 6.27.0
+    uv run python servers/cdm/scripts/sync_upstream.py --version 7.4.0 --legacy-version 6.29.0
 
 Three upstream sources feed ``servers/cdm/src/finos_mcp/cdm/_vendor/``:
 
@@ -68,7 +68,7 @@ ROSETTA_VENDOR_DIR = VENDOR_DIR / "rosetta"
 
 # Expected cdm-json-schema-<version>.zip sizes (bytes), per PLAN.md 1.2 -- used
 # only for a non-fatal sanity warning if Maven Central ever reshuffles a release.
-EXPECTED_SCHEMA_ZIP_SIZES = {"7.2.0": 944_682, "6.27.0": 392_238}
+EXPECTED_SCHEMA_ZIP_SIZES = {"7.4.0": 946_888, "6.29.0": 393_944}
 
 LICENSE_URL = "https://github.com/finos/common-domain-model/blob/master/LICENSE.md"
 
@@ -164,7 +164,7 @@ def _cleanup_legacy_unbundled_layout() -> None:
 
 
 def _parse_schema_member(content: bytes) -> tuple[dict[str, Any], bool]:
-    """Parse one ``*.schema.json`` member. Two 7.2.0 enum files ship raw
+    """Parse one ``*.schema.json`` member. Two 7.4.0 enum files ship raw
     control characters inside string values, which strict ``json.loads``
     rejects; retried with ``strict=False`` (matching how the registry and
     server already read vendored JSON) when that happens. Returns
@@ -178,8 +178,8 @@ def _parse_schema_member(content: bytes) -> tuple[dict[str, Any], bool]:
 
 def _extract_schema_members(data: bytes) -> dict[str, bytes]:
     """Return ``{basename: content}`` for every ``*.schema.json`` member of
-    ``data``, which is normally a genuine zip (as for 7.2.0) -- but, it turns
-    out, ``cdm-json-schema-6.27.0.zip`` is actually a gzip-compressed tar
+    ``data``, which is normally a genuine zip (as for 7.4.0) -- but, it turns
+    out, ``cdm-json-schema-6.29.0.zip`` is actually a gzip-compressed tar
     archive despite its ``.zip`` extension and the ``application/zip``
     content-type Maven Central serves it with (confirmed via magic bytes and
     ``file(1)``; genuine upstream packaging quirk from that older release, not
@@ -310,7 +310,7 @@ def sync_samples(
         dest = SAMPLES_RUNE_DIR / f"{subdir}__{filename}"
         dest.write_bytes(_get_bytes(f"{RAW_BASE}/{rune_sha}/{path}"))
     print(
-        f"Rune samples (7.2.0): {len(rune_paths)} file(s) from {len(rune_subdirs)} "
+        f"Rune samples ({rune_sha[:7]}): {len(rune_paths)} file(s) from {len(rune_subdirs)} "
         f"subdirector(y/ies): {rune_subdirs}"
     )
 
@@ -332,7 +332,7 @@ def sync_samples(
         dest = SAMPLES_LEGACY_DIR / f"{subdir}__{filename}"
         dest.write_bytes(_get_bytes(f"{RAW_BASE}/{legacy_sha}/{path}"))
     print(
-        f"Legacy samples (6.27.0): {len(legacy_paths)} file(s) from {len(legacy_subdirs)} "
+        f"Legacy samples ({legacy_sha[:7]}): {len(legacy_paths)} file(s) from {len(legacy_subdirs)} "
         f"subdirector(y/ies): {legacy_subdirs}"
     )
 
@@ -408,12 +408,12 @@ def run_extraction(rosetta_dir: Path) -> tuple[int, int, int]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--version", required=True, help="CDM version to vendor, e.g. 7.2.0 (Rune JSON)"
+        "--version", required=True, help="CDM version to vendor, e.g. 7.4.0 (Rune JSON)"
     )
     parser.add_argument(
         "--legacy-version",
         required=True,
-        help="Older CDM tag to source legacy-format JSON samples from, e.g. 6.27.0",
+        help="Older CDM tag to source legacy-format JSON samples from, e.g. 6.29.0",
     )
     args = parser.parse_args(argv)
 
@@ -422,6 +422,13 @@ def main(argv: list[str] | None = None) -> int:
 
     schema_count = sync_schemas(args.version)
     legacy_schema_count = sync_schemas(args.legacy_version)
+    # A version bump must not leave the previous vintage's bundle behind: the registry
+    # discovers schema versions from the bundle files present on disk.
+    keep = {bundle_path_for(args.version), bundle_path_for(args.legacy_version)}
+    for stale in sorted(SCHEMAS_DIR.glob("cdm-json-schema-*.json")):
+        if stale not in keep:
+            stale.unlink()
+            print(f"Removed stale schema bundle {stale.name}")
 
     rune_sha = resolve_sha(args.version)
     print(f"Resolved --version {args.version!r} -> {rune_sha}")
@@ -472,7 +479,9 @@ def main(argv: list[str] | None = None) -> int:
         f"legacy_samples={legacy_count} ({legacy_subdirs}), "
         f"qualify_functions={qualify_count}, root_types={root_type_count}, choice_types={choice_count}"
     )
-    print(f"Commit SHA (7.2.0): {rune_sha}; Commit SHA (6.27.0): {legacy_sha}")
+    print(
+        f"Commit SHA ({args.version}): {rune_sha}; Commit SHA ({args.legacy_version}): {legacy_sha}"
+    )
     return 0
 
 
