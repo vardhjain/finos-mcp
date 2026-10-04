@@ -3,7 +3,7 @@
 from .models import ContextType, Intent
 from .registry import Fdc3Registry, get_registry
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 
 __all__ = [
     "ContextType",
