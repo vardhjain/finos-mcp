@@ -6,8 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: "Model under test"
+        description: "Model under test (only claude-haiku-4-5 runs publish to the metrics branch)"
+        type: choice
         default: "claude-haiku-4-5"
+        options:
+          - "claude-haiku-4-5"
+          - "claude-sonnet-5"
+          - "claude-opus-5-5"
       judge:
         description: "Also run the rubric judge (EVAL_JUDGE=1)"
         type: boolean
@@ -85,7 +90,11 @@ jobs:
     needs: tier-c
     # always(): publish the numbers a run produced even when they failed a gate. A metrics
     # feed that only records passing runs is not a measurement, it is advertising.
-    if: always() && github.event_name != 'pull_request'
+    # Only the default model feeds the published series: a manual run on a stronger model would
+    # otherwise replace the nightly baseline the README badge describes.
+    if: >-
+      always() && github.event_name != 'pull_request' &&
+      (github.event_name == 'schedule' || github.event.inputs.model == 'claude-haiku-4-5')
     runs-on: ubuntu-latest
     permissions:
       contents: write
