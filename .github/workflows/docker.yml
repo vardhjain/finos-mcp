@@ -50,7 +50,7 @@ jobs:
             sleep 2
           done
           echo "--- container logs ---"; docker logs finos 2>&1 | tail -20
-          python -m pip install --quiet "mcp==2.1.1"
+          python -m pip install --quiet "mcp==2.2.0"
           python - <<'PY'
           import asyncio
           from mcp.client import Client

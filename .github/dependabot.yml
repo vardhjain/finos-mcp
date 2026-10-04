@@ -15,7 +15,7 @@ updates:
       python-minor-and-patch:
         update-types: [minor, patch]
     ignore:
-      # mcp is pinned exactly (core/pyproject.toml): the servers rely on SDK 2.x internals
+      # mcp is pinned exactly (core/pyproject.toml and the docker.yml smoke test): the servers rely on SDK 2.x internals
       # (MCPServer middleware, result shapes), so a bump is a deliberate change with its own
       # testing, not a routine update.
       - dependency-name: mcp
