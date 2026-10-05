@@ -111,12 +111,14 @@ that file directly, so they show measurements from a specific commit.
 
 | Check | Result |
 |---|---|
-| Automated tests | 156 passing, 93.6% of the code exercised |
+| Automated tests | 185 passing, 93.5% of the code exercised |
 | Finding the right record for a plain-language question (50 questions) | Correct answer in the top five 91.5% of the time |
 | An AI model answering 20 governance questions through the server | 0 invented ids; 95% of answers cited a valid id |
 | Response time per tool call | A few milliseconds on the benchmarked tools |
 
-Figures are from September 2026 runs. The model test uses Claude Haiku 4.5 and runs nightly.
+Test and search figures are from the 0.2.4 release (October 2026). The model test uses
+Claude Haiku 4.5 and runs nightly; its figures are from its last completed run, on
+14 September 2026.
 
 Building this also turned up 15 defects in the upstream standards, recorded in
 [docs/upstream-findings.md](docs/upstream-findings.md). The first has been reported to FINOS

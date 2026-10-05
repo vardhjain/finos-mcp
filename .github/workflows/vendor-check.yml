@@ -52,7 +52,7 @@ jobs:
 
   # The resync above re-fetches the CDM versions already vendored, so it cannot notice a new
   # CDM release. This job compares them with Maven Central and keeps one issue open while a
-  # newer stable release exists. It does not bump: that is a reviewed change (see the issue).
+  # newer stable release exists, closing it once the vendored versions have caught up. It does not bump: that is a reviewed change (see the issue).
   cdm-releases:
     runs-on: ubuntu-latest
     permissions:
@@ -82,3 +82,10 @@ jobs:
           else
             gh issue create --title "$TITLE" --body-file /tmp/cdm-releases.md --label dependencies
           fi
+      - name: Close the tracking issue once nothing newer exists
+        if: steps.check.outputs.newer == 'false'
+        run: |
+          gh issue list --state open --search "in:title \"$TITLE\"" --json number,title             --jq ".[] | select(.title == \"$TITLE\") | .number" |
+          while read -r number; do
+            gh issue close "$number" --comment "The vendored CDM versions are current again: $(head -1 /tmp/cdm-releases.md)"
+          done

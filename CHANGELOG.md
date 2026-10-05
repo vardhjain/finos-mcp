@@ -1,5 +1,40 @@
 # Changelog
 
+## Unreleased
+
+Fixes from a review of the transports, the safety middleware, hybrid search and the
+maintenance scripts. Each has a regression test.
+
+### Security
+- The CDM sync script sent the GitHub token to Maven Central when downloading schema
+  archives. The token is now attached only for GitHub hosts.
+- Calls to tool names the server does not serve each created a rate-limit bucket and a
+  metrics entry. A flood of invented names could evict real buckets, resetting their
+  limits, and grow the metrics until `server_info` exceeded the output cap. They now share
+  one bucket and one entry, and the audit log records a shortened name.
+- `resources/read` and `prompts/get` were not rate limited. They now have a per-session
+  budget (300 a minute, burst 60).
+
+### Fixed
+- `FINOS_MCP_MAX_INPUT_BYTES` did not tighten tools with their own larger input cap, such as
+  CDM `validate_object`.
+- `FINOS_MCP_RATE_WINDOW_S=inf` made every rate-limited call fail with a division by zero;
+  zero or negative rate values crashed startup. Unusable values are now ignored.
+- An audit path that could not be written (a directory, a read-only filesystem) failed every
+  request and showed the server's file path to the client. It now falls back to stderr.
+- `FINOS_MCP_SEARCH_MODE=dense` with no semantic index returned nothing for every query; the
+  value is now also matched ignoring case and spaces.
+- Sync scripts: upstream CRLF is normalised before hashing; a mistyped CDM version fails
+  before the vendored schemas are replaced; the Rosetta extraction stops if it drops a root
+  or choice type; an FDC3 context link that matches no schema stops intent generation
+  instead of being dropped.
+
+### Changed
+- The servers print a warning when bound to a non-loopback address, where the MCP SDK does
+  not check `Host` or `Origin` headers.
+- The weekly CDM release check closes its tracking issue once the vendored versions are
+  current.
+
 ## 0.2.4 — 2026-10-05
 
 ### Changed
