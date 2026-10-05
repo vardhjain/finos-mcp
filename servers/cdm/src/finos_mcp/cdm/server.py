@@ -74,7 +74,7 @@ def manifest() -> SourceManifest:
 def type_catalog() -> Catalog:
     docs = [
         Document(
-            id=t.name,
+            id=_type_id(t),
             title=t.name,
             aliases=[f"{t.namespace}.{t.name}"],
             kind=t.kind,
@@ -175,6 +175,7 @@ def describe_type(name: str) -> TypeDescription:
     alternatives, which types reference it, and the schema resource to cite."""
     reg = registry()
     info = _type(name)
+    fqn = f"{info.namespace}.{info.name}"
     alternatives: list[str] = []
     if info.kind == "choice":
         alternatives = sorted(reg.schema_registry.schema(info.filename).get("properties", {}))
@@ -185,10 +186,10 @@ def describe_type(name: str) -> TypeDescription:
         description=info.description,
         root_type=info.root_type,
         extends=info.extends,
-        fields=[] if info.kind == "enum" else reg.fields(info.name),
+        fields=[] if info.kind == "enum" else reg.fields(fqn),
         alternatives=alternatives,
-        used_by=reg.used_by(info.name),
-        schema_uri=f"cdm://schema/{info.name}",
+        used_by=reg.used_by(fqn),
+        schema_uri=f"cdm://schema/{_type_id(info)}",
         schema_filename=info.filename,
     )
 
@@ -362,6 +363,17 @@ def list_samples(format: Literal["rune", "legacy"] | None = None) -> Samples:
 # -------------------------------------------------------------------------- helpers
 
 
+def _type_id(t: TypeInfo) -> str:
+    """The id a type is cited by: its bare name, or the fully qualified name for the few
+    names that exist in two namespaces."""
+    return f"{t.namespace}.{t.name}" if registry().is_ambiguous(t.name) else t.name
+
+
+def _list(value: Any) -> list[Any]:
+    """`value` if it is a list, else empty: documents are caller-supplied and untyped."""
+    return value if isinstance(value, list) else []
+
+
 def _type(name: str) -> TypeInfo:
     info = registry().get(name)
     if info is None:
@@ -434,7 +446,7 @@ def _payout_types(node: Any, out: set[str] | None = None) -> set[str]:
                     if isinstance(at, str):
                         found.add(at.rsplit(".", 1)[-1])
                     else:
-                        found.update(k for k in p if k.endswith("Payout"))
+                        found.update(k for k in p if isinstance(k, str) and k.endswith("Payout"))
         for v in node.values():
             _payout_types(v, found)
     elif isinstance(node, list):
@@ -447,9 +459,9 @@ def _product_summary(trade_state: dict[str, Any]) -> ProductSummary:
     raw_trade = trade_state.get("trade")
     trade: dict[str, Any] = raw_trade if isinstance(raw_trade, dict) else trade_state
     ids: list[str] = []
-    for tid in trade.get("tradeIdentifier") or []:
+    for tid in _list(trade.get("tradeIdentifier")):
         if isinstance(tid, dict):
-            for ai in tid.get("assignedIdentifier") or []:
+            for ai in _list(tid.get("assignedIdentifier")):
                 ident = ai.get("identifier") if isinstance(ai, dict) else None
                 if isinstance(ident, dict):
                     v = ident.get("@data", ident.get("value"))
@@ -458,7 +470,7 @@ def _product_summary(trade_state: dict[str, Any]) -> ProductSummary:
                 elif isinstance(ident, str):
                     ids.append(ident)
     parties: list[str] = []
-    for p in trade.get("party") or []:
+    for p in _list(trade.get("party")):
         if isinstance(p, dict):
             n = p.get("name")
             v = n.get("@data", n.get("value")) if isinstance(n, dict) else n

@@ -21,6 +21,7 @@ Rune ``condition`` rules and one-of constraints across choice alternatives.
 from __future__ import annotations
 
 import copy
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -38,20 +39,23 @@ RUNE_CONDITION_WARNING = (
 )
 
 
-def detect_format(obj: Any, *, max_nodes: int = 5000) -> Format:
-    """Rune if any object key starts with '@' (checked breadth-first), else legacy."""
-    stack: list[Any] = [obj]
-    seen = 0
-    while stack and seen < max_nodes:
-        node = stack.pop()
-        seen += 1
+def detect_format(obj: Any) -> Format:
+    """Rune if any object key starts with '@' (checked breadth-first), else legacy.
+
+    The whole document is scanned: the input is already size-capped by the safety policy,
+    and stopping early turned a large Rune document with late markers into "legacy".
+    """
+    queue: deque[Any] = deque([obj])
+    while queue:
+        node = queue.popleft()
         if isinstance(node, dict):
             for key, value in node.items():
                 if isinstance(key, str) and key.startswith("@"):
                     return "rune"
-                stack.append(value)
+                if isinstance(value, (dict, list)):
+                    queue.append(value)
         elif isinstance(node, list):
-            stack.extend(node)
+            queue.extend(v for v in node if isinstance(v, (dict, list)))
     return "legacy"
 
 
@@ -94,7 +98,7 @@ def _is_reference_with_meta(filename: str) -> bool:
 
 
 def _is_choice(ctx: _Ctx, filename: str) -> bool:
-    info = ctx.registry.get(_type_name(filename))
+    info = ctx.registry.info_for_file(filename)
     return info is not None and info.kind == "choice"
 
 
@@ -121,8 +125,8 @@ def _choice_chain(
 
 
 def _filename_for_at_type(ctx: _Ctx, at_type: str) -> str | None:
-    name = at_type.rsplit(".", 1)[-1]
-    info = ctx.registry.get(name)
+    # The fully qualified name first: a few bare names exist in two namespaces.
+    info = ctx.registry.get(at_type) or ctx.registry.get(at_type.rsplit(".", 1)[-1])
     if info is None or not ctx.has_schema(info.filename):
         return None
     return info.filename
@@ -152,6 +156,34 @@ def _reference_from_keys(node: dict[str, Any]) -> dict[str, Any]:
     return ref
 
 
+_META_PATHS = {
+    "@scheme": ".meta.scheme",
+    "@key": ".meta.globalKey",
+    "@key:external": ".meta.externalKey",
+    "@key:scoped": ".meta.key",
+}
+_REFERENCE_PATHS = {
+    "@ref": ".globalReference",
+    "@ref:external": ".externalReference",
+    "@ref:scoped": ".address",
+}
+
+
+def _map_at_keys(
+    ctx: _Ctx, node: dict[str, Any], rune_path: str, legacy_path: str, table: dict[str, str]
+) -> None:
+    """Record where each Rune '@' key landed in the legacy shape, so an issue on it is
+    reported at the key the caller actually wrote."""
+    for key, suffix in table.items():
+        if key in node:
+            ctx.path_map[legacy_path + suffix] = f"{rune_path}.{key}"
+    # The scoped forms wrap the caller's scalar one level deeper in the legacy shape.
+    if table is _META_PATHS and "@key:scoped" in node:
+        ctx.path_map[f"{legacy_path}.meta.key[0].value"] = f"{rune_path}.@key:scoped"
+    if table is _REFERENCE_PATHS and "@ref:scoped" in node:
+        ctx.path_map[f"{legacy_path}.address.value"] = f"{rune_path}.@ref:scoped"
+
+
 def _plain_keys(node: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in node.items() if not (isinstance(k, str) and k.startswith("@"))}
 
@@ -172,10 +204,17 @@ def _normalize(
             plain = _plain_keys(value)
             inner_schema = ctx.schema(filename).get("properties", {}).get("value", {})
             inner_file, _ = _target_filename(inner_schema)
+            value_path = rune_path
             if "@data" in value:
                 inner = value["@data"]
+                if isinstance(inner, (dict, list)):
+                    # A complex value under @data is a CDM object like any other: it has to
+                    # be normalised too, or everything beneath it goes unvalidated.
+                    value_path = f"{rune_path}.@data"
+                    inner = _normalize(ctx, inner, inner_file, value_path, f"{legacy_path}.value")
             elif not plain and any(k.startswith("@ref") for k in value):
                 # a reference where a value was expected: keep it, schema will report
+                _map_at_keys(ctx, value, rune_path, legacy_path, _REFERENCE_PATHS)
                 return _reference_from_keys(value)
             else:
                 inner = _normalize(ctx, plain, inner_file, rune_path, f"{legacy_path}.value")
@@ -183,7 +222,8 @@ def _normalize(
             meta = _meta_from_keys(value)
             if meta:
                 out["meta"] = meta
-            ctx.path_map[f"{legacy_path}.value"] = rune_path
+                _map_at_keys(ctx, value, rune_path, legacy_path, _META_PATHS)
+            ctx.path_map[f"{legacy_path}.value"] = value_path
             return out
         ctx.path_map[f"{legacy_path}.value"] = rune_path
         return {"value": value}
@@ -192,6 +232,7 @@ def _normalize(
     if _is_reference_with_meta(filename):
         if isinstance(value, dict):
             ref = _reference_from_keys(value)
+            _map_at_keys(ctx, value, rune_path, legacy_path, _REFERENCE_PATHS)
             plain = _plain_keys(value)
             if plain:
                 inner_schema = ctx.schema(filename).get("properties", {}).get("value", {})
@@ -200,6 +241,7 @@ def _normalize(
             meta = _meta_from_keys(value)
             if meta:
                 ref["meta"] = meta
+                _map_at_keys(ctx, value, rune_path, legacy_path, _META_PATHS)
             return ref
         return value
 
@@ -249,8 +291,22 @@ def _normalize(
             if sub is not None and sub != filename and _is_choice(ctx, sub):
                 # declared type is a base; the document picked a choice subtype
                 return _normalize(ctx, value, sub, rune_path, legacy_path)
-            if sub is not None:
-                filename = sub
+            if sub is not None and sub != filename:
+                # Only follow @type to a subtype of the declared type. A subtype carries
+                # every property of its base, so anything else is a different type put in
+                # the wrong place, and validating against it would hide real errors.
+                declared = set(ctx.schema(filename).get("properties", {}))
+                if declared <= set(ctx.schema(sub).get("properties", {})):
+                    filename = sub
+                else:
+                    ctx.issues.append(
+                        ValidationIssue(
+                            json_path=f"{rune_path}.@type",
+                            message=f"{at_type!r} is not {_type_name(filename)} or a subtype of it",
+                            kind="type",
+                            validator="rune",
+                        )
+                    )
         schema = ctx.schema(filename)
         props = schema.get("properties", {})
         out = {}
@@ -275,6 +331,7 @@ def _normalize(
             else:
                 out[key] = _strip_at_keys(child)
         if meta:
+            _map_at_keys(ctx, value, rune_path, legacy_path, _META_PATHS)
             existing = out.get("meta")
             out["meta"] = {**meta, **existing} if isinstance(existing, dict) else meta
         return out
@@ -312,16 +369,18 @@ def _remap_path(path: str, path_map: dict[str, str]) -> str:
 
 
 def resolve_type(registry: CdmRegistry, obj: Any, type: str | None) -> str:
-    """Return the TypeName to validate against, from `type` or the document's @type."""
+    """Return the fully qualified type to validate against, from `type` or the document's
+    @type. Fully qualified because a few bare names exist in two namespaces."""
     if type:
         info = registry.get(type)
         if info is None:
             raise not_found("CDM type", type, hint="Call list_types or search_types.")
-        return info.name
+        return f"{info.namespace}.{info.name}"
     if isinstance(obj, dict) and isinstance(obj.get("@type"), str):
-        info = registry.get(str(obj["@type"]).rsplit(".", 1)[-1])
+        at_type = str(obj["@type"])
+        info = registry.get(at_type) or registry.get(at_type.rsplit(".", 1)[-1])
         if info is not None:
-            return info.name
+            return f"{info.namespace}.{info.name}"
     raise invalid_input(
         "Cannot infer the CDM type: pass type (e.g. 'TradeState') or include '@type' in the object.",
         hint="Root types: " + ", ".join(registry.root_types()[:8]) + ", ...",
@@ -365,6 +424,11 @@ def validate_object(
             warnings.append(
                 "Legacy-format documents produced by CDM <= 6 may not match the 7.x schema; "
                 "pass schema_version='6.29.0' for same-vintage validation."
+            )
+        if format == "auto":
+            warnings.append(
+                "No '@' keys were found, so the document was read as legacy format. If it is "
+                "a Rune (CDM 7) fragment without metadata, pass format='rune'."
             )
     report = schemas.validate(instance, info.filename, max_issues=max_issues)
     issues = list(ctx.issues)

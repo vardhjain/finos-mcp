@@ -251,3 +251,106 @@ async def test_search_samples_resources_and_info(client: Client) -> None:
     info = _ok(await client.call_tool("server_info", {}))
     assert info["counts"]["root_types"] == 16 and info["counts"]["qualify_functions"] == 35
     assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.4.0"
+
+
+def _paths(report: dict[str, Any]) -> set[str]:
+    return {i["json_path"] for i in report["issues"]}
+
+
+@pytest.mark.anyio
+async def test_content_under_at_data_is_validated(client: Client) -> None:
+    """A complex value under `@data` used to be passed through raw, so nothing beneath it
+    was checked: this is the shape of every `priceQuantity[].observable` in the samples."""
+    bad = {
+        "observable": {
+            "@data": {
+                "@type": "cdm.observable.asset.InterestRateIndex",
+                "@data": {
+                    "@type": "cdm.observable.asset.FloatingRateIndex",
+                    "assetClass": 12345,
+                    "identifier": "not-an-array",
+                },
+            }
+        }
+    }
+    args = {"object": bad, "type": "PriceQuantity", "format": "rune"}
+    report = _ok(await client.call_tool("validate_object", args))
+    assert report["valid"] is False
+    assert "$.observable.@data.@data.identifier" in _paths(report)
+    unknown = {"observable": {"@data": {"@type": "cdm.observable.asset.NoSuchThing"}}}
+    args = {"object": unknown, "type": "PriceQuantity", "format": "rune"}
+    assert _ok(await client.call_tool("validate_object", args))["valid"] is False
+
+
+@pytest.mark.anyio
+async def test_nested_at_type_must_be_a_subtype(client: Client) -> None:
+    """A stray `@type` naming an unrelated type must not switch the schema and hide errors."""
+    doc = {
+        "@type": "cdm.base.staticdata.party.Party",
+        "partyId": [{"identifier": {"@data": "X"}}],
+        "account": {
+            "@type": "cdm.base.staticdata.party.Party",
+            "accountNumber": {"@data": 5},
+        },
+    }
+    report = _ok(await client.call_tool("validate_object", {"object": doc}))
+    assert {"$.account.@type", "$.account.accountNumber"} <= _paths(report)
+
+
+@pytest.mark.anyio
+async def test_same_name_in_two_namespaces_resolves_by_full_name(client: Client) -> None:
+    fqn = "cdm.legaldocumentation.master.isda.AdditionalTerminationEvent"
+    described = _ok(await client.call_tool("describe_type", {"name": fqn}))
+    assert [f["name"] for f in described["fields"]] == ["partyElection"]
+    assert described["schema_uri"] == f"cdm://schema/{fqn}"
+    report = _ok(await client.call_tool("validate_object", {"object": {}, "type": fqn}))
+    assert report["valid"] is True and report["type"] == fqn
+
+
+@pytest.mark.anyio
+async def test_legacy_samples_are_reachable(client: Client) -> None:
+    listed = _ok(await client.call_tool("list_samples", {"format": "legacy"}))["samples"]
+    assert listed and all(s["name"].startswith("legacy__") for s in listed)
+    sample = _ok(await client.call_tool("get_sample", {"name": listed[0]["name"]}))
+    assert sample["format"] == "legacy"
+    names = [s["name"] for s in _ok(await client.call_tool("list_samples", {}))["samples"]]
+    assert len(names) == len(set(names))
+
+
+@pytest.mark.anyio
+async def test_explain_event_tolerates_wrongly_typed_fields(client: Client) -> None:
+    for trade in (
+        {"tradeIdentifier": 5},
+        {"party": 7},
+        {"tradeIdentifier": [{"assignedIdentifier": 3}]},
+    ):
+        event = {"after": [{"trade": trade}]}
+        res = _ok(await client.call_tool("explain_event", {"event": event}))
+        assert res["after_trade_count"] == 1
+
+
+@pytest.mark.anyio
+async def test_issue_paths_name_the_rune_keys_the_caller_wrote(client: Client) -> None:
+    doc = {"name": {"@data": "x", "@scheme": 5}, "partyId": [{"identifier": {"@data": "X"}}]}
+    args = {"object": doc, "type": "Party", "format": "rune"}
+    assert "$.name.@scheme" in _paths(_ok(await client.call_tool("validate_object", args)))
+    for key in ("@ref", "@ref:external", "@ref:scoped"):
+        ref = {"partyReference": {key: 5}, "role": "Buyer"}
+        args = {"object": ref, "type": "PartyRole", "format": "rune"}
+        report = _ok(await client.call_tool("validate_object", args))
+        assert f"$.partyReference.{key}" in _paths(report)
+
+
+@pytest.mark.anyio
+async def test_format_detection_scans_the_whole_document(client: Client) -> None:
+    big = {
+        "name": {"@data": "Bank A", "@scheme": "s"},
+        "partyId": [{"identifier": {"@data": "LEI"}}],
+        "businessUnit": [{"name": "u"}] * 3000,
+    }
+    report = _ok(await client.call_tool("validate_object", {"object": big, "type": "Party"}))
+    assert report["format_detected"] == "rune"
+    bare = {"name": "Bank A", "partyId": [{"identifier": "LEI123"}]}
+    report = _ok(await client.call_tool("validate_object", {"object": bare, "type": "Party"}))
+    assert report["format_detected"] == "legacy"
+    assert any("format='rune'" in w for w in report["warnings"])

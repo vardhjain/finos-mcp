@@ -241,6 +241,14 @@ class CdmRegistry:
             return None
         return self._types[sorted(matches)[0]]
 
+    def info_for_file(self, filename: str) -> TypeInfo | None:
+        """The type a schema file defines. Exact, unlike a lookup by bare name."""
+        return self._types.get(filename)
+
+    def is_ambiguous(self, name: str) -> bool:
+        """True when the bare name exists in more than one namespace."""
+        return len(self._by_name.get(name.lower(), [])) > 1
+
     def fields(self, name: str) -> list[FieldInfo]:
         info = self.get(name)
         if info is None:
@@ -338,6 +346,9 @@ def _root_type_guess(data: Any) -> str | None:
     return None
 
 
+LEGACY_SAMPLE_PREFIX = "legacy__"
+
+
 def _load_samples(samples_dir: Path) -> list[SampleInfo]:
     samples: list[SampleInfo] = []
     rune_dir = samples_dir / "rune"
@@ -357,7 +368,9 @@ def _load_samples(samples_dir: Path) -> list[SampleInfo]:
         for path in sorted(legacy_dir.glob("*.json")):
             samples.append(
                 SampleInfo(
-                    name=path.name,
+                    # Every legacy sample shares its file name with a Rune sample, so the
+                    # bare file name would always resolve to the Rune one.
+                    name=f"{LEGACY_SAMPLE_PREFIX}{path.name}",
                     format="legacy",
                     root_type_guess="BusinessEvent",
                     path=str(path),
