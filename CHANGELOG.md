@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.2.2 — 2026-10-05
+
+Fixes from a line-by-line review of the three servers. Each has a regression test.
+
+### Fixed
+- `finos-mcp-cdm`: `validate_object` did not validate anything beneath a complex `@data`
+  value, which includes every `priceQuantity[].observable` in a Rune document.
+- `finos-mcp-cdm`: a nested `@type` naming an unrelated type switched the schema and hid
+  real errors; it is now reported unless it is the declared type or a subtype.
+- `finos-mcp-cdm`: a type name that exists in two namespaces resolved to the wrong one even
+  when given in full, in `describe_type`, `validate_object` and search citations.
+- `finos-mcp-cdm`: legacy samples could not be fetched because each shared a name with a
+  Rune sample. They are now listed and fetched as `legacy__<name>`.
+- `finos-mcp-cdm`: `explain_event` crashed on wrongly typed fields; issue paths for
+  `@scheme`, `@key` and `@ref` keys now name the key the caller wrote; format detection
+  scans the whole document.
+- `finos-mcp-fdc3`: `suggest_intent` matched every untyped object to
+  `fdc3.chat.initSettings`. It now needs positive evidence and returns no type on a tie.
+- `finos-mcp-fdc3`: `get_context_schema` reported `type` as optional; validation reports
+  carried the schema file name instead of the context type; a context whose type disagreed
+  with `context_type` was silently ignored.
+- `finos-mcp-core` search: a scoped search could return fewer than `k` hits while more
+  documents matched; one-letter and stopword queries returned title-only junk; snippets
+  could miss the matched term.
+- `finos-mcp-aigf`: ids such as `1.0` resolved to record 10, and `010` did not resolve;
+  the framework filter of `find_by_external_reference` was case-sensitive; a section
+  resource was empty when its content sat under sub-headings; a single weak title match
+  was reported as an ambiguity.
+
 ## 0.2.1 — 2026-10-05
 
 ### Fixed

@@ -1,19 +1,19 @@
 [project]
 name = "finos-mcp-aigf"
-version = "0.2.1"
+version = "0.2.2"
 description = "Read-only MCP server for the FINOS AI Governance Framework: risks, controls, crosswalks and search. Not affiliated with FINOS."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
 keywords = ["mcp", "model-context-protocol", "finos", "llm", "agents"]
-dependencies = ["finos-mcp-core>=0.2.0"]
+dependencies = ["finos-mcp-core>=0.2.2"]
 
 [project.scripts]
 finos-mcp-aigf = "finos_mcp.aigf.__main__:main"
 
 [project.optional-dependencies]
 semantic = [
-    "finos-mcp-core[semantic]>=0.2.0",
+    "finos-mcp-core[semantic]>=0.2.2",
 ]
 
 [project.urls]
