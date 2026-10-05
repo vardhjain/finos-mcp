@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.4 — 2026-10-05
 
 ### Changed
 - Arguments that do not fit a tool's input schema now return a structured `invalid_input`
