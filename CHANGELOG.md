@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Arguments that do not fit a tool's input schema now return a structured `invalid_input`
+  error naming each bad field, on all three servers. They used to return the validation
+  library's raw text.
+- Validation stops at the issue cap instead of collecting every error first: a 150 000-item
+  invalid array went from about ten seconds to a fraction of one. A capped report carries
+  `stats.truncated`.
+- `finos-mcp-cdm`: types that exist only in the legacy 6.29.0 schema can be validated with
+  `schema_version='6.29.0'`.
+
+### Added
+- Upstream finding 15: FDC3's `StartChat` and `SendChatMessage` return a chat room only in
+  their example code, so no result is reported for them. Pinned by a test.
+
 ## 0.2.3 — 2026-10-05
 
 ### Changed

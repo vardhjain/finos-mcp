@@ -230,3 +230,23 @@ def test_policy_env_can_only_tighten() -> None:
     assert tighter.max_input_bytes == 512
     assert tighter.default_limit.calls == 5 and tighter.default_limit.burst == 1
     assert pol.tightened_from_env({"FINOS_MCP_AUDIT_RAW_ARGS": "1"}).audit_hash_inputs is False
+
+
+@pytest.mark.anyio
+async def test_malformed_arguments_get_a_structured_envelope(tmp_path: Path) -> None:
+    """Arguments that do not fit the input schema are rejected by the SDK before the tool
+    runs, as free text. The model must get the same structured envelope as any other
+    anticipated failure, without the rejected value echoed back."""
+    server, audit_path = make_server(tmp_path, FakeClock())
+    async with Client(server, raise_exceptions=True) as client:
+        result = await client.call_tool("get_widget", {})
+        assert result.is_error is True
+        text = result.content[0].text  # type: ignore[union-attr]
+        env = ErrorEnvelope.parse_text(text)
+        assert env is not None and env.code == "invalid_input"
+        assert env.details["fields"] == [
+            {"field": "id", "problem": "Field required", "kind": "missing"}
+        ]
+        assert "pydantic" not in text and "input_value" not in text
+    records = [r for r in read_audit(audit_path) if r.get("tool") == "get_widget"]
+    assert records[-1]["outcome"] == "tool_error:invalid_input"

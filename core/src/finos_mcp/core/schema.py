@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterable
 from functools import lru_cache
+from itertools import islice
 from pathlib import Path
 from typing import Any, Literal
 
@@ -127,17 +128,22 @@ class SchemaRegistry:
             yield issue_from_error(err)
 
     def validate(self, instance: Any, key: str, *, max_issues: int = 200) -> ValidationReport:
-        issues: list[ValidationIssue] = []
-        for issue in self.iter_issues(instance, key):
-            issues.append(issue)
-            if len(issues) >= max_issues:
-                break
+        # Stop at the cap instead of collecting and sorting every error first: an instance
+        # with a hundred thousand bad items would otherwise spend seconds on errors that are
+        # then thrown away. The errors kept are the first found, reported in path order.
+        errors = list(islice(self.validator(key).iter_errors(instance), max_issues + 1))
+        truncated = len(errors) > max_issues
+        errors = sorted(errors[:max_issues], key=lambda e: list(e.absolute_path))
+        issues = [issue_from_error(err) for err in errors]
+        stats = {"issues": len(issues)}
+        if truncated:
+            stats["truncated"] = 1  # more issues exist than were reported
         return ValidationReport(
             valid=not issues,
             validator=f"json-schema {self.dialect}",
             type=key,
             issues=issues,
-            stats={"issues": len(issues)},
+            stats=stats,
         )
 
 

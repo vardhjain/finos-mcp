@@ -176,3 +176,24 @@ def test_snippet_is_centred_where_casefolding_changes_length() -> None:
 
     text = "İ" * 100 + " target here " + "pad " * 100
     assert "target" in _snippet(text, "target")
+
+
+def test_validation_stops_at_the_issue_cap() -> None:
+    """A huge invalid instance must not have every error collected and sorted before the
+    report is cut to `max_issues`."""
+    import time
+
+    from finos_mcp.core import SchemaRegistry
+
+    schema = {
+        "type": "object",
+        "properties": {"xs": {"type": "array", "items": {"type": "string"}}},
+    }
+    registry = SchemaRegistry({"t.schema.json": schema}, dialect="draft7")
+    started = time.perf_counter()
+    report = registry.validate({"xs": [0] * 200_000}, "t.schema.json", max_issues=50)
+    assert time.perf_counter() - started < 5
+    assert len(report.issues) == 50 and report.stats == {"issues": 50, "truncated": 1}
+    assert [i.json_path for i in report.issues[:2]] == ["$.xs[0]", "$.xs[1]"]
+    small = registry.validate({"xs": [0, "a", 1]}, "t.schema.json")
+    assert small.stats == {"issues": 2} and small.valid is False

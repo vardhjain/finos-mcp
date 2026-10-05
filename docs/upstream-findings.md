@@ -75,3 +75,9 @@ concerns the `finos-cdm` 7.2.0 package and was not re-tested.
     other file whose `$id` matches its filename (main branch only).
 14. Public claims that FDC3 3.0 "adds MCP integration" are not reflected in the repository or
     the 3.0 announcement; 3.0 is at `3.0.0-alpha.2`.
+15. **`StartChat` and `SendChatMessage` return a chat room only in their example code.**
+    Both reference pages read `const chatRoom = ... getResult()` in the example, but neither
+    declares a result the way `ViewChat` and `CreateInteraction` do (no "SHOULD return
+    context as a result" and no output section). finos-mcp reports no result for them,
+    because the specification text states none; a consumer cannot tell whether
+    `fdc3.chat.room` is guaranteed. Pinned by a test.

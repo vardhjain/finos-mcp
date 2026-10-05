@@ -28,7 +28,7 @@ from typing import Any, Literal
 from finos_mcp.core import ValidationIssue, ValidationReport
 from finos_mcp.core.errors import invalid_input, not_found
 
-from .registry import CdmRegistry
+from .registry import CdmRegistry, parse_schema_filename
 
 Format = Literal["rune", "legacy"]
 
@@ -403,19 +403,29 @@ def validate_object(
         raise not_found(
             "schema version", version, hint=f"Available: {', '.join(registry.schema_versions())}"
         )
-    type_name = resolve_type(registry, obj, type)
-    info = registry.get(type_name)
-    assert info is not None
-    fmt: Format = detect_format(obj) if format == "auto" else format
     schemas = registry.schema_registry_for(version)
-    if info.filename not in schemas:
-        raise not_found(
-            "schema", f"{type_name} in cdm-json-schema {version}", hint="Try the primary version."
-        )
+    # Look the type up in the requested vintage first: some types exist only in the legacy
+    # schema, and the type index is built from the primary one.
+    at_type = obj.get("@type")
+    wanted = type or (at_type if isinstance(at_type, str) else None)
+    filename = registry.filename_in_version(wanted, version) if wanted else None
+    if filename is None:
+        type_name = resolve_type(registry, obj, type)
+        info = registry.get(type_name)
+        assert info is not None
+        if info.filename not in schemas:
+            raise not_found(
+                "schema",
+                f"{type_name} in cdm-json-schema {version}",
+                hint="Try the primary version.",
+            )
+        filename = info.filename
+    type_label = ".".join(parse_schema_filename(filename))
+    fmt: Format = detect_format(obj) if format == "auto" else format
     warnings = [RUNE_CONDITION_WARNING]
     ctx = _Ctx(registry=registry, version=version)
     if fmt == "rune":
-        instance = _normalize(ctx, copy.deepcopy(obj), info.filename, "$", "$")
+        instance = _normalize(ctx, copy.deepcopy(obj), filename, "$", "$")
         validator_label = f"json-schema draft4 (cdm-json-schema {version}) via Rune normalisation"
     else:
         instance = obj
@@ -430,7 +440,7 @@ def validate_object(
                 "No '@' keys were found, so the document was read as legacy format. If it is "
                 "a Rune (CDM 7) fragment without metadata, pass format='rune'."
             )
-    report = schemas.validate(instance, info.filename, max_issues=max_issues)
+    report = schemas.validate(instance, filename, max_issues=max_issues)
     issues = list(ctx.issues)
     for issue in report.issues:
         issues.append(
@@ -442,9 +452,14 @@ def validate_object(
     return ValidationReport(
         valid=not issues,
         validator=validator_label,
-        type=f"{info.namespace}.{info.name}",
+        type=type_label,
         format_detected=fmt,
         issues=issues,
         warnings=warnings,
-        stats={"issues": len(issues), "nodes_normalised": ctx.nodes, "schema_files": len(schemas)},
+        stats={
+            "issues": len(issues),
+            "nodes_normalised": ctx.nodes,
+            "schema_files": len(schemas),
+            **({"truncated": 1} if report.stats.get("truncated") else {}),
+        },
     )

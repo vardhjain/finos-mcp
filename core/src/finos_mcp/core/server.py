@@ -14,6 +14,7 @@ Rules enforced here, not merely documented:
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
@@ -101,24 +102,62 @@ def _error_result(envelope: ErrorEnvelope) -> CallToolResult:
     )
 
 
-def _outcome(result: HandlerResult) -> tuple[str, bool]:
-    """Classify a tools/call result as (outcome label, is_error)."""
+def _error_text(result: HandlerResult) -> str | None:
+    """The text of a tools/call error result, or None if the result is not an error."""
     if isinstance(result, CallToolResult):
-        if result.is_error:
-            text = next((c.text for c in result.content if isinstance(c, TextContent)), "")
-            env = ErrorEnvelope.parse_text(text)
-            return (f"tool_error:{env.code}" if env else "tool_error"), True
-        return "ok", False
+        if not result.is_error:
+            return None
+        return next((c.text for c in result.content if isinstance(c, TextContent)), "")
     if isinstance(result, dict) and result.get("isError"):
         # The lowlevel server hands middleware the serialised (camelCase) result.
         content = result.get("content") or []
-        text = next(
+        return next(
             (c.get("text", "") for c in content if isinstance(c, dict) and c.get("type") == "text"),
             "",
         )
-        env = ErrorEnvelope.parse_text(text)
-        return (f"tool_error:{env.code}" if env else "tool_error"), True
-    return "ok", False
+    return None
+
+
+def _outcome(result: HandlerResult) -> tuple[str, bool]:
+    """Classify a tools/call result as (outcome label, is_error)."""
+    text = _error_text(result)
+    if text is None:
+        return "ok", False
+    env = ErrorEnvelope.parse_text(text)
+    return (f"tool_error:{env.code}" if env else "tool_error"), True
+
+
+_ARGUMENT_ERROR = re.compile(r"\d+ validation errors? for \w+Arguments\n")
+_ARGUMENT_FIELD = re.compile(r"^(\S[^\n]*)\n {2}(.+?) \[type=(\w+)", re.MULTILINE)
+
+
+def _structure_argument_error(tool: str, result: HandlerResult) -> CallToolResult | None:
+    """Turn the SDK's argument-validation failure into an `invalid_input` envelope.
+
+    Arguments that do not fit a tool's input schema are rejected by the SDK before the tool
+    runs, as free text from the validation library. Every other anticipated failure reaches
+    the model as a structured envelope; this makes malformed arguments do the same. The
+    rejected input value is not echoed back.
+    """
+    text = _error_text(result)
+    if text is None or ErrorEnvelope.parse_text(text) is not None:
+        return None
+    header = _ARGUMENT_ERROR.search(text)
+    if header is None:
+        return None
+    fields = [
+        {"field": field, "problem": problem, "kind": kind}
+        for field, problem, kind in _ARGUMENT_FIELD.findall(text[header.end() :])
+    ]
+    summary = "; ".join(f"{f['field']}: {f['problem']}" for f in fields)
+    return _error_result(
+        ErrorEnvelope(
+            code="invalid_input",
+            message=f"Invalid arguments for {tool}" + (f": {summary}" if summary else "."),
+            hint="Check the argument names and types in the tool's input schema, then call again.",
+            details={"fields": fields},
+        )
+    )
 
 
 def _result_bytes(result: HandlerResult) -> int:
@@ -184,6 +223,7 @@ def _make_middleware(server: MCPServer[Any], rt: Runtime) -> ServerMiddleware[An
                 outcome, is_error, limited = "rate_limited", True, True
                 raise rate_limited(tool, retry_after)
             result = await call_next(ctx)
+            result = _structure_argument_error(tool, result) or result
             size = _result_bytes(result)
             record["result_bytes"] = size
             if size > rt.policy.max_output_bytes:

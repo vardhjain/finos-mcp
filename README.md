@@ -118,7 +118,7 @@ that file directly, so they show measurements from a specific commit.
 
 Figures are from September 2026 runs. The model test uses Claude Haiku 4.5 and runs nightly.
 
-Building this also turned up 14 defects in the upstream standards, recorded in
+Building this also turned up 15 defects in the upstream standards, recorded in
 [docs/upstream-findings.md](docs/upstream-findings.md). The first has been reported to FINOS
 with a proposed fix.
 

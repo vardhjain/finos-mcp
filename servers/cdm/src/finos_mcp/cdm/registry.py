@@ -88,7 +88,7 @@ def _strip_type_prefix(name: str) -> str:
     return name
 
 
-def _parse_filename(filename: str) -> tuple[str, str]:
+def parse_schema_filename(filename: str) -> tuple[str, str]:
     """Split ``cdm-event-common-TradeState.schema.json`` into
     (``"cdm.event.common"``, ``"TradeState"``)."""
     stem = filename.removesuffix(".schema.json")
@@ -143,7 +143,7 @@ class CdmRegistry:
         by_fqn: dict[str, str] = {}  # lowercase "namespace.name" -> filename
 
         for filename, schema in schemas.items():
-            namespace, name = _parse_filename(filename)
+            namespace, name = parse_schema_filename(filename)
             root_entry = root_index.get((namespace, name))
             kind: TypeKind
             if "enum" in schema:
@@ -171,6 +171,7 @@ class CdmRegistry:
             by_fqn[f"{namespace}.{name}".lower()] = filename
 
         self._types = types
+        self._names_by_version: dict[str, dict[str, str]] = {}
         self._by_name = by_name
         self._by_fqn = by_fqn
 
@@ -240,6 +241,24 @@ class CdmRegistry:
         if not matches:
             return None
         return self._types[sorted(matches)[0]]
+
+    def filename_in_version(self, name_or_fqn: str, version: str) -> str | None:
+        """The schema file defining a type in one vendored vintage, by bare or fully
+        qualified name, or None. Unlike `get`, this also finds types that exist only in a
+        non-primary vintage (the type index is built from the primary schema)."""
+        if version == self.PRIMARY_VERSION:
+            info = self.get(name_or_fqn)
+            return info.filename if info is not None else None
+        index = self._names_by_version.get(version)
+        if index is None:
+            index = {}
+            for filename in sorted(self.schema_registry_for(version).filenames):
+                namespace, name = parse_schema_filename(filename)
+                index.setdefault(f"{namespace}.{name}".lower(), filename)
+                index.setdefault(name.lower(), filename)
+            self._names_by_version[version] = index
+        key = name_or_fqn.strip().lower()
+        return index.get(key) or index.get(key.rsplit(".", 1)[-1])
 
     def info_for_file(self, filename: str) -> TypeInfo | None:
         """The type a schema file defines. Exact, unlike a lookup by bare name."""

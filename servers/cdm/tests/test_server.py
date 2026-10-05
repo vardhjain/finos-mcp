@@ -354,3 +354,15 @@ async def test_format_detection_scans_the_whole_document(client: Client) -> None
     report = _ok(await client.call_tool("validate_object", {"object": bare, "type": "Party"}))
     assert report["format_detected"] == "legacy"
     assert any("format='rune'" in w for w in report["warnings"])
+
+
+@pytest.mark.anyio
+async def test_types_only_in_the_legacy_vintage_validate_against_it(client: Client) -> None:
+    """The type index is built from the primary schema; a type that exists only in the
+    legacy vintage must still be found when that vintage is asked for."""
+    args = {"object": {}, "type": "AccessConditions", "schema_version": "6.29.0"}
+    report = _ok(await client.call_tool("validate_object", args))
+    assert report["type"] == "cdm.legaldocumentation.csa.AccessConditions"
+    assert "6.29.0" in report["validator"]
+    primary = await client.call_tool("validate_object", {"object": {}, "type": "AccessConditions"})
+    assert _err(primary).code == "not_found"

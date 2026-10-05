@@ -190,3 +190,20 @@ def test_intents_json_matches_regenerated_output() -> None:
     regenerated = generate(VENDOR_DIR)
     checked_in = json.loads((VENDOR_DIR / "intents.json").read_text(encoding="utf-8"))
     assert regenerated == checked_in
+
+
+def test_chat_intents_declare_no_result_although_their_examples_read_one(
+    registry: Fdc3Registry,
+) -> None:
+    """Pinned upstream discrepancy (docs/upstream-findings.md, finding 15): the StartChat and
+    SendChatMessage pages read a chat room from `getResult()` in their example code but
+    declare no result, so none is reported. If upstream adds one, this fails and the
+    generated intents.json picks it up."""
+    for name in ("StartChat", "SendChatMessage"):
+        intent = registry.get_intent(name)
+        assert intent is not None and intent.result is None
+        doc = (VENDOR_DIR / "intents" / f"{name}.md").read_text(encoding="utf-8")
+        assert "getResult()" in doc
+        assert "return context as a result" not in doc.lower()
+    view_chat = registry.get_intent("ViewChat")
+    assert view_chat is not None and view_chat.result == "fdc3.chat.room"
