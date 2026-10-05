@@ -49,9 +49,18 @@ class Runtime:
     metrics: Metrics
     tool_names: list[str]
     read_only_verified: bool = False
+    #: Every tool the server actually serves, filled in when read-only is verified.
+    known_tools: frozenset[str] = frozenset()
 
 
 _RUNTIMES: WeakKeyDictionary[MCPServer[Any], Runtime] = WeakKeyDictionary()
+
+
+#: The single key every call to a tool the server does not serve is accounted under.
+UNKNOWN_TOOL = "<unknown>"
+_MAX_TOOL_NAME = 128
+#: Non-tool methods that return content and are therefore rate limited too.
+_LIMITED_METHODS = frozenset({"resources/read", "prompts/get"})
 
 
 def runtime_for(server: MCPServer[Any]) -> Runtime:
@@ -187,6 +196,12 @@ def _make_middleware(server: MCPServer[Any], rt: Runtime) -> ServerMiddleware[An
         if tool is None:
             start = time.perf_counter()
             try:
+                if ctx.method in _LIMITED_METHODS:
+                    # Resources and prompts serve the same content as the tools, so they
+                    # share the per-session budget idea: one bucket per method.
+                    allowed, retry_after = rt.limiter.try_acquire(_session_key(ctx), ctx.method)
+                    if not allowed:
+                        raise rate_limited(ctx.method, retry_after)
                 result = await call_next(ctx)
                 record["outcome"] = "ok"
                 return result
@@ -201,7 +216,14 @@ def _make_middleware(server: MCPServer[Any], rt: Runtime) -> ServerMiddleware[An
                 if ctx.request_id is not None:
                     rt.audit.write(record)
 
-        record["tool"] = tool
+        # A name the server does not serve is caller-controlled text of any length. It must
+        # not become a rate-limit bucket or a metrics entry of its own: a flood of invented
+        # names would evict real buckets (resetting their limits) and grow the metrics
+        # without bound. All such calls share one key, and the audit line gets a short form.
+        shown = tool if len(tool) <= _MAX_TOOL_NAME else tool[:_MAX_TOOL_NAME] + "..."
+        if tool not in rt.known_tools:
+            tool = UNKNOWN_TOOL
+        record["tool"] = shown
         args = _arguments(ctx)
         record.update(rt.audit.describe_args(args))
         start = time.perf_counter()
@@ -213,7 +235,7 @@ def _make_middleware(server: MCPServer[Any], rt: Runtime) -> ServerMiddleware[An
                 return _error_result(
                     ErrorEnvelope(
                         code="input_too_large",
-                        message=f"Arguments are {record['args_bytes']} bytes; the cap for {tool} is {cap} bytes.",
+                        message=f"Arguments are {record['args_bytes']} bytes; the cap for {shown} is {cap} bytes.",
                         hint="Send a smaller object, or narrow the request (fewer ids, smaller page_size).",
                         details={"limit_bytes": cap, "actual_bytes": record["args_bytes"]},
                     )
@@ -223,7 +245,7 @@ def _make_middleware(server: MCPServer[Any], rt: Runtime) -> ServerMiddleware[An
                 outcome, is_error, limited = "rate_limited", True, True
                 raise rate_limited(tool, retry_after)
             result = await call_next(ctx)
-            result = _structure_argument_error(tool, result) or result
+            result = _structure_argument_error(shown, result) or result
             size = _result_bytes(result)
             record["result_bytes"] = size
             if size > rt.policy.max_output_bytes:
@@ -267,6 +289,7 @@ async def _verify_read_only(server: MCPServer[Any], rt: Runtime) -> None:
             "finos-mcp refuses to serve tools without read-only annotations",
             {"tools": offenders},
         )
+    rt.known_tools = frozenset(t.name for t in tools)
     rt.read_only_verified = True
 
 

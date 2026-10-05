@@ -7,7 +7,9 @@ on write behaviour, because no write tool can be registered in the first place
 
 from __future__ import annotations
 
+import math
 import os
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -34,21 +36,34 @@ class RateLimit(BaseModel):
         )
 
 
+_RESOURCE_METHODS = frozenset({"resources/read", "prompts/get"})
+
+
 class SafetyPolicy(BaseModel):
     max_input_bytes: int = Field(default=64 * 1024, ge=256)
     max_output_bytes: int = Field(default=512 * 1024, ge=1024)
     default_limit: RateLimit = Field(default_factory=RateLimit)
     per_tool: dict[str, RateLimit] = Field(default_factory=dict)
     per_tool_input_bytes: dict[str, int] = Field(default_factory=dict)
+    #: Budget for `resources/read` and `prompts/get`, each counted per session.
+    resource_limit: RateLimit = Field(
+        default_factory=lambda: RateLimit(calls=300, window_s=60.0, burst=60)
+    )
+    #: Set when MAX_INPUT_BYTES came from the environment: it then bounds every tool.
+    input_ceiling: int | None = None
     max_search_results: int = Field(default=50, ge=1)
     audit_hash_inputs: bool = True
     max_rate_keys: int = Field(default=10_000, ge=16)
 
     def limit_for(self, tool: str) -> RateLimit:
+        if tool in _RESOURCE_METHODS:
+            return self.resource_limit
         return self.per_tool.get(tool, self.default_limit)
 
     def input_cap_for(self, tool: str) -> int:
-        return self.per_tool_input_bytes.get(tool, self.max_input_bytes)
+        cap = self.per_tool_input_bytes.get(tool, self.max_input_bytes)
+        # An operator's limit applies to the tools with their own, larger caps as well.
+        return cap if self.input_ceiling is None else min(cap, self.input_ceiling)
 
     def register(
         self, tool: str, limit: RateLimit | None = None, input_bytes: int | None = None
@@ -77,17 +92,24 @@ class SafetyPolicy(BaseModel):
             if raw is None:
                 return None
             try:
-                return float(raw)
+                value = float(raw)
             except ValueError:
                 return None
+            return value if math.isfinite(value) else None
+
+        def _positive(value: Any) -> Any:
+            """An unusable rate value (zero, negative) is ignored like a non-numeric one,
+            rather than crashing startup or disabling the limit."""
+            return value if value is not None and value > 0 else None
 
         if (v := _int("MAX_INPUT_BYTES")) is not None:
             updated.max_input_bytes = max(256, min(updated.max_input_bytes, v))
+            updated.input_ceiling = max(256, v)
         if (v := _int("MAX_OUTPUT_BYTES")) is not None:
             updated.max_output_bytes = max(1024, min(updated.max_output_bytes, v))
-        calls = _int("RATE_CALLS")
-        window = _float("RATE_WINDOW_S")
-        burst = _int("RATE_BURST")
+        calls = _positive(_int("RATE_CALLS"))
+        window = _positive(_float("RATE_WINDOW_S"))
+        burst = _positive(_int("RATE_BURST"))
         if calls is not None or window is not None or burst is not None:
             env_limit = RateLimit(
                 calls=calls if calls is not None else updated.default_limit.calls,
@@ -96,6 +118,7 @@ class SafetyPolicy(BaseModel):
             )
             updated.default_limit = updated.default_limit.tightened_by(env_limit)
             updated.per_tool = {k: v.tightened_by(env_limit) for k, v in updated.per_tool.items()}
+            updated.resource_limit = updated.resource_limit.tightened_by(env_limit)
         raw_args = e.get(ENV_PREFIX + "AUDIT_RAW_ARGS")
         if raw_args is not None:
             updated.audit_hash_inputs = raw_args.strip().lower() not in {"1", "true", "yes"}

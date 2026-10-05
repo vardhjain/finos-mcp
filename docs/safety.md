@@ -11,10 +11,10 @@ validate documents an agent hands them. Nothing they do has a side effect outsid
 | No network at runtime | All framework content and schemas are vendored at build time. Each `_vendor/` directory carries `SOURCE.json` with the upstream repository, ref, commit hash, fetch time and per-file sha256. `verify()` runs when the server loads its data and in CI; any mismatch aborts. | `core/src/finos_mcp/core/vendor.py` |
 | Bounded input | Serialised tool arguments above the policy cap (64 KiB by default, 1 MiB for CDM validation) are rejected before the tool runs, as a structured `input_too_large` result. | middleware, `policy.py` |
 | Bounded output | Results above the output cap (512 KiB) are replaced by a structured `output_too_large` result with a hint to narrow the request. | middleware |
-| Rate limits | Token bucket per client and per tool. Exhaustion is a JSON-RPC error (`-32029`, `rate_limited`, with `retry_after_s`) so the host sees it, rather than a tool result that could mislead the model. Buckets are LRU-bounded (10k keys) so session churn cannot exhaust memory. Over HTTP a client is its `Mcp-Session-Id`, so a caller that opens a new session gets a fresh budget: put a per-IP limit in the reverse proxy in front of any exposed deployment. | `ratelimit.py` |
+| Rate limits | Token bucket per client and per tool. Exhaustion is a JSON-RPC error (`-32029`, `rate_limited`, with `retry_after_s`) so the host sees it, rather than a tool result that could mislead the model. Buckets are LRU-bounded (10k keys) so session churn cannot exhaust memory. `resources/read` and `prompts/get` have a budget of their own, and calls to a tool name the server does not serve all share one bucket, so invented names cannot crowd out real ones. Over HTTP a client is its `Mcp-Session-Id`, so a caller that opens a new session gets a fresh budget: put a per-IP limit in the reverse proxy in front of any exposed deployment. | `ratelimit.py` |
 | Structured errors | Anticipated failures are `ToolError`s whose text is a JSON `ErrorEnvelope` (`code`, `message`, `hint`, `candidates`). Arguments that do not fit a tool's input schema get the same envelope (`invalid_input`, with each offending field), without the rejected value echoed back. Unexpected exceptions are left to the MCP SDK, which logs the traceback server-side and shows the model only `Error executing tool <name>`. | `errors.py` |
 | Audit log | One JSON line per request: timestamp, server, method, tool, argument size and sha256 (raw arguments only with `FINOS_MCP_AUDIT_RAW_ARGS=1`), outcome, duration, result size. Goes to stderr or `FINOS_MCP_AUDIT_PATH`. Never stdout, which is the stdio protocol channel. | `audit.py` |
-| Policy only tightens | `FINOS_MCP_MAX_INPUT_BYTES`, `FINOS_MCP_MAX_OUTPUT_BYTES`, `FINOS_MCP_RATE_CALLS`, `FINOS_MCP_RATE_WINDOW_S`, `FINOS_MCP_RATE_BURST` are applied only when stricter than the server's own defaults. | `policy.py` |
+| Policy only tightens | `FINOS_MCP_MAX_INPUT_BYTES`, `FINOS_MCP_MAX_OUTPUT_BYTES`, `FINOS_MCP_RATE_CALLS`, `FINOS_MCP_RATE_WINDOW_S`, `FINOS_MCP_RATE_BURST` are applied only when stricter than the server's own defaults. `FINOS_MCP_MAX_INPUT_BYTES` also bounds the tools that have a larger cap of their own. A value that cannot be used (zero, negative, non-numeric, infinite) is ignored. | `policy.py` |
 
 ## Threats considered
 
@@ -26,5 +26,7 @@ validate documents an agent hands them. Nothing they do has a side effect outsid
 
 ## What is not covered
 
+- The output cap applies to tool results; a resource read returns the stored document whole.
+- The MCP SDK checks `Host` and `Origin` headers only when the server is bound to a loopback address. Bound to `0.0.0.0`, as in the container image, it does not, and the server prints a warning at startup.
 - Authentication and transport security for HTTP deployments are the host's responsibility; the MCP SDK's auth hooks can be layered in front of the server.
 - The servers do not sandbox the process; they assume a normal Python runtime.

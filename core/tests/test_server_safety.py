@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 from pathlib import Path
 from typing import Any
@@ -250,3 +251,89 @@ async def test_malformed_arguments_get_a_structured_envelope(tmp_path: Path) -> 
         assert "pydantic" not in text and "input_value" not in text
     records = [r for r in read_audit(audit_path) if r.get("tool") == "get_widget"]
     assert records[-1]["outcome"] == "tool_error:invalid_input"
+
+
+@pytest.mark.anyio
+async def test_unknown_tool_names_share_one_bucket_and_one_metrics_entry(tmp_path: Path) -> None:
+    """Invented tool names are caller-controlled text. A flood of them must not create a
+    rate bucket or a metrics entry each: that evicted real buckets (resetting their limits)
+    and grew the metrics without bound."""
+    server, audit_path = make_server(tmp_path, FakeClock())
+    rt = runtime_for(server)
+    long_name = "x" * 5000
+    async with Client(server) as client:
+        await client.call_tool("echo", {"text": "a"})
+        buckets = len(rt.limiter)
+        for name in [*(f"nope{i}" for i in range(25)), long_name]:
+            # past the shared burst, unknown names are rate limited
+            with contextlib.suppress(MCPError):
+                await client.call_tool(name, {})
+    assert len(rt.limiter) == buckets + 1
+    assert not [name for name in rt.metrics.snapshot() if name.startswith(("nope", "xxx"))]
+    assert long_name not in audit_path.read_text(encoding="utf-8")
+
+
+def test_env_input_limit_also_bounds_tools_with_their_own_cap() -> None:
+    policy = SafetyPolicy(per_tool_input_bytes={"validate": 1024 * 1024})
+    tightened = policy.tightened_from_env({"FINOS_MCP_MAX_INPUT_BYTES": "2048"})
+    assert tightened.input_cap_for("validate") == 2048
+    assert tightened.input_cap_for("other") == 2048
+    # a looser value than the configured ones changes nothing
+    loose = policy.tightened_from_env({"FINOS_MCP_MAX_INPUT_BYTES": "99999999"})
+    assert loose.input_cap_for("validate") == 1024 * 1024
+    assert loose.input_cap_for("other") == policy.max_input_bytes
+
+
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"FINOS_MCP_RATE_WINDOW_S": "inf"},
+        {"FINOS_MCP_RATE_WINDOW_S": "nan"},
+        {"FINOS_MCP_RATE_WINDOW_S": "0"},
+        {"FINOS_MCP_RATE_CALLS": "0"},
+        {"FINOS_MCP_RATE_CALLS": "-1"},
+        {"FINOS_MCP_RATE_BURST": "0"},
+    ],
+)
+def test_unusable_rate_values_are_ignored_not_fatal(env: dict[str, str]) -> None:
+    """These used to crash startup with a validation traceback, or (inf) leave a zero
+    refill rate that turned every limited call into a division by zero."""
+    policy = SafetyPolicy()
+    assert policy.tightened_from_env(env).default_limit == policy.default_limit
+
+
+def test_unwritable_audit_path_falls_back_to_stderr(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Pointing the audit log at a directory used to fail every request, with the server's
+    filesystem path in the error the client saw."""
+    monkeypatch.setenv("FINOS_MCP_AUDIT_PATH", str(tmp_path))  # a directory, not a file
+    audit = AuditLog.from_env("finos-test")
+    assert "auditing to stderr instead" in capsys.readouterr().err
+    audit.write({"method": "tools/list"})
+    assert '"method": "tools/list"' in capsys.readouterr().err
+    # a path that stops being writable after startup must not raise either
+    gone = AuditLog("finos-test", path=tmp_path)
+    gone.write({"method": "ping"})
+    assert '"method": "ping"' in capsys.readouterr().err
+
+
+@pytest.mark.anyio
+async def test_resource_reads_are_rate_limited(tmp_path: Path) -> None:
+    policy = SafetyPolicy(
+        max_input_bytes=300,
+        max_output_bytes=2048,
+        resource_limit=RateLimit(calls=60, window_s=60, burst=3),
+    )
+    server, _ = make_server(tmp_path, FakeClock(), policy)
+
+    @server.resource("test://thing/{id}")
+    def thing(id: str) -> str:
+        return f"thing {id}"
+
+    async with Client(server) as client:
+        for _ in range(3):
+            await client.read_resource("test://thing/1")
+        with pytest.raises(MCPError) as excinfo:
+            await client.read_resource("test://thing/1")
+    assert excinfo.value.code == RATE_LIMITED_CODE

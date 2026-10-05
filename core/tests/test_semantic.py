@@ -172,3 +172,25 @@ def test_trivial_query_gets_no_dense_only_hits(clean_env: None) -> None:
     assert cat.search("the", k=5, mode="hybrid") == []
     # a real query still fuses lexical and dense results
     assert cat.search("prompt injection", k=5, mode="hybrid")
+
+
+def test_dense_mode_without_an_index_falls_back_to_lexical(
+    clean_env: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """FINOS_MCP_SEARCH_MODE=dense with no semantic index used to return nothing at all."""
+    cat = make_catalog()
+    cat.semantic = None
+    monkeypatch.setenv("FINOS_MCP_SEARCH_MODE", " Dense ")  # case and spaces are tolerated
+    assert cat.search("prompt injection", k=3)
+    assert cat.search("prompt injection", k=0) == []
+
+
+def test_dense_mode_skips_trivial_queries_and_dissimilar_documents(clean_env: None) -> None:
+    class Stub:
+        def rank(self, query: str) -> list[tuple[int, float]]:
+            return [(0, 0.8), (1, -0.2), (2, -0.9)]
+
+    cat = make_catalog()
+    cat.semantic = Stub()  # type: ignore[assignment]
+    assert cat.search("a", k=5, mode="dense") == []
+    assert len(cat.search("prompt injection", k=5, mode="dense")) == 1

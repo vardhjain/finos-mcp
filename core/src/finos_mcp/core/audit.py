@@ -49,7 +49,19 @@ class AuditLog:
         raw = os.environ.get(ENV_AUDIT_PATH)
         if raw:
             p = Path(raw).expanduser()
-            p.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                # Fail here, at startup, if the path cannot be appended to (a directory, a
+                # read-only filesystem). Otherwise every request would fail later instead.
+                p.parent.mkdir(parents=True, exist_ok=True)
+                with p.open("a", encoding="utf-8"):
+                    pass
+            except OSError as exc:
+                print(
+                    f"finos-mcp: cannot write the audit log to {ENV_AUDIT_PATH}={raw!r} "
+                    f"({exc.__class__.__name__}); auditing to stderr instead.",
+                    file=sys.stderr,
+                )
+                return cls(server, stream=sys.stderr, hash_inputs=hash_inputs)
             return cls(server, path=p, hash_inputs=hash_inputs)
         return cls(server, stream=sys.stderr, hash_inputs=hash_inputs)
 
@@ -74,8 +86,15 @@ class AuditLog:
         )
         with self._lock:
             if self._path is not None:
-                with self._path.open("a", encoding="utf-8", newline="\n") as fh:
-                    fh.write(line + "\n")
+                try:
+                    with self._path.open("a", encoding="utf-8", newline="\n") as fh:
+                        fh.write(line + "\n")
+                except OSError:
+                    # A full disk or a path that went away must not fail the request, and
+                    # must not put the server's filesystem path into an error the client
+                    # sees. Keep the record on stderr.
+                    sys.stderr.write(line + "\n")
+                    sys.stderr.flush()
             elif self._stream is not None:
                 self._stream.write(line + "\n")
                 self._stream.flush()

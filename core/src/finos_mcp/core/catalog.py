@@ -324,14 +324,18 @@ class Catalog:
         `FINOS_MCP_SEARCH_MODE` (`hybrid`/`lexical`/`dense`) overrides `mode`
         for the whole process, e.g. to force lexical-only for an eval run.
         """
-        if not query.strip():
+        if not query.strip() or k <= 0:
             return []
-        env_mode = os.environ.get("FINOS_MCP_SEARCH_MODE")
+        env_mode = (os.environ.get("FINOS_MCP_SEARCH_MODE") or "").strip().lower()
         if env_mode in _SEARCH_MODES:
             mode = env_mode  # type: ignore[assignment]
 
-        if mode == "dense":
+        if mode == "dense" and self.semantic is not None:
+            if not _has_substantial_word(query):
+                return []
             return self._dense_hits(query, k=k, predicate=predicate)
+        # Dense was asked for but no semantic index is loaded: fall through to lexical
+        # rather than returning nothing for every query.
 
         # Rank every chunk. A cap here silently dropped matching documents: several chunks
         # collapse into one document and the predicate then discards more, so a capped
@@ -419,6 +423,8 @@ class Catalog:
             return []
         hits: list[SearchHit] = []
         for doc_index, sim in self.semantic.rank(query):
+            if sim <= 0:
+                break  # ranked best first: nothing from here on is similar at all
             doc = self._docs[doc_index]
             if predicate is not None and not predicate(doc):
                 continue
