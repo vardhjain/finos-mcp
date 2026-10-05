@@ -125,7 +125,7 @@ def find_schemas_dir(paths: set[str]) -> str:
         raise SystemExit(
             f"Could not locate a directory containing {_REQUIRED_SCHEMA_FILES} in the tree"
         )
-    candidates.sort(key=len)
+    candidates.sort(key=lambda d: (len(d), d))
     return candidates[0]
 
 
@@ -143,7 +143,7 @@ def find_intents_dir(paths: set[str]) -> str:
         raise SystemExit(
             f"Could not locate a directory containing {_REQUIRED_INTENT_DOCS} in the tree"
         )
-    candidates.sort(key=len)
+    candidates.sort(key=lambda d: (len(d), d))
     return candidates[0]
 
 
@@ -151,7 +151,7 @@ def find_intents_ts(paths: set[str]) -> str:
     candidates = sorted(p for p in paths if p == "Intents.ts" or p.endswith("/Intents.ts"))
     if not candidates:
         raise SystemExit("Could not locate Intents.ts in the tree")
-    candidates.sort(key=len)
+    candidates.sort(key=lambda d: (len(d), d))
     return candidates[0]
 
 
@@ -174,6 +174,8 @@ def list_dir_files(paths: set[str], dir_path: str, suffix: str) -> list[str]:
 def download_file(upstream_path: str, sha: str, dest: Path) -> None:
     text = _get_text(f"{RAW_BASE}/{sha}/{upstream_path}")
     dest.parent.mkdir(parents=True, exist_ok=True)
+    # Upstream CRLF would be stored as LF by git and then fail hash verification.
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     dest.write_text(text, encoding="utf-8", newline="\n")
 
 

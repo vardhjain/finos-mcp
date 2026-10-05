@@ -160,7 +160,14 @@ def _parse_possible_contexts(
     contexts: list[str] = []
     for text, target in _extract_links(contexts_text):
         resolved = _resolve_type(text, target, table)
-        if resolved is not None and resolved not in contexts:
+        if resolved is None:
+            # A listed context that maps to no vendored schema must not vanish quietly:
+            # the intent would then claim to accept fewer contexts than the standard says.
+            raise SystemExit(
+                f"Possible Contexts lists [{text}]({target}), which matches no vendored "
+                "context schema. Vendor the schema or teach _resolve_type about it."
+            )
+        if resolved not in contexts:
             contexts.append(resolved)
 
     result: str | None = None

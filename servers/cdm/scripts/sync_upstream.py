@@ -43,11 +43,13 @@ import argparse
 import io
 import json
 import os
+import re
 import shutil
 import sys
 import tarfile
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from collections import defaultdict
@@ -83,18 +85,28 @@ LEGACY_SAMPLE_CAP_TOTAL = 12
 LEGACY_SAMPLE_CAP_PER_DIR = 3
 
 
-def _headers(*, accept_json: bool = True) -> dict[str, str]:
+_GITHUB_HOSTS = frozenset({"api.github.com", "raw.githubusercontent.com"})
+
+
+def _headers(url: str, *, accept_json: bool = True) -> dict[str, str]:
     headers = {"User-Agent": "finos-mcp-cdm-sync-upstream"}
     if accept_json:
         headers["Accept"] = "application/vnd.github+json"
     token = os.environ.get("GITHUB_TOKEN")
-    if token:
+    # The token is a GitHub credential: never send it to Maven Central or any other host.
+    if token and urllib.parse.urlsplit(url).hostname in _GITHUB_HOSTS:
         headers["Authorization"] = f"Bearer {token}"
     return headers
 
 
+def _lf(data: bytes) -> bytes:
+    """Line endings as git will store them. `.gitattributes` normalises text to LF on
+    commit, so a file vendored with CRLF would hash differently in every fresh checkout."""
+    return data.replace(b"\r\n", b"\n")
+
+
 def _get_json(url: str) -> Any:
-    req = urllib.request.Request(url, headers=_headers())
+    req = urllib.request.Request(url, headers=_headers(url))
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             return json.load(resp)
@@ -104,7 +116,7 @@ def _get_json(url: str) -> Any:
 
 
 def _get_bytes(url: str) -> bytes:
-    req = urllib.request.Request(url, headers=_headers(accept_json=False))
+    req = urllib.request.Request(url, headers=_headers(url, accept_json=False))
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             return resp.read()
@@ -307,8 +319,8 @@ def sync_samples(
     for path in rune_paths:
         rel = path[len(RUNE_SAMPLE_BASE) :]
         subdir, filename = rel.split("/", 1)
-        dest = SAMPLES_RUNE_DIR / f"{subdir}__{filename}"
-        dest.write_bytes(_get_bytes(f"{RAW_BASE}/{rune_sha}/{path}"))
+        dest = SAMPLES_RUNE_DIR / f"{subdir}__{filename.replace('/', '__')}"
+        dest.write_bytes(_lf(_get_bytes(f"{RAW_BASE}/{rune_sha}/{path}")))
     print(
         f"Rune samples ({rune_sha[:7]}): {len(rune_paths)} file(s) from {len(rune_subdirs)} "
         f"subdirector(y/ies): {rune_subdirs}"
@@ -329,8 +341,8 @@ def sync_samples(
     for path in legacy_paths:
         rel = path[len(LEGACY_SAMPLE_BASE) :]
         subdir, filename = rel.split("/", 1)
-        dest = SAMPLES_LEGACY_DIR / f"{subdir}__{filename}"
-        dest.write_bytes(_get_bytes(f"{RAW_BASE}/{legacy_sha}/{path}"))
+        dest = SAMPLES_LEGACY_DIR / f"{subdir}__{filename.replace('/', '__')}"
+        dest.write_bytes(_lf(_get_bytes(f"{RAW_BASE}/{legacy_sha}/{path}")))
     print(
         f"Legacy samples ({legacy_sha[:7]}): {len(legacy_paths)} file(s) from {len(legacy_subdirs)} "
         f"subdirector(y/ies): {legacy_subdirs}"
@@ -381,6 +393,19 @@ def run_extraction(rosetta_dir: Path) -> tuple[int, int, int]:
     root_types = extract_root_types(rosetta_dir)
     choices = extract_choice_types(rosetta_dir)
 
+    # The extractors are regex-based, so cross-check them against a plain count of the
+    # declarations in the sources. A declaration written in a shape the regexes do not
+    # expect would otherwise be dropped without a trace.
+    sources = [p.read_text(encoding="utf-8") for p in sorted(rosetta_dir.glob("*.rosetta"))]
+    declared_roots = sum(len(re.findall(r"^[ \t]*\[rootType\]", s, re.MULTILINE)) for s in sources)
+    declared_choices = sum(len(re.findall(r"^choice\s+\w+", s, re.MULTILINE)) for s in sources)
+    if len(root_types) != declared_roots or len(choices) != declared_choices:
+        raise SystemExit(
+            f"Rosetta extraction is incomplete: {len(root_types)} of {declared_roots} root "
+            f"types and {len(choices)} of {declared_choices} choice types were extracted. "
+            "Fix extract_rosetta.py before vendoring."
+        )
+
     (VENDOR_DIR / "qualify.json").write_text(
         json.dumps({"functions": qualify, "count": len(qualify)}, indent=2) + "\n",
         encoding="utf-8",
@@ -420,6 +445,13 @@ def main(argv: list[str] | None = None) -> int:
     VENDOR_DIR.mkdir(parents=True, exist_ok=True)
     _cleanup_legacy_unbundled_layout()
 
+    # Resolve both tags before touching the vendored tree, so a mistyped version fails
+    # here instead of after the schema bundles have been replaced.
+    rune_sha = resolve_sha(args.version)
+    print(f"Resolved --version {args.version!r} -> {rune_sha}")
+    legacy_sha = resolve_sha(args.legacy_version)
+    print(f"Resolved --legacy-version {args.legacy_version!r} -> {legacy_sha}")
+
     schema_count = sync_schemas(args.version)
     legacy_schema_count = sync_schemas(args.legacy_version)
     # A version bump must not leave the previous vintage's bundle behind: the registry
@@ -429,11 +461,6 @@ def main(argv: list[str] | None = None) -> int:
         if stale not in keep:
             stale.unlink()
             print(f"Removed stale schema bundle {stale.name}")
-
-    rune_sha = resolve_sha(args.version)
-    print(f"Resolved --version {args.version!r} -> {rune_sha}")
-    legacy_sha = resolve_sha(args.legacy_version)
-    print(f"Resolved --legacy-version {args.legacy_version!r} -> {legacy_sha}")
 
     rune_tree = list_tree(rune_sha)
     legacy_tree = list_tree(legacy_sha)

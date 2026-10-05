@@ -96,6 +96,8 @@ def list_files(dir_path: str, sha: str, extensions: tuple[str, ...]) -> list[str
 def download_file(upstream_path: str, sha: str, dest: Path) -> None:
     text = _get_text(f"{RAW_BASE}/{sha}/{upstream_path}")
     dest.parent.mkdir(parents=True, exist_ok=True)
+    # Upstream CRLF would be stored as LF by git and then fail hash verification.
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     dest.write_text(text, encoding="utf-8", newline="\n")
 
 
