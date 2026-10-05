@@ -1,6 +1,6 @@
 [project]
 name = "finos-mcp-cdm"
-version = "0.2.2"
+version = "0.2.3"
 description = "Read-only MCP server for the FINOS Common Domain Model: types, products, events and JSON validation. Not affiliated with FINOS."
 readme = "README.md"
 requires-python = ">=3.12"

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.3 — 2026-10-05
 
 ### Changed
 - `finos-mcp-cdm`: vendored CDM 7.5.0, replacing 7.4.0. The schema set (1142) and the sample

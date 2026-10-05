@@ -1,6 +1,6 @@
 [project]
 name = "finos-mcp-fdc3"
-version = "0.2.2"
+version = "0.2.3"
 description = "Read-only MCP server for FDC3: intents, context schemas, validation and intent suggestion. Not affiliated with FINOS."
 readme = "README.md"
 requires-python = ">=3.12"
