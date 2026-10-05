@@ -1,6 +1,6 @@
 {
   "agent": {},
-  "commit": "ee263c89a6814b38f2b70e78adf9def1bbfdcb32",
+  "commit": "733cbfb13c8a9007af42f0f4aa9ac783e553da89",
   "exposure": {
     "aigf.controls": 23,
     "aigf.crosswalk_refs": 765,
@@ -22,154 +22,154 @@
     "resources_total": 14,
     "tools_total": 29
   },
-  "generated_at": "2026-10-05T06:18:31+00:00",
+  "generated_at": "2026-10-05T06:21:38+00:00",
   "latency_detail": {
     "aigf.find_by_external_reference": {
       "budget_p95": 10.0,
-      "mean": 1.761,
+      "mean": 1.631,
       "n": 100,
-      "p50": 1.713,
-      "p95": 1.97,
-      "p99": 2.633
+      "p50": 1.609,
+      "p95": 1.718,
+      "p99": 1.752
     },
     "aigf.get_control": {
       "budget_p95": 10.0,
-      "mean": 1.528,
+      "mean": 1.534,
       "n": 100,
-      "p50": 1.524,
-      "p95": 1.584,
-      "p99": 1.657
+      "p50": 1.528,
+      "p95": 1.592,
+      "p99": 1.701
     },
     "aigf.get_risk": {
       "budget_p95": 10.0,
-      "mean": 2.276,
+      "mean": 2.347,
       "n": 100,
-      "p50": 2.262,
-      "p95": 2.326,
-      "p99": 2.405
+      "p50": 2.338,
+      "p95": 2.409,
+      "p99": 2.514
     },
     "aigf.list_risks": {
       "budget_p95": 10.0,
-      "mean": 2.046,
+      "mean": 2.078,
       "n": 100,
-      "p50": 2.037,
-      "p95": 2.134,
-      "p99": 2.239
+      "p50": 2.074,
+      "p95": 2.119,
+      "p99": 2.229
     },
     "aigf.map_risks_to_controls": {
       "budget_p95": 10.0,
       "mean": 2.105,
       "n": 100,
-      "p50": 2.095,
-      "p95": 2.198,
-      "p99": 2.281
+      "p50": 2.096,
+      "p95": 2.174,
+      "p99": 2.273
     },
     "aigf.search_framework": {
       "budget_p95": 25.0,
-      "mean": 2.239,
+      "mean": 2.207,
       "n": 100,
-      "p50": 2.235,
-      "p95": 2.305,
-      "p99": 2.391
+      "p50": 2.197,
+      "p95": 2.249,
+      "p99": 2.345
     },
     "aigf.search_status": {
       "budget_p95": 5.0,
-      "mean": 0.639,
+      "mean": 0.651,
       "n": 100,
-      "p50": 0.633,
+      "p50": 0.655,
       "p95": 0.683,
-      "p99": 0.78
+      "p99": 0.782
     },
     "cdm.describe_type": {
       "budget_p95": 5.0,
-      "mean": 1.372,
+      "mean": 1.36,
       "n": 100,
-      "p50": 1.367,
-      "p95": 1.434,
-      "p99": 1.501
+      "p50": 1.349,
+      "p95": 1.419,
+      "p99": 1.467
     },
     "cdm.explain_event": {
       "budget_p95": 10.0,
-      "mean": 0.872,
+      "mean": 0.871,
       "n": 100,
-      "p50": 0.871,
-      "p95": 0.901,
-      "p99": 0.99
+      "p50": 0.872,
+      "p95": 0.913,
+      "p99": 1.007
     },
     "cdm.list_types": {
       "budget_p95": 10.0,
-      "mean": 6.796,
+      "mean": 6.812,
       "n": 100,
-      "p50": 6.145,
-      "p95": 6.998,
-      "p99": 8.861
+      "p50": 6.144,
+      "p95": 6.939,
+      "p99": 7.155
     },
     "cdm.search_types": {
       "budget_p95": 25.0,
-      "mean": 2.715,
+      "mean": 2.721,
       "n": 100,
       "p50": 2.672,
-      "p95": 2.941,
-      "p99": 2.995
+      "p95": 2.903,
+      "p99": 3.095
     },
     "cdm.validate_object": {
       "budget_p95": 150.0,
-      "mean": 19.539,
+      "mean": 19.435,
       "n": 100,
-      "p50": 19.506,
-      "p95": 19.845,
-      "p99": 21.533
+      "p50": 19.437,
+      "p95": 19.756,
+      "p99": 19.951
     },
     "fdc3.get_context_schema": {
       "budget_p95": 5.0,
-      "mean": 1.139,
+      "mean": 1.141,
       "n": 100,
-      "p50": 1.133,
-      "p95": 1.2,
-      "p99": 1.249
+      "p50": 1.132,
+      "p95": 1.192,
+      "p99": 1.264
     },
     "fdc3.list_intents": {
       "budget_p95": 10.0,
-      "mean": 2.275,
+      "mean": 2.286,
       "n": 100,
-      "p50": 2.268,
-      "p95": 2.332,
-      "p99": 2.438
+      "p50": 2.282,
+      "p95": 2.353,
+      "p99": 2.402
     },
     "fdc3.suggest_intent": {
       "budget_p95": 10.0,
-      "mean": 1.72,
+      "mean": 1.706,
       "n": 100,
-      "p50": 1.702,
-      "p95": 1.81,
-      "p99": 1.927
+      "p50": 1.692,
+      "p95": 1.757,
+      "p99": 1.902
     },
     "fdc3.validate_context": {
       "budget_p95": 10.0,
-      "mean": 0.832,
+      "mean": 0.83,
       "n": 100,
-      "p50": 0.828,
-      "p95": 0.906,
-      "p99": 0.98
+      "p50": 0.83,
+      "p95": 0.856,
+      "p99": 0.957
     }
   },
   "latency_ms_p95": {
-    "aigf.find_by_external_reference": 1.97,
-    "aigf.get_control": 1.584,
-    "aigf.get_risk": 2.326,
-    "aigf.list_risks": 2.134,
-    "aigf.map_risks_to_controls": 2.198,
-    "aigf.search_framework": 2.305,
+    "aigf.find_by_external_reference": 1.718,
+    "aigf.get_control": 1.592,
+    "aigf.get_risk": 2.409,
+    "aigf.list_risks": 2.119,
+    "aigf.map_risks_to_controls": 2.174,
+    "aigf.search_framework": 2.249,
     "aigf.search_status": 0.683,
-    "cdm.describe_type": 1.434,
-    "cdm.explain_event": 0.901,
-    "cdm.list_types": 6.998,
-    "cdm.search_types": 2.941,
-    "cdm.validate_object": 19.845,
-    "fdc3.get_context_schema": 1.2,
-    "fdc3.list_intents": 2.332,
-    "fdc3.suggest_intent": 1.81,
-    "fdc3.validate_context": 0.906
+    "cdm.describe_type": 1.419,
+    "cdm.explain_event": 0.913,
+    "cdm.list_types": 6.939,
+    "cdm.search_types": 2.903,
+    "cdm.validate_object": 19.756,
+    "fdc3.get_context_schema": 1.192,
+    "fdc3.list_intents": 2.353,
+    "fdc3.suggest_intent": 1.757,
+    "fdc3.validate_context": 0.856
   },
   "retrieval": {
     "misses": [
@@ -579,7 +579,7 @@
       ],
       "upstream_commit": "7728f95121602b50cc9f980b3a05cb80e8c733e2",
       "upstream_ref": "main",
-      "version": "0.2.0"
+      "version": "0.2.1"
     },
     "cdm": {
       "resource_count": 4,
@@ -598,7 +598,7 @@
       ],
       "upstream_commit": "efe1cb15c950ec28ddcd1e18f56c9dd53737958d",
       "upstream_ref": "7.4.0",
-      "version": "0.2.0"
+      "version": "0.2.1"
     },
     "fdc3": {
       "resource_count": 4,
@@ -617,7 +617,7 @@
       ],
       "upstream_commit": "0d71e7fb1b7a0f660c3efa7ba3ed20562673de40",
       "upstream_ref": "v2.2.3",
-      "version": "0.2.0"
+      "version": "0.2.1"
     }
   },
   "tests": {
