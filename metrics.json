@@ -1,6 +1,6 @@
 {
   "agent": {},
-  "commit": "52bdda97b191b039bff9e1457272bde5c393aed6",
+  "commit": "97425b35522830f114c99ec1d22a73962bf1f5a3",
   "exposure": {
     "aigf.controls": 23,
     "aigf.crosswalk_refs": 765,
@@ -22,154 +22,154 @@
     "resources_total": 14,
     "tools_total": 29
   },
-  "generated_at": "2026-10-05T16:53:32+00:00",
+  "generated_at": "2026-10-05T17:08:41+00:00",
   "latency_detail": {
     "aigf.find_by_external_reference": {
       "budget_p95": 10.0,
-      "mean": 1.616,
+      "mean": 1.324,
       "n": 100,
-      "p50": 1.612,
-      "p95": 1.669,
-      "p99": 1.753
+      "p50": 1.304,
+      "p95": 1.543,
+      "p99": 1.6
     },
     "aigf.get_control": {
       "budget_p95": 10.0,
-      "mean": 1.504,
+      "mean": 1.182,
       "n": 100,
-      "p50": 1.499,
-      "p95": 1.544,
-      "p99": 1.67
+      "p50": 1.174,
+      "p95": 1.257,
+      "p99": 1.328
     },
     "aigf.get_risk": {
       "budget_p95": 10.0,
-      "mean": 2.262,
+      "mean": 1.763,
       "n": 100,
-      "p50": 2.244,
-      "p95": 2.312,
-      "p99": 2.489
+      "p50": 1.734,
+      "p95": 1.927,
+      "p99": 2.109
     },
     "aigf.list_risks": {
       "budget_p95": 10.0,
-      "mean": 2.022,
+      "mean": 1.71,
       "n": 100,
-      "p50": 2.013,
-      "p95": 2.097,
-      "p99": 2.162
+      "p50": 1.716,
+      "p95": 1.841,
+      "p99": 1.898
     },
     "aigf.map_risks_to_controls": {
       "budget_p95": 10.0,
-      "mean": 2.061,
+      "mean": 1.602,
       "n": 100,
-      "p50": 2.053,
-      "p95": 2.158,
-      "p99": 2.206
+      "p50": 1.583,
+      "p95": 1.728,
+      "p99": 1.764
     },
     "aigf.search_framework": {
       "budget_p95": 25.0,
-      "mean": 3.065,
+      "mean": 2.445,
       "n": 100,
-      "p50": 3.059,
-      "p95": 3.167,
-      "p99": 3.281
+      "p50": 2.418,
+      "p95": 2.671,
+      "p99": 2.892
     },
     "aigf.search_status": {
       "budget_p95": 5.0,
-      "mean": 0.605,
+      "mean": 0.581,
       "n": 100,
-      "p50": 0.606,
-      "p95": 0.622,
-      "p99": 0.731
+      "p50": 0.573,
+      "p95": 0.666,
+      "p99": 0.746
     },
     "cdm.describe_type": {
       "budget_p95": 5.0,
-      "mean": 1.339,
+      "mean": 1.177,
       "n": 100,
-      "p50": 1.331,
-      "p95": 1.371,
-      "p99": 1.509
+      "p50": 1.167,
+      "p95": 1.334,
+      "p99": 1.38
     },
     "cdm.explain_event": {
       "budget_p95": 10.0,
-      "mean": 0.86,
+      "mean": 0.771,
       "n": 100,
-      "p50": 0.86,
-      "p95": 0.883,
-      "p99": 0.974
+      "p50": 0.76,
+      "p95": 0.861,
+      "p99": 0.931
     },
     "cdm.list_types": {
       "budget_p95": 10.0,
-      "mean": 6.822,
+      "mean": 5.428,
       "n": 100,
-      "p50": 6.115,
-      "p95": 7.056,
-      "p99": 7.212
+      "p50": 4.827,
+      "p95": 5.695,
+      "p99": 5.939
     },
     "cdm.search_types": {
       "budget_p95": 25.0,
-      "mean": 3.37,
+      "mean": 2.999,
       "n": 100,
-      "p50": 3.359,
-      "p95": 3.529,
-      "p99": 3.641
+      "p50": 3.02,
+      "p95": 3.262,
+      "p99": 3.476
     },
     "cdm.validate_object": {
       "budget_p95": 150.0,
-      "mean": 38.72,
+      "mean": 29.753,
       "n": 100,
-      "p50": 38.612,
-      "p95": 39.491,
-      "p99": 39.709
+      "p50": 29.656,
+      "p95": 30.908,
+      "p99": 31.723
     },
     "fdc3.get_context_schema": {
       "budget_p95": 5.0,
-      "mean": 1.125,
+      "mean": 0.977,
       "n": 100,
-      "p50": 1.12,
-      "p95": 1.16,
-      "p99": 1.238
+      "p50": 0.966,
+      "p95": 1.068,
+      "p99": 1.149
     },
     "fdc3.list_intents": {
       "budget_p95": 10.0,
-      "mean": 2.303,
+      "mean": 1.786,
       "n": 100,
-      "p50": 2.297,
-      "p95": 2.37,
-      "p99": 2.454
+      "p50": 1.768,
+      "p95": 1.983,
+      "p99": 2.187
     },
     "fdc3.suggest_intent": {
       "budget_p95": 10.0,
-      "mean": 1.679,
+      "mean": 1.372,
       "n": 100,
-      "p50": 1.671,
-      "p95": 1.736,
-      "p99": 1.819
+      "p50": 1.351,
+      "p95": 1.492,
+      "p99": 1.57
     },
     "fdc3.validate_context": {
       "budget_p95": 10.0,
-      "mean": 0.824,
+      "mean": 0.691,
       "n": 100,
-      "p50": 0.821,
-      "p95": 0.848,
-      "p99": 0.973
+      "p50": 0.677,
+      "p95": 0.772,
+      "p99": 0.89
     }
   },
   "latency_ms_p95": {
-    "aigf.find_by_external_reference": 1.669,
-    "aigf.get_control": 1.544,
-    "aigf.get_risk": 2.312,
-    "aigf.list_risks": 2.097,
-    "aigf.map_risks_to_controls": 2.158,
-    "aigf.search_framework": 3.167,
-    "aigf.search_status": 0.622,
-    "cdm.describe_type": 1.371,
-    "cdm.explain_event": 0.883,
-    "cdm.list_types": 7.056,
-    "cdm.search_types": 3.529,
-    "cdm.validate_object": 39.491,
-    "fdc3.get_context_schema": 1.16,
-    "fdc3.list_intents": 2.37,
-    "fdc3.suggest_intent": 1.736,
-    "fdc3.validate_context": 0.848
+    "aigf.find_by_external_reference": 1.543,
+    "aigf.get_control": 1.257,
+    "aigf.get_risk": 1.927,
+    "aigf.list_risks": 1.841,
+    "aigf.map_risks_to_controls": 1.728,
+    "aigf.search_framework": 2.671,
+    "aigf.search_status": 0.666,
+    "cdm.describe_type": 1.334,
+    "cdm.explain_event": 0.861,
+    "cdm.list_types": 5.695,
+    "cdm.search_types": 3.262,
+    "cdm.validate_object": 30.908,
+    "fdc3.get_context_schema": 1.068,
+    "fdc3.list_intents": 1.983,
+    "fdc3.suggest_intent": 1.492,
+    "fdc3.validate_context": 0.772
   },
   "retrieval": {
     "misses": [
@@ -579,11 +579,11 @@
       ],
       "upstream_commit": "7728f95121602b50cc9f980b3a05cb80e8c733e2",
       "upstream_ref": "main",
-      "version": "0.2.2"
+      "version": "0.2.3"
     },
     "cdm": {
       "resource_count": 4,
-      "standard_version": "7.4.0",
+      "standard_version": "7.5.0",
       "tool_count": 9,
       "tools": [
         "describe_type",
@@ -596,9 +596,9 @@
         "server_info",
         "validate_object"
       ],
-      "upstream_commit": "efe1cb15c950ec28ddcd1e18f56c9dd53737958d",
-      "upstream_ref": "7.4.0",
-      "version": "0.2.2"
+      "upstream_commit": "be51926a9e3453f0a2a61da9feb14a3137878052",
+      "upstream_ref": "7.5.0",
+      "version": "0.2.3"
     },
     "fdc3": {
       "resource_count": 4,
@@ -617,7 +617,7 @@
       ],
       "upstream_commit": "0d71e7fb1b7a0f660c3efa7ba3ed20562673de40",
       "upstream_ref": "v2.2.3",
-      "version": "0.2.2"
+      "version": "0.2.3"
     }
   },
   "tests": {
