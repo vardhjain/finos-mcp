@@ -9,6 +9,9 @@ pushes a multi-arch image with SBOM and provenance to `ghcr.io`.
 git tag -a v0.1.1 -m "..." && git push origin v0.1.1
 ```
 
+Each server declares a minimum `finos-mcp-core` version in its `pyproject.toml`. Raise it in a
+release where a server starts to rely on something new in core, including a newer MCP SDK.
+
 Publishing to PyPI is **off by default** and does not happen on a tag until it is switched on
 below, so a tag is always safe to cut.
 

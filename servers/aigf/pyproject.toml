@@ -6,14 +6,14 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
 keywords = ["mcp", "model-context-protocol", "finos", "llm", "agents"]
-dependencies = ["finos-mcp-core"]
+dependencies = ["finos-mcp-core>=0.2.0"]
 
 [project.scripts]
 finos-mcp-aigf = "finos_mcp.aigf.__main__:main"
 
 [project.optional-dependencies]
 semantic = [
-    "finos-mcp-core[semantic]",
+    "finos-mcp-core[semantic]>=0.2.0",
 ]
 
 [project.urls]

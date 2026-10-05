@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- The three server packages now require `finos-mcp-core>=0.2.0`. They had no minimum, so
+  upgrading only a server could leave an older core, and with it an older MCP SDK, in place.
+
 ## 0.2.0 — 2026-10-04
 
 ### Changed
