@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- The weekly vendor check now compares the vendored CDM versions with Maven Central and
+  keeps one issue open while a newer stable release exists. Before, it only re-fetched the
+  versions already vendored, so a new CDM release went unnoticed.
+
 ## 0.2.2 — 2026-10-05
 
 Fixes from a line-by-line review of the three servers. Each has a regression test.

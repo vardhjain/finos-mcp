@@ -49,3 +49,36 @@ jobs:
           commit-message: "chore(vendor): resync upstream content"
           body-path: /tmp/stat.txt
           labels: vendor
+
+  # The resync above re-fetches the CDM versions already vendored, so it cannot notice a new
+  # CDM release. This job compares them with Maven Central and keeps one issue open while a
+  # newer stable release exists. It does not bump: that is a reviewed change (see the issue).
+  cdm-releases:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TITLE: "A newer CDM release is available"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - run: uv sync --all-packages
+      - name: Compare vendored CDM versions with Maven Central
+        id: check
+        run: uv run python -m finos_mcp_evals.cdm_release_check --out /tmp/cdm-releases.md
+      - name: Open or update the tracking issue
+        if: steps.check.outputs.newer == 'true'
+        run: |
+          cat /tmp/cdm-releases.md >> "$GITHUB_STEP_SUMMARY"
+          number=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title \
+            --jq "[.[] | select(.title == \"$TITLE\")][0].number // empty")
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file /tmp/cdm-releases.md
+          else
+            gh issue create --title "$TITLE" --body-file /tmp/cdm-releases.md --label dependencies
+          fi
