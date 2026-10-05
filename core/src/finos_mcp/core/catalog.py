@@ -53,6 +53,12 @@ _NORM_RE = re.compile(r"[\s_\-:]+|(?<!\d)[./]|[./](?!\d)")
 _TRIVIAL_WORDS = frozenset({"the", "and", "for", "are", "with", "that", "this", "from", "not"})
 
 
+def _has_substantial_word(query: str) -> bool:
+    """False for queries made only of one- or two-letter words and stopwords."""
+    words = re.findall(r"\w+", query.casefold())
+    return any(len(w) >= 3 and w not in _TRIVIAL_WORDS for w in words)
+
+
 def normalize_id(text: str) -> str:
     """Case-fold and strip separators: 'AIR-SEC-010', 'air sec 10', 'air_sec_010' all align."""
     t = _NORM_RE.sub("", text.strip().casefold())
@@ -332,6 +338,10 @@ class Catalog:
         # ranking could return fewer than k hits while more documents matched.
         lexical = self._lexical_rank(query, title_boost=title_boost, n=len(self._chunks))
         lex_lookup = {d: (rel, section, text) for d, rel, _raw, section, text in lexical}
+        if not lexical and not _has_substantial_word(query):
+            # Nothing matched by keyword and the query has no real word ("a", "the"): the
+            # dense model would still return its nearest documents, which mean nothing here.
+            return []
 
         if mode == "lexical" or self.semantic is None:
             order = [d for d, *_ in lexical]
@@ -382,8 +392,7 @@ class Catalog:
                 best[chunk.doc_index] = (rel, raw_rel, chunk.section, chunk.text)
         # title-only matches for docs BM25 missed entirely. Skipped for a query with no
         # substantial word: a one-letter or stopword query partially matches any title.
-        words = re.findall(r"\w+", query.casefold())
-        substantial = any(len(w) >= 3 and w not in _TRIVIAL_WORDS for w in words)
+        substantial = _has_substantial_word(query)
         for title, score, idx in (
             process.extract(query, self._titles, scorer=fuzz.partial_ratio, limit=5)
             if substantial

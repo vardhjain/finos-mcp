@@ -156,3 +156,19 @@ def test_large_catalog_skips_eager_embedding(clean_env: None) -> None:
     cat = Catalog(big_docs, kind="type", citation_uri=lambda d: f"test://{d.id}")
     assert cat.semantic is None
     assert "too large" in cat.semantic_status
+
+
+def test_trivial_query_gets_no_dense_only_hits(clean_env: None) -> None:
+    """A dense index always has nearest neighbours, even for "a". With no keyword match and
+    no real word in the query, hybrid search must return nothing rather than those."""
+
+    class EverythingIsNear:
+        def rank(self, query: str) -> list[tuple[int, float]]:
+            return [(i, 0.9) for i in range(len(DOCS))]
+
+    cat = make_catalog()
+    cat.semantic = EverythingIsNear()  # type: ignore[assignment]
+    assert cat.search("a", k=5, mode="hybrid") == []
+    assert cat.search("the", k=5, mode="hybrid") == []
+    # a real query still fuses lexical and dense results
+    assert cat.search("prompt injection", k=5, mode="hybrid")
