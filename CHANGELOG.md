@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 — 2026-10-05
 
 ### Fixed
 - The three server packages now require `finos-mcp-core>=0.2.0`. They had no minimum, so
