@@ -1,34 +1,20 @@
-"""Console entry point: ``finos-mcp-cdm [--transport stdio|streamable-http]``."""
+"""Console entry point: ``finos-mcp-cdm [--transport stdio|streamable-http]``.
+
+The options, including the Host and Origin allow-lists for HTTP, are in
+``finos_mcp.core.cli``.
+"""
 
 from __future__ import annotations
 
-import argparse
 import sys
+
+from finos_mcp.core.cli import serve
 
 from .server import create_server
 
-_LOOPBACK = frozenset({"127.0.0.1", "localhost", "::1"})
-
 
 def main(argv: list[str] | None = None) -> None:
-    ap = argparse.ArgumentParser(prog="finos-mcp-cdm", description=__doc__)
-    ap.add_argument("--transport", choices=["stdio", "streamable-http"], default="stdio")
-    ap.add_argument("--host", default="127.0.0.1")
-    ap.add_argument("--port", type=int, default=8001)
-    args = ap.parse_args(argv)
-    server = create_server()
-    if args.transport == "stdio":
-        server.run(transport="stdio")
-    else:
-        if args.host not in _LOOPBACK:
-            # The SDK validates Host and Origin headers only for a loopback bind.
-            print(
-                f"finos-mcp: listening on {args.host}, which is reachable from other machines. "
-                "The server has no authentication and does not check Host or Origin headers "
-                "on this address: put an authenticating reverse proxy in front of it.",
-                file=sys.stderr,
-            )
-        server.run(transport="streamable-http", host=args.host, port=args.port)
+    serve(create_server, prog="finos-mcp-cdm", default_port=8001, argv=argv)
 
 
 if __name__ == "__main__":

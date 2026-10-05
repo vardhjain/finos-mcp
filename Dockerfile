@@ -8,6 +8,11 @@
 # network calls, and the audit log goes to stderr unless FINOS_MCP_AUDIT_PATH says otherwise.
 # Run it locked down:  --read-only --cap-drop ALL --network none is enough for stdio-style use;
 # an HTTP deployment obviously keeps its port.
+#
+# The image binds 0.0.0.0, where the MCP SDK does not check Host or Origin headers by itself.
+# Say which ones are legitimate, so a web page cannot reach a port published on a workstation:
+#
+#   docker run --rm -p 8000:8000 -e FINOS_MCP_ALLOWED_HOSTS='localhost:*,127.0.0.1:*' #       ghcr.io/vardhjain/finos-mcp
 
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS build
 WORKDIR /src
