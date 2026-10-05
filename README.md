@@ -7,6 +7,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/finos-mcp-aigf?color=0f7a68)](https://pypi.org/project/finos-mcp-aigf/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-0f7a68)](LICENSE)
 [![tests](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.tests.passed&label=tests%20passing&color=0f7a68)](https://raw.githubusercontent.com/vardhjain/finos-mcp/metrics/metrics.json)
+[![coverage](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.tests.coverage_pct&suffix=%25&label=coverage&color=0f7a68)](https://raw.githubusercontent.com/vardhjain/finos-mcp/metrics/metrics.json)
 [![tools](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.exposure.tools_total&label=tools&color=0f7a68)](docs/tools.md)
 [![recall@5](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.retrieval.recall_at_5&label=retrieval%20recall%405&color=0f7a68)](evals/retrieval)
 [![hallucinated ids](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics-agent.json&query=%24.agent.hallucinated_id_rate&label=agent%20hallucinated%20ids&color=0f7a68)](evals/agent)
@@ -114,14 +115,14 @@ that file directly, so they show measurements from a specific commit.
 
 | Check | Result |
 |---|---|
-| Automated tests | 185 passing, 93.5% of the code exercised |
+| Automated tests | Over 200 passing, with more than 90% of the code exercised. The exact figures are on the badges above |
 | Finding the right record for a plain-language question (50 questions) | Correct answer in the top five 91.5% of the time |
 | An AI model answering 20 governance questions through the server | 0 invented ids; 95% of answers cited a valid id |
 | Response time per tool call | A few milliseconds on the benchmarked tools |
 
-Test and search figures are from the 0.2.4 release (October 2026). The model test uses
-Claude Haiku 4.5 and runs nightly; its figures are from its last completed run, on
-14 September 2026.
+The badges update on every push to `main`, so they are the current figures; the search
+result in this table is from October 2026. The model test uses Claude Haiku 4.5 and runs
+nightly; its figures are from its last completed run, on 14 September 2026.
 
 Building this also turned up 15 defects in the upstream standards, recorded in
 [docs/upstream-findings.md](docs/upstream-findings.md). The first has been reported to FINOS
