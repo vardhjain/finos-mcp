@@ -46,14 +46,18 @@ def _tokenize(texts: list[str]) -> Any:
     return bm25s.tokenize(texts, stopwords="en", stemmer=_STEMMER, show_progress=False)
 
 
-_NORM_RE = re.compile(r"[\s_\-./:]+")
+# Separators that carry no meaning in an id. A '.' or '/' between two digits is kept:
+# "1.0" is a decimal, not another way of writing id 10.
+_NORM_RE = re.compile(r"[\s_\-:]+|(?<!\d)[./]|[./](?!\d)")
+# Words too common to justify a title-only search hit.
+_TRIVIAL_WORDS = frozenset({"the", "and", "for", "are", "with", "that", "this", "from", "not"})
 
 
 def normalize_id(text: str) -> str:
     """Case-fold and strip separators: 'AIR-SEC-010', 'air sec 10', 'air_sec_010' all align."""
     t = _NORM_RE.sub("", text.strip().casefold())
-    # collapse zero-padded trailing numbers: airsec010 -> airsec10
-    return re.sub(r"(?<=[a-z])0+(\d)", r"\1", t)
+    # collapse zero-padded numbers: airsec010 -> airsec10, and a bare 010 -> 10
+    return re.sub(r"(?:(?<=[a-z])|^)0+(\d)", r"\1", t)
 
 
 def slugify(text: str) -> str:
@@ -277,6 +281,9 @@ class Catalog:
             if best_score >= 90 and best_score - runner_up >= 5:
                 return self._docs[matches[0][2]]
             candidates = [self._docs[m[2]].id for m in matches]
+            if len(candidates) == 1:
+                # One weak match is a suggestion, not an ambiguity between several.
+                raise not_found(self.kind, query, hint=f"Did you mean {candidates[0]}?")
             raise ambiguous(self.kind, query, candidates)
         raise not_found(
             self.kind,
@@ -320,12 +327,10 @@ class Catalog:
         if mode == "dense":
             return self._dense_hits(query, k=k, predicate=predicate)
 
-        lex_n = (
-            min(len(self._chunks), max(k * 4, 20))
-            if mode == "lexical"
-            else min(len(self._chunks), max(k * 8, 50))
-        )
-        lexical = self._lexical_rank(query, title_boost=title_boost, n=lex_n)
+        # Rank every chunk. A cap here silently dropped matching documents: several chunks
+        # collapse into one document and the predicate then discards more, so a capped
+        # ranking could return fewer than k hits while more documents matched.
+        lexical = self._lexical_rank(query, title_boost=title_boost, n=len(self._chunks))
         lex_lookup = {d: (rel, section, text) for d, rel, _raw, section, text in lexical}
 
         if mode == "lexical" or self.semantic is None:
@@ -375,9 +380,14 @@ class Catalog:
             prev = best.get(chunk.doc_index)
             if prev is None or rel > prev[0]:
                 best[chunk.doc_index] = (rel, raw_rel, chunk.section, chunk.text)
-        # title-only matches for docs BM25 missed entirely
-        for title, score, idx in process.extract(
-            query, self._titles, scorer=fuzz.partial_ratio, limit=5
+        # title-only matches for docs BM25 missed entirely. Skipped for a query with no
+        # substantial word: a one-letter or stopword query partially matches any title.
+        words = re.findall(r"\w+", query.casefold())
+        substantial = any(len(w) >= 3 and w not in _TRIVIAL_WORDS for w in words)
+        for title, score, idx in (
+            process.extract(query, self._titles, scorer=fuzz.partial_ratio, limit=5)
+            if substantial
+            else []
         ):
             if idx not in best and score >= 85:
                 best[idx] = (
@@ -454,8 +464,10 @@ class Catalog:
 def _snippet(text: str, query: str, width: int = 240) -> str:
     body = " ".join(text.split())
     terms = [t for t in re.findall(r"\w+", query.casefold()) if len(t) > 2]
-    low = body.casefold()
-    pos = min((low.find(t) for t in terms if low.find(t) >= 0), default=-1)
+    # Search the text itself, case-insensitively: an offset found in a casefolded copy is
+    # wrong wherever casefolding changes the length of what precedes the match.
+    found = [m.start() for t in terms if (m := re.search(re.escape(t), body, re.IGNORECASE))]
+    pos = min(found, default=-1)
     if pos < 0:
         return body[:width] + ("…" if len(body) > width else "")
     start = max(0, pos - width // 3)

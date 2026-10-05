@@ -11,7 +11,7 @@ from mcp.client import Client
 from mcp.shared.exceptions import MCPError
 
 from finos_mcp.aigf.server import create_server, state
-from finos_mcp.core import ErrorEnvelope
+from finos_mcp.core import ErrorEnvelope, runtime_for
 
 EXPECTED_TOOLS = {
     "list_risks",
@@ -272,3 +272,54 @@ async def test_prompts_are_registered(client: Client) -> None:
     assert {p.name for p in prompts} == {"assess_use_case", "control_gap_analysis"}
     got = await client.get_prompt("assess_use_case", {"description": "RAG chatbot"})
     assert "map_risks_to_controls" in got.messages[0].content.text  # type: ignore[union-attr]
+
+
+@pytest.mark.anyio
+async def test_search_returns_k_hits_when_k_documents_match(client: Client) -> None:
+    """A cap on ranked chunks used to drop matching documents, so a scoped search returned
+    fewer than k hits while more than k risks matched."""
+    for scope, k in (("risks", 10), ("risks", 20), ("controls", 20)):
+        args = {"query": "data", "scope": scope, "k": k}
+        res = _structured(await client.call_tool("search_framework", args))
+        assert len(res["hits"]) == k, (scope, k)
+
+
+@pytest.mark.anyio
+async def test_one_weak_title_match_is_a_suggestion_not_an_ambiguity(client: Client) -> None:
+    env = _error(await client.call_tool("get_control", {"id": "mcp server security"}))
+    assert env.code == "not_found" and "AIR-PREV-020" in (env.hint or "")
+
+
+@pytest.mark.anyio
+async def test_decimal_like_ids_do_not_resolve_to_another_record(
+    client: Client, server: Any
+) -> None:
+    runtime_for(server).limiter.reset()  # seven get_risk calls exceed one burst
+    for bogus in ("1.0", "1/0", "ri-1.0"):
+        assert _error(await client.call_tool("get_risk", {"id": bogus})).code == "not_found"
+    for same in ("10", "010", "RI-010", "air sec 10"):
+        assert _structured(await client.call_tool("get_risk", {"id": same}))["id"] == "AIR-SEC-010"
+
+
+@pytest.mark.anyio
+async def test_framework_filter_ignores_case(client: Client) -> None:
+    args = {"key": "sa-9", "framework": " NIST-SP-800-53R5"}
+    assert _structured(await client.call_tool("find_by_external_reference", args))["matches"]
+    args = {"key": "sa-9", "framework": "no-such-framework"}
+    assert _error(await client.call_tool("find_by_external_reference", args)).code == "not_found"
+
+
+@pytest.mark.anyio
+async def test_section_resource_includes_its_subsections(client: Client) -> None:
+    uri = "aigf://control/AIR-PREV-018/section/implementation-guidance"
+    text = (await client.read_resource(uri)).contents[0].text  # type: ignore[union-attr]
+    assert text.startswith("## Implementation Guidance") and len(text) > 500
+    assert "\n### " in text
+
+
+@pytest.mark.anyio
+async def test_trivial_queries_return_no_title_only_hits(client: Client) -> None:
+    for query in ("a", "the"):
+        assert (
+            _structured(await client.call_tool("search_framework", {"query": query}))["hits"] == []
+        )

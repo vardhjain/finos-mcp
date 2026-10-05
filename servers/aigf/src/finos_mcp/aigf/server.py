@@ -465,10 +465,16 @@ def find_by_external_reference(key: str, framework: str | None = None) -> Extern
     if not key.strip():
         raise invalid_input("key must not be empty.")
     fw = state().framework
-    if framework is not None and framework not in fw.references:
-        raise not_found(
-            "reference framework", framework, hint="Call list_reference_frameworks for names."
-        )
+    if framework is not None:
+        # Case-insensitive, like map_control_to_external.
+        canonical = _framework_name(framework)
+        if canonical is None:
+            raise not_found(
+                "reference framework",
+                framework,
+                hint="Call list_reference_frameworks for names.",
+            )
+        framework = canonical
     wanted = _norm_key(key)
     matches: list[ExternalRefMatch] = []
     records: list[tuple[Literal["risk", "control"], Risk | Control]] = [
@@ -626,7 +632,7 @@ def create_server() -> MCPServer[Any]:
         mime_type="application/json",
     )
     def reference_dataset(framework: str) -> str:
-        rf = state().framework.references.get(framework)
+        rf = state().framework.references.get(_framework_name(framework) or "")
         if rf is None:
             raise ResourceNotFoundError(f"reference framework {framework!r} not found")
         return json.dumps(_reference_payload(rf), indent=2)
@@ -707,9 +713,22 @@ def create_server() -> MCPServer[Any]:
     return server
 
 
+def _framework_name(name: str) -> str | None:
+    """The canonical reference-framework name for `name`, ignoring case and outer spaces."""
+    wanted = name.strip().casefold()
+    return next((f for f in state().framework.references if f.casefold() == wanted), None)
+
+
 def _section(doc: Document, slug: str) -> str:
-    for s in doc.sections:
+    for i, s in enumerate(doc.sections):
         if s.slug == slug:
-            return f"## {s.heading}\n\n{s.body}\n"
+            parts = [f"## {s.heading}\n\n{s.body}\n"]
+            # A heading whose content sits under sub-headings has an empty body of its
+            # own, so include every deeper section that follows it.
+            for sub in doc.sections[i + 1 :]:
+                if sub.level <= s.level:
+                    break
+                parts.append(f"{'#' * sub.level} {sub.heading}\n\n{sub.body}\n")
+            return "\n".join(parts)
     known = ", ".join(s.slug for s in doc.sections)
     raise ResourceNotFoundError(f"section {slug!r} not found in {doc.id}; known: {known}")

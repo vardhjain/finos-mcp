@@ -167,3 +167,12 @@ def test_vendor_manifest_roundtrip_and_tamper_detection(tmp_path: Path) -> None:
     (tmp_path / "c.txt").write_text("new", encoding="utf-8")
     with pytest.raises(VendorIntegrityError, match="extra"):
         verify(tmp_path)
+
+
+def test_snippet_is_centred_where_casefolding_changes_length() -> None:
+    """U+0130 casefolds to two characters, so an offset taken from a casefolded copy of the
+    text lands late in the original."""
+    from finos_mcp.core.catalog import _snippet
+
+    text = "İ" * 100 + " target here " + "pad " * 100
+    assert "target" in _snippet(text, "target")
