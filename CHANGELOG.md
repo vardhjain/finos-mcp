@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.5 — 2026-10-05
 
 Fixes from a review of the transports, the safety middleware, hybrid search and the
 maintenance scripts. Each has a regression test.
