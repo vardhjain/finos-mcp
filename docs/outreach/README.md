@@ -31,11 +31,11 @@ The full bug report as submitted is kept at
 | Question: 18 of 28 official 7.2.0 samples fail the published 7.2.0 schema on `required` alone | `finos/common-domain-model` | A question, not a bug report: the samples may be deliberately partial fixtures. Worth asking, but only once phrased so it does not read as an accusation. |
 | Enhancement: publish the intent-to-context mapping as machine-readable JSON | `finos/FDC3` | Genuinely useful to any consumer, since the mapping exists only as markdown bullet lists today. Not yet written up. |
 
-## Drafted, awaiting a decision to file
+## Filed at finos/FDC3
 
-| Draft | Target | What it is |
+| Item | What it is | Status |
 |---|---|---|
-| [fdc3-issue-chat-intent-results.md](fdc3-issue-chat-intent-results.md) | `finos/FDC3` | Finding 15: `StartChat` and `SendChatMessage` read a chat room from the intent result in their example code but declare no result. Drafted 2026-10-05; no existing issue covers it. |
+| [Issue #2270](https://github.com/finos/FDC3/issues/2270) | Finding 15: `StartChat` and `SendChatMessage` read a chat room from the intent result in their example code but declare no result; also notes a missing `await` in each snippet. Filed 2026-10-05 as a Minor Issue. Text kept at [fdc3-issue-chat-intent-results.md](fdc3-issue-chat-intent-results.md). | Open |
 
 ## Notes for filing anything else here
 

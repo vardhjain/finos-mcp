@@ -7,7 +7,8 @@ in tests, so an upstream fix shows up as a test diff on the next sync.
 Finding 1 has been reported and fixed upstream-facing:
 [issue #378](https://github.com/finos/ai-governance-framework/issues/378) and
 [PR #380](https://github.com/finos/ai-governance-framework/pull/380). The rest are candidates;
-[outreach/README.md](outreach/README.md) tracks which have been filed and why the others have
+[outreach/README.md](outreach/README.md) tracks which have been filed (finding 15 is
+[finos/FDC3#2270](https://github.com/finos/FDC3/issues/2270)) and why the others have
 not.
 
 ## AI Governance Framework (finos/ai-governance-framework)
@@ -80,4 +81,5 @@ concerns the `finos-cdm` 7.2.0 package and was not re-tested.
     declares a result the way `ViewChat` and `CreateInteraction` do (no "SHOULD return
     context as a result" and no output section). finos-mcp reports no result for them,
     because the specification text states none; a consumer cannot tell whether
-    `fdc3.chat.room` is guaranteed. Pinned by a test.
+    `fdc3.chat.room` is guaranteed. Pinned by a test. Reported as
+    [finos/FDC3#2270](https://github.com/finos/FDC3/issues/2270).

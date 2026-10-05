@@ -1,6 +1,6 @@
 # Draft: StartChat and SendChatMessage do not declare their result
 
-**Status: drafted 2026-10-05, not filed.** Target: [`finos/FDC3`](https://github.com/finos/FDC3/issues).
+**Status: filed 2026-10-05 as [finos/FDC3#2270](https://github.com/finos/FDC3/issues/2270)**, using the repository's Minor Issue template.
 This is finding 15 in [../upstream-findings.md](../upstream-findings.md). A search of the
 FDC3 issue tracker for "StartChat result" and "SendChatMessage output" found nothing covering
 it, and the pages on `main` read the same as at `v2.2.3`.
