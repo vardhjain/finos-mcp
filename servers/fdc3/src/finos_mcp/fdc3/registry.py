@@ -137,6 +137,23 @@ class Fdc3Registry:
     def get_context(self, type_or_name: str) -> ContextType | None:
         return self._context_by_norm.get(_normalize(type_or_name))
 
+    def resolve_ref(self, ref: str, within: dict[str, Any]) -> dict[str, Any] | None:
+        """Resolve a ``file.schema.json#/pointer`` or ``#/pointer`` reference between the
+        vendored context schemas. Returns None for anything else (e.g. a ref into the API
+        schema package, which is not vendored)."""
+        filename, _, pointer = ref.partition("#")
+        if filename:
+            if filename not in self._schemas:
+                return None
+            node: Any = self._schemas.schema(filename)
+        else:
+            node = within
+        for token in [t for t in pointer.split("/") if t]:
+            if not isinstance(node, dict) or token not in node:
+                return None
+            node = node[token]
+        return node if isinstance(node, dict) else None
+
     def schema_for(self, type: str) -> dict[str, Any]:
         ct = self.get_context(type)
         if ct is None:
@@ -176,7 +193,10 @@ class Fdc3Registry:
                 ],
             )
         try:
-            return self._schemas.validate(obj, ct.filename)
+            report = self._schemas.validate(obj, ct.filename)
+            # The schema registry labels a report with the key it validated against (the
+            # schema filename); callers asked about a context type, so report that.
+            return report.model_copy(update={"type": ct.type})
         except Unresolvable as exc:
             # `fdc3.action`'s `app` property `$ref`s `../api/api.schema.json`, part of
             # the FDC3 API/wire schema package we deliberately do not vendor (PLAN.md

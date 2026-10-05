@@ -250,6 +250,10 @@ def suggest_intent(
         if ct is None:
             raise not_found("context type", context_type, hint="Call list_context_types.")
         resolved, detected = ct.type, "explicit"
+        if context is not None:
+            # Both given: check the object against the type the caller named, so a context
+            # of a different type is reported instead of silently ignored.
+            validation = reg.validate_context(context, ct.type)
     else:
         assert context is not None
         declared = context.get("type")
@@ -330,12 +334,26 @@ def _flatten(schema: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     """
     props: dict[str, Any] = {}
     required: list[str] = []
+    inherited: list[dict[str, Any]] = []
+    own: list[dict[str, Any]] = []
     for part in [schema, *schema.get("allOf", [])]:
-        if isinstance(part, dict):
-            props.update(part.get("properties", {}) or {})
-            for name in part.get("required", []) or []:
-                if name not in required:
-                    required.append(name)
+        if not isinstance(part, dict):
+            continue
+        ref = part.get("$ref")
+        if isinstance(ref, str):
+            # The base context: it is what makes `type` required on every context type.
+            target = registry().resolve_ref(ref, schema)
+            if target is not None:
+                inherited.append(target)
+        else:
+            own.append(part)
+    # Inherited parts first, so a type's own, more specific property spec wins.
+    for part in [*inherited, *own]:
+        props.update(part.get("properties", {}) or {})
+    for part in [*own, *inherited]:
+        for name in part.get("required", []) or []:
+            if name not in required:
+                required.append(name)
     return props, required
 
 
@@ -362,17 +380,38 @@ def _properties(schema: dict[str, Any]) -> list[PropertySummary]:
 
 
 def _structural_match(context: dict[str, Any]) -> str | None:
-    """Pick the context type whose schema the object violates least (ties: fewest props)."""
+    """Pick the one context type the object positively looks like, or None.
+
+    A candidate must validate once its `type` is filled in, and is then scored by evidence:
+    how many of the object's keys (and, one level down, the keys of its nested objects) the
+    schema declares. Validity alone is not evidence, because a schema that requires nothing
+    accepts every object. No evidence, or a tie for the best score, returns None rather than
+    a guess.
+    """
     reg = registry()
     probe = dict(context)
-    best: tuple[int, str] | None = None
+    scores: dict[str, int] = {}
     for ct in reg.context_types():
         probe["type"] = ct.type
-        report = reg.validate_context(probe, ct.type)
-        issues = len(report.issues)
-        if best is None or issues < best[0]:
-            best = (issues, ct.type)
-    return best[1] if best and best[0] == 0 else None
+        if reg.validate_context(probe, ct.type).issues:
+            continue
+        props, _ = _flatten(reg.schema_for(ct.type))
+        evidence = 0
+        for key, value in context.items():
+            if key == "type" or key not in props:
+                continue
+            evidence += 1
+            spec = props[key]
+            nested = spec.get("properties") if isinstance(spec, dict) else None
+            if isinstance(value, dict) and isinstance(nested, dict):
+                evidence += sum(1 for sub in value if sub in nested)
+        if evidence:
+            scores[ct.type] = evidence
+    if not scores:
+        return None
+    top = max(scores.values())
+    winners = [t for t, s in scores.items() if s == top]
+    return winners[0] if len(winners) == 1 else None
 
 
 # --------------------------------------------------------------------------- server

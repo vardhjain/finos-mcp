@@ -174,3 +174,51 @@ async def test_resources_and_server_info(client: Client) -> None:
     info = _ok(await client.call_tool("server_info", {}))
     assert info["read_only"] is True and info["standard_version"] == "2.2.3"
     assert info["counts"]["intents"] == 19
+
+
+@pytest.mark.anyio
+async def test_structural_match_needs_evidence(client: Client) -> None:
+    """A schema that requires nothing validates every object, so validity alone must not
+    pick a type: untyped objects used to resolve to fdc3.chat.initSettings."""
+
+    async def detect(context: dict[str, Any]) -> Any:
+        res = _ok(await client.call_tool("suggest_intent", {"context": context}))
+        assert res["detected_by"] == "structural_match"
+        return res["context_type"]
+
+    assert await detect({"id": {"ticker": "AAPL"}}) == "fdc3.instrument"
+    assert await detect({"id": {"email": "a@b.co"}}) == "fdc3.contact"
+    for unrecognisable in ({}, {"foo": 1}, {"name": "x"}):
+        assert await detect(unrecognisable) is None
+
+
+@pytest.mark.anyio
+async def test_schema_summary_inherits_the_base_context(client: Client) -> None:
+    """`type` is required by the base context every type refs, not by each type's own part."""
+    schema = _ok(await client.call_tool("get_context_schema", {"type": "fdc3.instrumentList"}))
+    assert set(schema["required"]) == {"instruments", "type"}
+    by_name = {p["name"]: p for p in schema["properties"]}
+    assert by_name["type"]["required"] is True
+
+
+@pytest.mark.anyio
+async def test_validation_report_names_the_context_type(client: Client) -> None:
+    report = _ok(
+        await client.call_tool("validate_context", {"context": {"type": "fdc3.instrument"}})
+    )
+    assert report["type"] == "fdc3.instrument" and report["valid"] is False
+
+
+@pytest.mark.anyio
+async def test_suggest_intent_reports_a_context_of_another_type(client: Client) -> None:
+    res = _ok(
+        await client.call_tool(
+            "suggest_intent",
+            {
+                "context": {"type": "fdc3.contact", "id": {"email": "a@b.co"}},
+                "context_type": "fdc3.instrument",
+            },
+        )
+    )
+    assert res["detected_by"] == "explicit" and res["context_type"] == "fdc3.instrument"
+    assert res["validation"]["valid"] is False
