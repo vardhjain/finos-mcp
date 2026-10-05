@@ -194,3 +194,46 @@ def test_dense_mode_skips_trivial_queries_and_dissimilar_documents(clean_env: No
     cat.semantic = Stub()  # type: ignore[assignment]
     assert cat.search("a", k=5, mode="dense") == []
     assert len(cat.search("prompt injection", k=5, mode="dense")) == 1
+
+
+class _FixedRanking:
+    """A stand-in dense index that returns one fixed ranking for every query."""
+
+    def __init__(self, ranking: list[tuple[int, float]]) -> None:
+        self._ranking = ranking
+
+    def rank(self, query: str) -> list[tuple[int, float]]:
+        return list(self._ranking)
+
+
+def test_hybrid_keeps_the_best_lexical_document_first(clean_env: None) -> None:
+    """Measured on the retrieval eval: plain fusion, and every narrower pinning rule tried,
+    gave a worse first result than always keeping the lexical winner on top."""
+    cat = make_catalog()
+    lexical_top = cat.search("allow list MCP servers agents call", k=3, mode="lexical")[0].id
+    dense_prefers_others = [(i, 0.9 - 0.1 * n) for n, i in enumerate(reversed(range(len(DOCS))))]
+    cat.semantic = _FixedRanking(dense_prefers_others)  # type: ignore[assignment]
+    hits = cat.search("allow list MCP servers agents call", k=3, mode="hybrid")
+    assert hits[0].id == lexical_top
+
+
+def test_a_dense_only_hit_reports_its_similarity_not_zero(clean_env: None) -> None:
+    cat = make_catalog()
+    lexical_ids = {h.id for h in cat.search("allow lists", k=10, mode="lexical")}
+    dense_only = next(i for i, d in enumerate(DOCS) if d.id not in lexical_ids)
+    cat.semantic = _FixedRanking([(dense_only, 0.6)])  # type: ignore[assignment]
+    hits = {h.id: h.score for h in cat.search("allow lists", k=10, mode="hybrid")}
+    assert hits[DOCS[dense_only].id] == 0.6
+
+
+def test_a_query_matching_nothing_gets_no_distant_neighbours(clean_env: None) -> None:
+    """With no keyword match, the relative floor alone returned the nearest documents
+    however dissimilar: unrelated queries peak around 0.15 with the default model."""
+    cat = make_catalog()
+    cat.semantic = _FixedRanking([(0, 0.14), (1, 0.08), (2, 0.05)])  # type: ignore[assignment]
+    assert cat.search("xyzzy qwerty", k=5, mode="hybrid") == []
+    cat.semantic = _FixedRanking([(0, 0.4), (1, 0.3), (2, 0.1)])  # type: ignore[assignment]
+    assert [h.id for h in cat.search("xyzzy qwerty", k=5, mode="hybrid")] == [
+        DOCS[0].id,
+        DOCS[1].id,
+    ]

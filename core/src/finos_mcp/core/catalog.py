@@ -32,6 +32,10 @@ _STEMMER = Stemmer.Stemmer("english")
 
 DEFAULT_EMBEDDING_MODEL = "minishlab/potion-base-4M"
 _RRF_K = 60
+# With no keyword match at all, a dense hit must clear this cosine similarity to count.
+# Measured on the AIGF catalog with the default model: unrelated queries peak around
+# 0.15, genuine ones start around 0.35.
+_DENSE_ONLY_MIN_SIMILARITY = 0.25
 _SEARCH_MODES = ("hybrid", "lexical", "dense")
 SearchMode = Literal["hybrid", "lexical", "dense"]
 # Embedding every document eagerly at Catalog construction is fine for a few hundred
@@ -315,12 +319,18 @@ class Catalog:
     ) -> list[SearchHit]:
         """Search `query` and return up to `k` hits, best first.
 
-        `mode="lexical"` is exactly today's BM25 + fuzzy-title-boost algorithm.
-        `mode="dense"` uses only the `SemanticIndex` (empty if unavailable).
-        `mode="hybrid"` (default) reciprocal-rank-fuses the two, except that a
-        clearly-confident lexical top hit (its BM25-only relevance, before the
-        title boost, is >= 90% of the corpus max) is kept in first place -- a
-        strong keyword/title match should not be bumped by a dense disagreement.
+        `mode="lexical"` is BM25 with a fuzzy title boost.
+        `mode="dense"` uses only the `SemanticIndex` (lexical if none is loaded).
+        `mode="hybrid"` (default) reciprocal-rank-fuses the two, then puts the best
+        lexical document first. That last step is unconditional, and measured: on the
+        retrieval eval it gives recall@1 0.52 against 0.48 for plain fusion, and narrower
+        rules (pin only on a title match, on full term coverage, or on a score margin) all
+        did worse. Dense search therefore reorders and adds to the results below first
+        place; it never displaces the top keyword match.
+
+        A hit's `score` is its lexical relevance. A document found only by the dense
+        index carries its cosine similarity instead, so scores are not comparable between
+        the two kinds and are not guaranteed to fall with rank in hybrid mode.
         `FINOS_MCP_SEARCH_MODE` (`hybrid`/`lexical`/`dense`) overrides `mode`
         for the whole process, e.g. to force lexical-only for an eval run.
         """
@@ -357,12 +367,24 @@ class Catalog:
         # rarely exactly zero for unrelated text the way BM25's term overlap is).
         # Keep only docs at least half as similar as the best dense match.
         dense_floor = 0.5 * dense_ranked[0][1] if dense_ranked else 0.0
-        dense_order = [d for d, sim in dense_ranked if sim >= dense_floor]
+        if not lexical:
+            # The relative floor alone lets a query that matches nothing return its nearest
+            # neighbours, however far away they are.
+            dense_floor = max(dense_floor, _DENSE_ONLY_MIN_SIMILARITY)
+        dense_kept = [(d, sim) for d, sim in dense_ranked if sim >= dense_floor]
+        dense_order = [d for d, _ in dense_kept]
         lexical_order = [d for d, *_ in lexical]
         fused = _reciprocal_rank_fusion(lexical_order, dense_order)
-        if lexical and lexical[0][2] >= 0.9:  # raw (pre-title-boost) BM25 relevance
+        if lexical:
+            # The best lexical document stays first (see the docstring for the evidence).
             top_doc = lexical[0][0]
             fused = [top_doc, *(d for d in fused if d != top_doc)]
+        for d, sim in dense_kept:
+            if d not in lex_lookup:
+                # Found by the dense index only: report its similarity, not 0.0, which
+                # reads as "no match" to whoever consumes the score.
+                doc = self._docs[d]
+                lex_lookup[d] = (sim, None, f"{doc.title}\n{doc.body[:300]}")
         return self._hits_from_order(fused, lex_lookup, query, k=k, predicate=predicate)
 
     def _lexical_rank(
