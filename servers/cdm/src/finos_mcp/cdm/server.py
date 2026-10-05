@@ -345,7 +345,7 @@ def get_sample(name: str) -> Sample:
 
 
 def list_samples(format: Literal["rune", "legacy"] | None = None) -> Samples:
-    """List the vendored sample documents (Rune-format from CDM 7.4.0, legacy from 6.29.0)."""
+    """List the vendored sample documents (Rune-format from CDM 7.5.0, legacy from 6.29.0)."""
     return Samples(
         samples=[
             SampleSummary(

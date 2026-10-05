@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+- `finos-mcp-cdm`: vendored CDM 7.5.0, replacing 7.4.0. The schema set (1142) and the sample
+  documents are unchanged; the legacy vintage stays at 6.29.0.
+
 ### Added
 - The weekly vendor check now compares the vendored CDM versions with Maven Central and
   keeps one issue open while a newer stable release exists. Before, it only re-fetched the

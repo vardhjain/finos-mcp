@@ -108,10 +108,10 @@ async def test_list_types_and_products(client: Client) -> None:
 
 @pytest.mark.anyio
 async def test_validate_rune_samples_normalise_cleanly(client: Client) -> None:
-    """Every official 7.4.0 Rune sample normalises without structural errors.
+    """Every official 7.5.0 Rune sample normalises without structural errors.
 
-    Pinned upstream discrepancy: the published cdm-json-schema 7.4.0 marks fields as
-    required that CDM's own 7.4.0 function-output samples omit (ClosedState.activityDate,
+    Pinned upstream discrepancy: the published cdm-json-schema 7.5.0 marks fields as
+    required that CDM's own 7.5.0 function-output samples omit (ClosedState.activityDate,
     ExecutionDetails, Underlier, DateAdjustments, ExerciseNoticeGiver). The validator
     reports those truthfully; anything *other* than a `required` miss would indicate a
     defect in the Rune-to-legacy normalisation, so that is what this test forbids.
@@ -250,7 +250,7 @@ async def test_search_samples_resources_and_info(client: Client) -> None:
     assert len(index["qualifiers"]) == 35 and "6.29.0" in index["schema_versions"]
     info = _ok(await client.call_tool("server_info", {}))
     assert info["counts"]["root_types"] == 16 and info["counts"]["qualify_functions"] == 35
-    assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.4.0"
+    assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.5.0"
 
 
 def _paths(report: dict[str, Any]) -> set[str]:

@@ -2,7 +2,7 @@
 
 Stdlib only (urllib, zipfile, json, pathlib, argparse). Usage::
 
-    uv run python servers/cdm/scripts/sync_upstream.py --version 7.4.0 --legacy-version 6.29.0
+    uv run python servers/cdm/scripts/sync_upstream.py --version 7.5.0 --legacy-version 6.29.0
 
 Three upstream sources feed ``servers/cdm/src/finos_mcp/cdm/_vendor/``:
 
@@ -68,7 +68,7 @@ ROSETTA_VENDOR_DIR = VENDOR_DIR / "rosetta"
 
 # Expected cdm-json-schema-<version>.zip sizes (bytes), per PLAN.md 1.2 -- used
 # only for a non-fatal sanity warning if Maven Central ever reshuffles a release.
-EXPECTED_SCHEMA_ZIP_SIZES = {"7.4.0": 946_888, "6.29.0": 393_944}
+EXPECTED_SCHEMA_ZIP_SIZES = {"7.5.0": 947168, "6.29.0": 393_944}
 
 LICENSE_URL = "https://github.com/finos/common-domain-model/blob/master/LICENSE.md"
 
@@ -164,7 +164,7 @@ def _cleanup_legacy_unbundled_layout() -> None:
 
 
 def _parse_schema_member(content: bytes) -> tuple[dict[str, Any], bool]:
-    """Parse one ``*.schema.json`` member. Two 7.4.0 enum files ship raw
+    """Parse one ``*.schema.json`` member. Two 7.5.0 enum files ship raw
     control characters inside string values, which strict ``json.loads``
     rejects; retried with ``strict=False`` (matching how the registry and
     server already read vendored JSON) when that happens. Returns
@@ -178,7 +178,7 @@ def _parse_schema_member(content: bytes) -> tuple[dict[str, Any], bool]:
 
 def _extract_schema_members(data: bytes) -> dict[str, bytes]:
     """Return ``{basename: content}`` for every ``*.schema.json`` member of
-    ``data``, which is normally a genuine zip (as for 7.4.0) -- but, it turns
+    ``data``, which is normally a genuine zip (as for 7.5.0) -- but, it turns
     out, ``cdm-json-schema-6.29.0.zip`` is actually a gzip-compressed tar
     archive despite its ``.zip`` extension and the ``application/zip``
     content-type Maven Central serves it with (confirmed via magic bytes and
@@ -408,7 +408,7 @@ def run_extraction(rosetta_dir: Path) -> tuple[int, int, int]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--version", required=True, help="CDM version to vendor, e.g. 7.4.0 (Rune JSON)"
+        "--version", required=True, help="CDM version to vendor, e.g. 7.5.0 (Rune JSON)"
     )
     parser.add_argument(
         "--legacy-version",
