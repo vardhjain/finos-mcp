@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.6 — 2026-10-05
+
+### Added
+- `--allowed-host` and `--allowed-origin` (or `FINOS_MCP_ALLOWED_HOSTS` and
+  `FINOS_MCP_ALLOWED_ORIGINS`) switch on Host and Origin checking for a server bound to a
+  non-loopback address, where the MCP SDK checks nothing by default. The three servers now
+  share one command line, in `finos_mcp.core.cli`.
+
+### Changed
+- A failed sync leaves the vendored tree as it was. The sync scripts used to clear what they
+  manage before downloading, so a network error part-way left a tree that no longer
+  verified. Downloads are also retried on timeouts and 429/5xx responses.
+- Hybrid search: a query with no keyword match no longer returns its nearest neighbours
+  however dissimilar, and a hit found only by the embedding model reports its similarity
+  instead of a score of 0.0.
+- Hybrid search keeps the best keyword match first, as before. The code used to describe
+  this as a confidence test that was in fact always true; it now says what it does, with the
+  measurements behind it (recall@1 0.52 against 0.48 for plain fusion on the retrieval eval).
+
 ## 0.2.5 — 2026-10-05
 
 Fixes from a review of the transports, the safety middleware, hybrid search and the

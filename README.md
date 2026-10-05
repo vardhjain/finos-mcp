@@ -77,8 +77,11 @@ uvx --python 3.12 finos-mcp-aigf --transport streamable-http --port 8000
 **As a container.** It needs no writable disk and no extra privileges:
 
 ```bash
-docker run --rm -p 8000:8000 --read-only --cap-drop ALL ghcr.io/vardhjain/finos-mcp
+docker run --rm -p 8000:8000 --read-only --cap-drop ALL     -e FINOS_MCP_ALLOWED_HOSTS='localhost:*,127.0.0.1:*' ghcr.io/vardhjain/finos-mcp
 ```
+
+The allowed-hosts setting makes the server refuse requests that arrive under any other host
+name, which stops a web page in your browser from reaching the port.
 
 Swap `finos-mcp-aigf` for `finos-mcp-cdm` or `finos-mcp-fdc3` to run the other servers.
 [examples/](examples/) has a short Python client and a LangGraph agent.
@@ -148,7 +151,7 @@ what changed in each release, [RELEASING.md](RELEASING.md) for how releases are 
 
 ## Status
 
-Version [0.2.5](https://github.com/vardhjain/finos-mcp/releases/tag/v0.2.5) is released on
+Version [0.2.6](https://github.com/vardhjain/finos-mcp/releases/tag/v0.2.6) is released on
 PyPI as [`finos-mcp-core`](https://pypi.org/project/finos-mcp-core/),
 [`finos-mcp-aigf`](https://pypi.org/project/finos-mcp-aigf/),
 [`finos-mcp-cdm`](https://pypi.org/project/finos-mcp-cdm/) and

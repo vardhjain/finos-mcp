@@ -1,12 +1,12 @@
 [project]
 name = "finos-mcp-fdc3"
-version = "0.2.5"
+version = "0.2.6"
 description = "Read-only MCP server for FDC3: intents, context schemas, validation and intent suggestion. Not affiliated with FINOS."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
 keywords = ["mcp", "model-context-protocol", "finos", "llm", "agents"]
-dependencies = ["finos-mcp-core>=0.2.5"]
+dependencies = ["finos-mcp-core>=0.2.6"]
 
 [project.scripts]
 finos-mcp-fdc3 = "finos_mcp.fdc3.__main__:main"

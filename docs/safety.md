@@ -27,6 +27,6 @@ validate documents an agent hands them. Nothing they do has a side effect outsid
 ## What is not covered
 
 - The output cap applies to tool results; a resource read returns the stored document whole.
-- The MCP SDK checks `Host` and `Origin` headers only when the server is bound to a loopback address. Bound to `0.0.0.0`, as in the container image, it does not, and the server prints a warning at startup.
+- The MCP SDK checks `Host` and `Origin` headers only when the server is bound to a loopback address. Bound to `0.0.0.0`, as in the container image, it does not unless told which are legitimate: pass `--allowed-host` and `--allowed-origin` (or `FINOS_MCP_ALLOWED_HOSTS` and `FINOS_MCP_ALLOWED_ORIGINS`, comma separated). Without them the server prints a warning at startup.
 - Authentication and transport security for HTTP deployments are the host's responsibility; the MCP SDK's auth hooks can be layered in front of the server.
 - The servers do not sandbox the process; they assume a normal Python runtime.
