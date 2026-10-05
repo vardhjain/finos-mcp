@@ -56,6 +56,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from finos_mcp.core.vendor import fetch, restore_on_failure
+
 UPSTREAM_REPO = "finos/common-domain-model"
 API_BASE = f"https://api.github.com/repos/{UPSTREAM_REPO}"
 RAW_BASE = f"https://raw.githubusercontent.com/{UPSTREAM_REPO}"
@@ -108,8 +110,7 @@ def _lf(data: bytes) -> bytes:
 def _get_json(url: str) -> Any:
     req = urllib.request.Request(url, headers=_headers(url))
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            return json.load(resp)
+        return json.loads(fetch(req, timeout=60))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         raise SystemExit(f"GitHub API request failed ({exc.code}) for {url}:\n{body}") from exc
@@ -118,8 +119,7 @@ def _get_json(url: str) -> Any:
 def _get_bytes(url: str) -> bytes:
     req = urllib.request.Request(url, headers=_headers(url, accept_json=False))
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            return resp.read()
+        return fetch(req, timeout=60)
     except urllib.error.HTTPError as exc:
         raise SystemExit(f"Download failed ({exc.code}) for {url}") from exc
 
@@ -430,7 +430,7 @@ def run_extraction(rosetta_dir: Path) -> tuple[int, int, int]:
     return len(qualify), len(root_types), len(choices)
 
 
-def main(argv: list[str] | None = None) -> int:
+def _sync(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--version", required=True, help="CDM version to vendor, e.g. 7.5.0 (Rune JSON)"
@@ -510,6 +510,12 @@ def main(argv: list[str] | None = None) -> int:
         f"Commit SHA ({args.version}): {rune_sha}; Commit SHA ({args.legacy_version}): {legacy_sha}"
     )
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the sync, restoring the vendored tree if it fails part-way."""
+    with restore_on_failure(VENDOR_DIR):
+        return _sync(argv)
 
 
 if __name__ == "__main__":

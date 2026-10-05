@@ -9,6 +9,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
+import tempfile
+import time
+import urllib.error
+import urllib.request
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -105,3 +112,64 @@ def verify(vendor_dir: Path) -> SourceManifest:
 
 def load_json(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+# --------------------------------------------------------------- sync-script helpers
+
+_RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
+
+
+def fetch(
+    request: urllib.request.Request,
+    *,
+    timeout: float = 60,
+    attempts: int = 4,
+    sleep: Callable[[float], None] = time.sleep,
+) -> bytes:
+    """Read one URL for a sync script, retrying what is worth retrying.
+
+    A timeout, a dropped connection or a 429/5xx is retried with a growing pause. Any other
+    HTTP error is raised at once as `urllib.error.HTTPError`, for the caller to report. When
+    the retries run out on a network error, the script stops with a one-line message
+    instead of a traceback.
+    """
+    for attempt in range(attempts):
+        last = attempt == attempts - 1
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data: bytes = response.read()
+                return data
+        except urllib.error.HTTPError as exc:
+            if exc.code not in _RETRYABLE_STATUS or last:
+                raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            if last:
+                raise SystemExit(f"Network error for {request.full_url}: {exc}") from exc
+        sleep(2.0**attempt)
+    raise AssertionError("unreachable")  # pragma: no cover
+
+
+@contextmanager
+def restore_on_failure(vendor_dir: Path) -> Iterator[None]:
+    """Run a sync that rewrites `vendor_dir` in place; put the old tree back if it fails.
+
+    The sync scripts clear what they manage and then download its replacement. Without
+    this, a failure part-way (a network error, a missing tag, an extraction check) leaves
+    a half-written tree whose manifest no longer verifies, and the server refuses to start
+    until the directory is restored from git.
+    """
+    backup: Path | None = None
+    if vendor_dir.exists():
+        backup = Path(tempfile.mkdtemp(prefix="finos-vendor-backup-")) / vendor_dir.name
+        shutil.copytree(vendor_dir, backup)
+    try:
+        yield
+    except BaseException:
+        if backup is not None:
+            shutil.rmtree(vendor_dir, ignore_errors=True)
+            shutil.copytree(backup, vendor_dir)
+            print(f"Sync failed; restored {vendor_dir} to its previous state.")
+        raise
+    finally:
+        if backup is not None:
+            shutil.rmtree(backup.parent, ignore_errors=True)

@@ -27,6 +27,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from finos_mcp.core.vendor import fetch, restore_on_failure
+
 UPSTREAM_REPO = "finos/ai-governance-framework"
 API_BASE = f"https://api.github.com/repos/{UPSTREAM_REPO}"
 RAW_BASE = f"https://raw.githubusercontent.com/{UPSTREAM_REPO}"
@@ -57,8 +59,7 @@ def _headers() -> dict[str, str]:
 def _get_json(url: str) -> Any:
     req = urllib.request.Request(url, headers=_headers())
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            return json.load(resp)
+        return json.loads(fetch(req, timeout=30))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         raise SystemExit(f"GitHub API request failed ({exc.code}) for {url}:\n{body}") from exc
@@ -67,8 +68,7 @@ def _get_json(url: str) -> Any:
 def _get_text(url: str) -> str:
     req = urllib.request.Request(url, headers=_headers())
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            return resp.read().decode("utf-8")
+        return fetch(req, timeout=30).decode("utf-8")
     except urllib.error.HTTPError as exc:
         raise SystemExit(f"Download failed ({exc.code}) for {url}") from exc
 
@@ -114,7 +114,7 @@ def clear_stale(vendor_dir: Path) -> None:
             path.unlink()
 
 
-def main(argv: list[str] | None = None) -> int:
+def _sync(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ref", default="main", help="Branch, tag, or SHA to sync (default: main)")
     args = parser.parse_args(argv)
@@ -156,6 +156,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"Commit SHA: {sha}")
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the sync, restoring the vendored tree if it fails part-way."""
+    with restore_on_failure(VENDOR_DIR):
+        return _sync(argv)
 
 
 if __name__ == "__main__":
