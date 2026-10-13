@@ -24,7 +24,7 @@ RUN set -eux; \
         uv build --package "$pkg" --wheel --out-dir /wheels; \
     done
 
-FROM python:3.12-slim
+FROM python:3.14-slim
 LABEL org.opencontainers.image.source="https://github.com/vardhjain/finos-mcp" \
       org.opencontainers.image.description="Read-only MCP servers for FINOS standards (AIGF, CDM, FDC3)" \
       org.opencontainers.image.licenses="Apache-2.0"
