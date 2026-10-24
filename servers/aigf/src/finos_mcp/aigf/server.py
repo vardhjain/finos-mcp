@@ -420,6 +420,56 @@ def _requested_record_kind(query: str) -> str | None:
     return "risk" if match.group(1).lower().startswith("risk") else "control"
 
 
+_REFERENCE_FRAMEWORK_HINTS: tuple[tuple[str, str], ...] = (
+    ("nist", "nist-"),
+    ("owasp", "owasp-"),
+    ("iso", "iso-"),
+    ("ffiec", "ffiec-"),
+    ("iosco", "iosco-"),
+    ("atr", "atr"),
+    ("eu ai act", "eu-ai-act"),
+)
+
+
+def _explicit_reference_matches(query: str, fw: Framework) -> set[str]:
+    """Find records citing a specific external framework + code in the question.
+
+    Public standards codes commonly use punctuation variants: NIST SA-9 vs
+    SA.9, OWASP LLM07:2025 vs llm07-2025, ISO A.3.2 vs a-3-2. Only boost
+    *resolved* keys when the question names their framework. Never guess from
+    a number alone or from generic words such as "control".
+    """
+    lower = query.casefold()
+    frameworks = {
+        name
+        for hint, prefix in _REFERENCE_FRAMEWORK_HINTS
+        if re.search(r"\b" + re.escape(hint) + r"\b", lower)
+        for name in fw.references
+        if name == prefix or name.startswith(prefix)
+    }
+    if not frameworks:
+        return set()
+
+    matches: set[str] = set()
+    key_found: dict[str, bool] = {}
+    for record in (*fw.risks.values(), *fw.controls.values()):
+        for reference in record.references:
+            if reference.framework not in frameworks or reference.title is None:
+                continue
+            key = reference.key.casefold()
+            if key not in key_found:
+                tokens = re.findall(r"[a-z0-9]+", key)
+                pattern = (
+                    r"(?<![a-z0-9])"
+                    + r"[\s:./_-]*".join(map(re.escape, tokens))
+                    + r"(?![a-z0-9])"
+                )
+                key_found[key] = bool(tokens) and bool(re.search(pattern, lower))
+            if key_found[key]:
+                matches.add(record.id)
+    return matches
+
+
 def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchResults:
     """Search risks and controls with matching sections and citable source URIs.
 
@@ -435,17 +485,22 @@ def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchRes
     st = state()
     predicate = None if scope == "all" else (lambda d: d.kind == scope[:-1])
     preferred = _requested_record_kind(query) if scope == "all" else None
-    # Ranking only the first k items and then partitioning can hide a genuinely
-    # relevant risk just below a few verbose control documents. Rank the tiny
-    # AIGF catalog once, then apply the kind preference before limiting to k.
-    n = len(st.combined) if preferred is not None else k
+    reference_ids = _explicit_reference_matches(query, st.framework)
+    # An explicit cited standard code is stronger evidence than loose text
+    # similarity. Otherwise prefer the requested kind; preserve the BM25/dense
+    # ordering inside each group and retain other records as a fallback.
+    n = len(st.combined) if (preferred is not None or reference_ids) else k
     hits: list[SearchHit] = st.combined.search(query, k=n, predicate=predicate)
-    if preferred is not None:
-        preferred_ids = st.framework.risks if preferred == "risk" else st.framework.controls
-        hits = [
-            *(hit for hit in hits if hit.id in preferred_ids),
-            *(hit for hit in hits if hit.id not in preferred_ids),
-        ]
+    if reference_ids or preferred is not None:
+        preferred_ids = (
+            st.framework.risks if preferred == "risk" else st.framework.controls
+        )
+        hits.sort(
+            key=lambda hit: (
+                hit.id not in reference_ids if reference_ids else False,
+                hit.id not in preferred_ids if preferred is not None else False,
+            )
+        )
     return SearchResults(query=query, scope=scope, hits=hits[:k])
 
 

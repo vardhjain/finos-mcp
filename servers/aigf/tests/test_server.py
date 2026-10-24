@@ -249,6 +249,35 @@ async def test_search_prefers_requested_kind_but_respects_explicit_scope(
 
 
 @pytest.mark.anyio
+async def test_search_boosts_exact_standard_crosswalks(client: Client) -> None:
+    # References are stored as hyphenated keys, but people ask about standards
+    # using punctuation from their published title. No paid model is involved.
+    owasp = _structured(
+        await client.call_tool(
+            "search_framework",
+            {"query": "Which AIGF risk addresses OWASP LLM07:2025 System Prompt Leakage?", "k": 5},
+        )
+    )["hits"]
+    assert owasp and owasp[0]["id"] == "AIR-OP-014"
+
+    nist = _structured(
+        await client.call_tool(
+            "search_framework",
+            {"query": "Which AIGF controls map to NIST SP 800-53 SA-9?", "k": 10},
+        )
+    )["hits"]
+    exact = {
+        control.id
+        for control in state().framework.controls.values()
+        if any(
+            ref.framework == "nist-sp-800-53r5" and ref.key == "sa-9"
+            for ref in control.references
+        )
+    }
+    assert exact and {hit["id"] for hit in nist[: len(exact)]} == exact
+
+
+@pytest.mark.anyio
 async def test_search_framework_ranks_and_cites(client: Client) -> None:
     res = _structured(
         await client.call_tool("search_framework", {"query": "prompt injection", "k": 5})
