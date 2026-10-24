@@ -120,9 +120,12 @@ that file directly, so they show measurements from a specific commit.
 | An AI model answering 20 governance questions through the server | 0 invented ids; 95% of answers cited a valid id |
 | Response time per tool call | A few milliseconds on the benchmarked tools |
 
-The badges update on every push to `main`, so they are the current figures; the search
-result in this table is from October 2026. The model test uses Claude Haiku 4.5 and runs
-nightly; its figures are from its last completed run, on 14 September 2026.
+The offline metrics update on every push to `main`; the search result in this
+table is from October 2026. The agent test uses Claude Haiku 4.5 and requires paid
+Anthropic API credits. To prevent surprise costs, it only runs through an explicit
+manual opt-in in GitHub Actions, never on a timer or PR label. Its published figures
+are from the last successful evaluation on 14 September 2026 and are not live data.
+Deterministic tests and retrieval evaluations continue to run in CI without LLM API calls.
 
 Building this also turned up 15 defects in the upstream standards, recorded in
 [docs/upstream-findings.md](docs/upstream-findings.md). The first has been reported to FINOS
