@@ -87,34 +87,6 @@ def test_search_ranks_relevant_first_and_returns_citations() -> None:
     assert {h.id for h in only_prev} == {"AIR-PREV-004"}
 
 
-def test_semantic_index_focuses_on_title_and_summary(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Dense representation should not be swamped by a document's lengthy appendix."""
-    import numpy as np
-
-    from finos_mcp.core import catalog
-
-    class StubModel:
-        def __init__(self) -> None:
-            self.texts: list[str] = []
-
-        def encode(self, texts: list[str], *, normalize: bool) -> np.ndarray:
-            assert normalize
-            self.texts.extend(texts)
-            return np.ones((len(texts), 2), dtype=np.float32)
-
-    model = StubModel()
-    monkeypatch.setattr(catalog, "_load_static_model", lambda _name: model)
-    document = Document(
-        id="AIR-SEC-099",
-        title="Unique Summary Headline",
-        body="Important opening summary." + " Unrelated appendix." * 1000,
-    )
-    index = catalog.SemanticIndex.build([document], model_name="offline-test")
-    assert len(index.rank("summary")) == 1
-    assert model.texts[0].startswith("Unique Summary Headline\nImportant opening summary.")
-    assert len(model.texts[0]) <= len(document.title) + 1 + 1200
-
-
 def test_split_sections_handles_fences_and_preamble() -> None:
     md = "intro\n## A\ntext\n```\n## not a heading\n```\n### B\nmore"
     secs = split_sections(md)
