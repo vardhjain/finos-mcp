@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Updated the pinned FINOS CDM schema bundles from 7.5.0 to 7.7.0 (1,143 JSON schemas), and from 6.29.0 to 6.30.0 for legacy validation (1,066 schemas). The primary release and legacy samples, root types, and qualifiers were resynced from the corresponding FINOS tags. Per-file SHA-256 hashes and upstream commit IDs are recorded in the vendored SOURCE.json.
+- Updated CDM schema version defaults, golden metadata, regression assertions, and automated upstream version pinning. No paid API evaluations are required for validation.
+
+
 ## 0.2.6 — 2026-10-05
 
 ### Added

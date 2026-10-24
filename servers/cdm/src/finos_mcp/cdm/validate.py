@@ -10,7 +10,7 @@ alternative (or subtype), ``@scheme``/``@data`` carry scalar metadata,
 ``@key``/``@key:external``/``@key:scoped`` mark keys and ``@ref``/``@ref:external``/
 ``@ref:scoped`` are references.  ``finos-cdm``'s Python models would be the
 reference validator for Rune JSON, but they take minutes to import and, at
-7.5.0, reject their own sample files, so this module instead normalises Rune
+7.7.0, reject their own sample files, so this module instead normalises Rune
 JSON into the legacy shape *directed by the schema* and validates that with
 Draft 4, mapping every issue path back to the caller's document.
 
@@ -433,7 +433,7 @@ def validate_object(
         if version == registry.PRIMARY_VERSION:
             warnings.append(
                 "Legacy-format documents produced by CDM <= 6 may not match the 7.x schema; "
-                "pass schema_version='6.29.0' for same-vintage validation."
+                "pass schema_version='6.30.0' for same-vintage validation."
             )
         if format == "auto":
             warnings.append(
