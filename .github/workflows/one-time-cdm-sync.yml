@@ -1,0 +1,45 @@
+# Temporary one-time workflow for fetching the official CDM Maven archives.
+# Remove this workflow before merging the resulting PR.
+name: one-time-cdm-sync
+
+on:
+  push:
+    branches:
+      - fix/cdm-schema-upgrade-20261024
+
+permissions:
+  contents: write
+
+jobs:
+  vendor-cdm:
+    if: contains(github.event.head_commit.message, '[sync-cdm-once]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - name: Install Python and uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Sync workspace
+        run: uv sync --all-packages
+      - name: Vendor official CDM 7.7.0 and 6.30.0 datasets
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run python servers/cdm/scripts/sync_upstream.py --version 7.7.0 --legacy-version 6.30.0
+      - name: Commit generated vendored datasets to feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A servers/cdm/src/finos_mcp/cdm/_vendor
+          if git diff --cached --quiet; then
+            echo "::error::The CDM upstream sync produced no changes."
+            exit 1
+          fi
+          git commit -m "chore(cdm): vendor CDM 7.7.0 and legacy 6.30.0"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
