@@ -460,9 +460,7 @@ def _explicit_reference_matches(query: str, fw: Framework) -> set[str]:
             if key not in key_found:
                 tokens = re.findall(r"[a-z0-9]+", key)
                 pattern = (
-                    r"(?<![a-z0-9])"
-                    + r"[\s:./_-]*".join(map(re.escape, tokens))
-                    + r"(?![a-z0-9])"
+                    r"(?<![a-z0-9])" + r"[\s:./_-]*".join(map(re.escape, tokens)) + r"(?![a-z0-9])"
                 )
                 key_found[key] = bool(tokens) and bool(re.search(pattern, lower))
             if key_found[key]:
@@ -492,9 +490,7 @@ def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchRes
     n = len(st.combined) if (preferred is not None or reference_ids) else k
     hits: list[SearchHit] = st.combined.search(query, k=n, predicate=predicate)
     if reference_ids or preferred is not None:
-        preferred_ids = (
-            st.framework.risks if preferred == "risk" else st.framework.controls
-        )
+        preferred_ids = st.framework.risks if preferred == "risk" else st.framework.controls
         hits.sort(
             key=lambda hit: (
                 hit.id not in reference_ids if reference_ids else False,
