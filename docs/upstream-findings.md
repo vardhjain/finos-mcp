@@ -4,22 +4,25 @@ Defects and surprises in the FINOS sources discovered while vendoring them, veri
 2026-09-04. The finos-mcp servers work around every one of them and pin the current behaviour
 in tests, so an upstream fix shows up as a test diff on the next sync.
 
-Finding 1 has been reported and fixed upstream-facing:
+Finding 1 was fixed upstream on October 21, 2026:
 [issue #378](https://github.com/finos/ai-governance-framework/issues/378) and
-[PR #380](https://github.com/finos/ai-governance-framework/pull/380). The rest are candidates;
+merged [PR #380](https://github.com/finos/ai-governance-framework/pull/380).
+The current vendored AIGF snapshot includes that fix, and tests expect zero unresolved
+external references. The rest are candidates;
 [outreach/README.md](outreach/README.md) tracks which have been filed (finding 15 is
 [finos/FDC3#2270](https://github.com/finos/FDC3/issues/2270)) and why the others have
 not.
 
 ## AI Governance Framework (finos/ai-governance-framework)
 
-1. **Eight risk files lose their `related_risks` list to a YAML comment.** In
+1. **Fixed in upstream PR #380: eight risk files formerly lost their `related_risks` list to a YAML comment.** In
    `docs/_risks/` the last `uk-regulations_references` entry's inline `# comment` has no
    newline before the following `related_risks:` key, so YAML folds the key into the comment
    and the stray `ri-N` tokens land in `uk-regulations_references` as bogus reference keys
    (19 unresolvable references). Files: the seven risks whose parser test entry lists
    `uk-regulations` keys of the form `ri-N`. Fix: a newline. Pinned in
-   `servers/aigf/tests/test_parser.py` as `EXPECTED_UNRESOLVED_REFS`.
+   `servers/aigf/tests/test_parser.py` as `EXPECTED_UNRESOLVED_REFS` on the older
+   snapshot; the current pin is empty after the upstream fix.
 2. `docs/_data/references/` holds 13 datasets plus a `README.md`; documentation elsewhere
    counts 14.
 

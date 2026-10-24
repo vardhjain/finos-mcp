@@ -5,7 +5,7 @@ standards, so an agent can query them without being able to change anything.
 
 | Server | Standard | What it exposes |
 |---|---|---|
-| `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | 23 risks and 23 controls under their published `AIR-*` ids, the risk-to-control graph, crosswalks to 13 reference frameworks, search, citable resources |
+| `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | 24 risks and 25 controls under their published `AIR-*` ids, the risk-to-control graph, crosswalks to 13 reference frameworks, search, citable resources |
 | `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | 1142 schemas, 16 root types, 35 event-qualification rules, and validation of CDM JSON in both the Rune (CDM 7) and legacy shapes |
 | `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | 19 intents with a generated intent-to-context table, 28 context types, context validation and intent suggestion |
 
@@ -45,4 +45,4 @@ on every push, and a nightly agent eval records whether a model citing these con
 invents an id. The badges on the repository read those files.
 
 Vendoring the standards also surfaced defects in them, which are written up in
-**[upstream findings](upstream-findings.md)**. The first has been reported back to FINOS as [issue #378](https://github.com/finos/ai-governance-framework/issues/378), with the fix in [PR #380](https://github.com/finos/ai-governance-framework/pull/380).
+**[upstream findings](upstream-findings.md)**. The first was fixed upstream on October 21, 2026: [issue #378](https://github.com/finos/ai-governance-framework/issues/378) and merged [PR #380](https://github.com/finos/ai-governance-framework/pull/380).

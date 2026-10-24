@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Refresh AIGF vendored source to FINOS commit `8b0e80132f05a46e3e64cc27a6a3e56d59b5479f`: 24 risks, 25 controls, and updated OWASP LLM Top 10 (2026) mappings. The skill/plugin supply-chain risk (AIR-SEC-030), action approval gate (AIR-PREV-024), and plugin integrity control (AIR-PREV-025) are all Draft upstream.
+- Include the frontmatter fix merged in FINOS PR #380, restoring related-risk links and removing malformed external references. Update pinned tests, provenance, and documentation.
+
+
 ## 0.2.6 — 2026-10-05
 
 ### Added

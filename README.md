@@ -40,7 +40,7 @@ Each answer comes with an identifier or link the reader can check against the st
 
 | Server | Standard | What an assistant can do with it |
 |---|---|---|
-| `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | Look up 23 risks and 23 controls by their published ids, see which controls address which risks, cross-reference 13 outside frameworks (NIST, ISO 42001, EU AI Act, OWASP), and search in plain language |
+| `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | Look up 24 risks and 25 controls by their published ids, see which controls address which risks, cross-reference 13 outside frameworks (NIST, ISO 42001, EU AI Act, OWASP), and search in plain language |
 | `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | Describe any of 1,142 data types, browse products and trade events, and check a trade document for errors, with the location of each one |
 | `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | Look up 19 standard actions ("intents") and 28 data types, check a data object, and suggest which actions fit it |
 
@@ -125,8 +125,8 @@ result in this table is from October 2026. The model test uses Claude Haiku 4.5 
 nightly; its figures are from its last completed run, on 14 September 2026.
 
 Building this also turned up 15 defects in the upstream standards, recorded in
-[docs/upstream-findings.md](docs/upstream-findings.md). The first has been reported to FINOS
-with a proposed fix.
+[docs/upstream-findings.md](docs/upstream-findings.md). The first was reported to FINOS
+and its fix was merged upstream on October 21, 2026.
 
 ## Project layout
 
