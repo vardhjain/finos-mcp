@@ -452,7 +452,8 @@ def _explicit_reference_matches(query: str, fw: Framework) -> set[str]:
 
     matches: set[str] = set()
     key_found: dict[str, bool] = {}
-    for record in (*fw.risks.values(), *fw.controls.values()):
+    records: list[Risk | Control] = [*fw.risks.values(), *fw.controls.values()]
+    for record in records:
         for reference in record.references:
             if reference.framework not in frameworks or reference.title is None:
                 continue
