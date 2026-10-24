@@ -62,13 +62,14 @@
     "risks/ri-26_mcp-server-supply-chain-compromise.md": "9b1307e94d86393b3fb251e4b5c7f7c9b8bb1e3179fefe5f14a0d99849c4fd05",
     "risks/ri-27_agent-state-persistence-poisoning.md": "9b7a3ac1df1d1d9ff2263efd21fb87e6cbbb3aac127baeefc80860de536196e5",
     "risks/ri-28_multi-agent-trust-boundary-violations.md": "c435fb7d3ae35b640954c1b010aeccc354677df64037983ecd8f82dce20bfd5c",
-    "risks/ri-29_agent-mediated-credential-discovery-and-harvesting.md": "e8dab62aeca6607cc6c830451a27a7be2819b642e33533e5225c550cd80b5f2f",
-    "risks/ri-2_information-leaked-to-vector-store.md": "6c6d8d7d4a5292fd59c787c694c1c3890e4ca40706eda88bb30dc7cc0ef70e7c",
-    "risks/ri-4_hallucination-and-inaccurate-outputs.md": "ae8c36a8af9a219dcf702a24f2757efffe9ac754c9d741c668ffd0b156731245",
-    "risks/ri-5_foundation-model-versioning.md": "a97cc1bf17884a675a0015c4993a894f0b7b8255a0391c04c7335ba204b9c0b9",
-    "risks/ri-6_non-deterministic-behaviour.md": "96383ce24034882e20ffa89cbef00c0e1857d64089b5055e8ecd096d45b25e33",
-    "risks/ri-7_availability-of-foundational-model.md": "e75f183769d9da7bc20302eb36a56d55bb6f694cd4dbb4c1254d0b5f83bbf003",
-    "risks/ri-8_tampering-with-the-foundational-model.md": "b15c471421b1b17d15ba38b0d89ec98526bb59c9d6d4ec1ceaa9b43e1fa85d4e",
-    "risks/ri-9_data-poisoning.md": "a51e7aa1fab37b3889992c77688385d657c09ba5d24ab6b94e2ffa39ab7cad4c"
+    "risks/ri-29_agent-mediated-credential-discovery-and-harvesting.md": "57f6d6d0674d49c41cc0e6936b938a8d138fd30e278e60325e1e84ed5d1226ac",
+    "risks/ri-2_information-leaked-to-vector-store.md": "5c41cde10ca8e3ed3aaddde0b39ce255c002cb8b44a39191cb605498552df99c",
+    "risks/ri-30_skill-plugin-supply-chain-compromise.md": "54b705f79b8a6b4c5a6141390b577c833ebbfe645eae60392644ff41c86afe24",
+    "risks/ri-4_hallucination-and-inaccurate-outputs.md": "8418c8683a52b9d1cd6364c3f61415b85b931608da4485fd3029c5a4d5239fc4",
+    "risks/ri-5_foundation-model-versioning.md": "079be99410ca1be118b4787707842f50624348adc47eccb4efcbb5c91714e2f5",
+    "risks/ri-6_non-deterministic-behaviour.md": "7579698c91a4a72f854151c09d6830707a11907de4b035d742b84db50d8b2158",
+    "risks/ri-7_availability-of-foundational-model.md": "048f0ae98fbfb64f473af84e80121597cbd68f7294e44354d8bcafdd054b7fbe",
+    "risks/ri-8_tampering-with-the-foundational-model.md": "4b5fcdee43a7c499653ae6f99a09ec63591d4f66cda266f0d3f7c55784572d1d",
+    "risks/ri-9_data-poisoning.md": "250c19feb170a835f7b16eb8c9cf0c71c514cc550ee5aa999ad58e65966c83bc"
   }
 }
