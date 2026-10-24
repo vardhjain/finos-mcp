@@ -205,6 +205,49 @@ async def test_map_control_to_external_filters_frameworks(client: Client) -> Non
     assert env.code == "not_found"
 
 
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("What operational risk explains model drift?", "risk"),
+        ("Which detective controls address prompt injection?", "control"),
+        ("Which mitigations apply to agent authorization?", "control"),
+        ("List risks from the governance framework", "risk"),
+        ("Which risks and controls concern model use?", None),
+        ("What controls and risks address model use?", None),
+        ("An employee pastes client data into a public chatbot", None),
+    ],
+)
+def test_requested_record_kind(question: str, expected: str | None) -> None:
+    from finos_mcp.aigf.server import _requested_record_kind
+
+    assert _requested_record_kind(question) == expected
+
+
+@pytest.mark.anyio
+async def test_search_prefers_requested_kind_but_respects_explicit_scope(
+    client: Client,
+) -> None:
+    risk_question = "What operational risk is associated with model drift?"
+    risk_hits = _structured(
+        await client.call_tool("search_framework", {"query": risk_question, "k": 5})
+    )["hits"]
+    assert risk_hits and all(hit["id"] in state().framework.risks for hit in risk_hits)
+
+    controls_question = "Which preventative controls address prompt injection?"
+    control_hits = _structured(
+        await client.call_tool("search_framework", {"query": controls_question, "k": 5})
+    )["hits"]
+    assert control_hits and all(hit["id"] in state().framework.controls for hit in control_hits)
+
+    # An explicit filter is authoritative even when the question requests the other type.
+    scoped = _structured(
+        await client.call_tool(
+            "search_framework", {"query": risk_question, "scope": "controls", "k": 5}
+        )
+    )["hits"]
+    assert scoped and all(hit["id"] in state().framework.controls for hit in scoped)
+
+
 @pytest.mark.anyio
 async def test_search_framework_ranks_and_cites(client: Client) -> None:
     res = _structured(

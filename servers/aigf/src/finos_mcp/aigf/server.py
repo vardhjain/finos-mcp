@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -393,17 +394,59 @@ def map_control_to_external(id: str, frameworks: list[str] | None = None) -> Cro
     )
 
 
+# A mixed AIGF catalog often ranks controls above the risks a question is asking
+# about (or vice versa) because control descriptions repeat risk titles. Recognise a
+# *requested result type*, not a mere mention of the words somewhere in the question.
+# Scope remains explicit and authoritative when the caller supplies risks/controls.
+_ASK_KIND_RE = re.compile(
+    r"^\\s*(?:what|which|find|list|show|identify|recommend|suggest)\\b"
+    r"[^?.]{0,100}?\\b(risks?|controls?|mitigations?)\\b",
+    re.IGNORECASE,
+)
+_BOTH_KINDS_RE = re.compile(
+    r"\\brisks?\\s+(?:and|or|&)\\s+(?:\\w+\\s+){0,2}(?:controls?|mitigations?)\\b"
+    r"|\\b(?:controls?|mitigations?)\\s+(?:and|or|&)\\s+(?:\\w+\\s+){0,2}risks?\\b",
+    re.IGNORECASE,
+)
+
+
+def _requested_record_kind(query: str) -> str | None:
+    """Return the unambiguous kind the question asks us to return, if any."""
+    if _BOTH_KINDS_RE.search(query):
+        return None
+    match = _ASK_KIND_RE.search(query)
+    if match is None:
+        return None
+    return "risk" if match.group(1).lower().startswith("risk") else "control"
+
+
 def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchResults:
-    """Full-text search over risks and controls. Each hit has an id, the matching section,
-    a snippet, and an aigf:// citation URI. Use scope to limit to risks or controls."""
+    """Search risks and controls with matching sections and citable source URIs.
+
+    For an unscoped question clearly asking for risks or for controls, rank those
+    record types first while retaining the other type as a fallback. This is a
+    stable partition of the original relevance-ranked results, not a new relevance
+    score. Questions asking for both kinds stay mixed; explicit scope always wins.
+    """
     if not query.strip():
         raise invalid_input("query must not be empty.")
     if k < 1 or k > 20:
         raise invalid_input("k must be between 1 and 20.")
     st = state()
     predicate = None if scope == "all" else (lambda d: d.kind == scope[:-1])
-    hits: list[SearchHit] = st.combined.search(query, k=k, predicate=predicate)
-    return SearchResults(query=query, scope=scope, hits=hits)
+    preferred = _requested_record_kind(query) if scope == "all" else None
+    # Ranking only the first k items and then partitioning can hide a genuinely
+    # relevant risk just below a few verbose control documents. Rank the tiny
+    # AIGF catalog once, then apply the kind preference before limiting to k.
+    n = len(st.combined) if preferred is not None else k
+    hits: list[SearchHit] = st.combined.search(query, k=n, predicate=predicate)
+    if preferred is not None:
+        preferred_ids = st.framework.risks if preferred == "risk" else st.framework.controls
+        hits = [
+            *(hit for hit in hits if hit.id in preferred_ids),
+            *(hit for hit in hits if hit.id not in preferred_ids),
+        ]
+    return SearchResults(query=query, scope=scope, hits=hits[:k])
 
 
 _SEARCH_MODES: tuple[SearchMode, ...] = ("hybrid", "lexical", "dense")
