@@ -165,11 +165,7 @@ class SemanticIndex:
         model = _load_static_model(model_name)
         if not docs:
             return cls(model, np.zeros((0, 1), dtype=np.float32))
-        # Long standards documents repeat broad governance language. Encoding several
-        # thousand characters as a single vector dilutes the distinguishing title and
-        # opening summary. Keep semantic matching focused on the introductory passage;
-        # BM25 still indexes the full document and all its sections.
-        texts = [f"{d.title}\n{d.body[:1200]}" for d in docs]
+        texts = [f"{d.title} {d.body[:4000]}" for d in docs]
         vectors = np.asarray(model.encode(texts, normalize=True), dtype=np.float32)
         return cls(model, vectors)
 
