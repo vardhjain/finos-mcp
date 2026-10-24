@@ -36,7 +36,7 @@ async def test_find_by_external_reference(client: Client) -> None:
     assert all(m["framework"] == "nist-sp-800-53r5" for m in hits["matches"])
     scoped = _structured(
         await client.call_tool(
-            "find_by_external_reference", {"key": "llm01-2025", "framework": "owasp-llm"}
+            "find_by_external_reference", {"key": "llm01-2026", "framework": "owasp-llm"}
         )
     )
     assert "AIR-SEC-010" in {m["id"] for m in scoped["matches"]}
@@ -85,7 +85,7 @@ async def test_tool_surface_is_typed_and_read_only(client: Client) -> None:
 @pytest.mark.anyio
 async def test_list_risks_filters_and_paginates(client: Client) -> None:
     page = _structured(await client.call_tool("list_risks", {"page_size": 10}))
-    assert page["total"] == 23 and len(page["items"]) == 10 and page["page"] == 1
+    assert page["total"] == 24 and len(page["items"]) == 10 and page["page"] == 1
     sec = _structured(await client.call_tool("list_risks", {"type": "SEC", "page_size": 50}))
     assert sec["total"] > 0 and all(i["type"] == "SEC" for i in sec["items"])
     assert all(i["id"].startswith("AIR-SEC-") for i in sec["items"])
@@ -233,7 +233,7 @@ async def test_reference_frameworks_and_server_info(client: Client) -> None:
     assert {"nist-sp-800-53r5", "eu-ai-act", "owasp-llm", "iso-42001"} <= names
     assert all(f["entry_count"] > 0 for f in refs["frameworks"])
     info = _structured(await client.call_tool("server_info", {}))
-    assert info["counts"]["risks"] == 23 and info["counts"]["controls"] == 23
+    assert info["counts"]["risks"] == 24 and info["counts"]["controls"] == 25
     assert info["counts"]["risk_control_edges"] > 23
     assert info["upstream_commit"] and info["standard_version"]
     assert info["read_only"] is True
@@ -257,7 +257,7 @@ async def test_resources_serve_citable_markdown_and_index(client: Client) -> Non
     section = await client.read_resource(f"aigf://control/AIR-PREV-020/section/{first_slug}")
     assert section.contents[0].text.startswith("## ")  # type: ignore[union-attr]
     index = json.loads((await client.read_resource("aigf://index")).contents[0].text)  # type: ignore[union-attr]
-    assert len(index["risks"]) == 23 and len(index["controls"]) == 23
+    assert len(index["risks"]) == 24 and len(index["controls"]) == 25
     dataset = json.loads(
         (await client.read_resource("aigf://reference/nist-sp-800-53r5")).contents[0].text  # type: ignore[union-attr]
     )
