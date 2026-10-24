@@ -399,16 +399,15 @@ def map_control_to_external(id: str, frameworks: list[str] | None = None) -> Cro
 # *requested result type*, not a mere mention of the words somewhere in the question.
 # Scope remains explicit and authoritative when the caller supplies risks/controls.
 _ASK_KIND_RE = re.compile(
-    r"^\\s*(?:what|which|find|list|show|identify|recommend|suggest)\\b"
-    r"[^?.]{0,100}?\\b(risks?|controls?|mitigations?)\\b",
+    r"^\s*(?:what|which|find|list|show|identify|recommend|suggest)\b"
+    r"[^?.]{0,100}?\b(risks?|controls?|mitigations?)\b",
     re.IGNORECASE,
 )
 _BOTH_KINDS_RE = re.compile(
-    r"\\brisks?\\s+(?:and|or|&)\\s+(?:\\w+\\s+){0,2}(?:controls?|mitigations?)\\b"
-    r"|\\b(?:controls?|mitigations?)\\s+(?:and|or|&)\\s+(?:\\w+\\s+){0,2}risks?\\b",
+    r"\brisks?\s+(?:and|or|&)\s+(?:\w+\s+){0,2}(?:controls?|mitigations?)\b"
+    r"|\b(?:controls?|mitigations?)\s+(?:and|or|&)\s+(?:\w+\s+){0,2}risks?\b",
     re.IGNORECASE,
 )
-
 
 def _requested_record_kind(query: str) -> str | None:
     """Return the unambiguous kind the question asks us to return, if any."""
