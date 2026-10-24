@@ -94,7 +94,8 @@ def test_semantic_index_focuses_on_title_and_summary(monkeypatch: pytest.MonkeyP
     from finos_mcp.core import catalog
 
     class StubModel:
-        texts: list[str] = []
+        def __init__(self) -> None:
+            self.texts: list[str] = []
 
         def encode(self, texts: list[str], *, normalize: bool) -> np.ndarray:
             assert normalize
