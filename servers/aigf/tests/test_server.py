@@ -270,8 +270,7 @@ async def test_search_boosts_exact_standard_crosswalks(client: Client) -> None:
         control.id
         for control in state().framework.controls.values()
         if any(
-            ref.framework == "nist-sp-800-53r5" and ref.key == "sa-9"
-            for ref in control.references
+            ref.framework == "nist-sp-800-53r5" and ref.key == "sa-9" for ref in control.references
         )
     }
     assert exact and {hit["id"] for hit in nist[: len(exact)]} == exact
