@@ -409,6 +409,7 @@ _BOTH_KINDS_RE = re.compile(
     re.IGNORECASE,
 )
 
+
 def _requested_record_kind(query: str) -> str | None:
     """Return the unambiguous kind the question asks us to return, if any."""
     if _BOTH_KINDS_RE.search(query):
