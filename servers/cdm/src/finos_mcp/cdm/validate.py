@@ -126,7 +126,7 @@ def _choice_chain(
 
 def _filename_for_at_type(ctx: _Ctx, at_type: str) -> str | None:
     # The fully qualified name first: a few bare names exist in two namespaces.
-    info = ctx.registry.get(at_type) or ctx.registry.get(at_type.rsplit(".", 1)[-1])
+    info = ctx.registry.get(at_type)
     if info is None or not ctx.has_schema(info.filename):
         return None
     return info.filename
@@ -378,9 +378,10 @@ def resolve_type(registry: CdmRegistry, obj: Any, type: str | None) -> str:
         return f"{info.namespace}.{info.name}"
     if isinstance(obj, dict) and isinstance(obj.get("@type"), str):
         at_type = str(obj["@type"])
-        info = registry.get(at_type) or registry.get(at_type.rsplit(".", 1)[-1])
+        info = registry.get(at_type)
         if info is not None:
             return f"{info.namespace}.{info.name}"
+        raise not_found("CDM type", at_type, hint="Call list_types or search_types.")
     raise invalid_input(
         "Cannot infer the CDM type: pass type (e.g. 'TradeState') or include '@type' in the object.",
         hint="Root types: " + ", ".join(registry.root_types()[:8]) + ", ...",

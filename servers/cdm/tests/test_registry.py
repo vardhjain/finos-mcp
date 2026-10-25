@@ -301,6 +301,13 @@ def test_legacy_qualified_names_do_not_fall_back_to_bare_type(registry: CdmRegis
     assert registry.filename_in_version("cdm.unrelated.AccessConditions", version) is None
 
 
+def test_primary_and_legacy_reject_wrong_qualified_type_names(registry: CdmRegistry) -> None:
+    for version in (PRIMARY_SCHEMA_VERSION, LEGACY_SCHEMA_VERSION):
+        expected = registry.filename_in_version("TradeState", version)
+        assert expected is not None
+        assert registry.filename_in_version("cdm.unrelated.TradeState", version) is None
+
+
 def test_legacy_samples_validate_or_report_known_issues(registry: CdmRegistry) -> None:
     """Validate every vendored legacy (6.30.0) sample against the 7.8.0
     `BusinessEvent` schema and assert what is *actually* true of the vendored
