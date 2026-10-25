@@ -1,0 +1,34 @@
+name: toolref-snapshot-20261025
+
+# Temporary read-only workflow to capture the generated documentation from
+# actual running servers; remove it before merging the documentation PR.
+on:
+  push:
+    branches:
+      - docs/refresh-tool-reference-20261025
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FINOS_MCP_AUDIT_PATH: ""
+      DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+      - name: Sync local workspace without LLM extras
+        run: uv sync --all-packages
+      - name: Generate exact tool reference from MCP servers
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --no-sync python -m finos_mcp_evals.toolref --out "$RUNNER_TEMP/toolref.md"
+          printf '%s\n' '===TOOLREF_BEGIN_20261025==='
+          cat "$RUNNER_TEMP/toolref.md"
+          printf '%s\n' '===TOOLREF_END_20261025==='
