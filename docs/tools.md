@@ -4,7 +4,7 @@ Generated from the live servers by `uv run python -m finos_mcp_evals.toolref`. E
 
 ## finos-mcp-aigf
 
-FINOS AI Governance Framework v2 — upstream `finos/ai-governance-framework@main` (7728f9512160). Exposes: controls=23, crosswalk_refs=765, reference_entries=957, reference_frameworks=13, risk_control_edges=88, risks=23.
+FINOS AI Governance Framework v2 — upstream `finos/ai-governance-framework@main` (8b0e80132f05). Exposes: controls=25, crosswalk_refs=763, reference_entries=967, reference_frameworks=13, risk_control_edges=94, risks=24.
 
 ### Tools
 
@@ -18,7 +18,7 @@ FINOS AI Governance Framework v2 — upstream `finos/ai-governance-framework@mai
 | `list_risks` | `type`: string/null, `status`: string/null, `page`: integer, `page_size`: integer | List AIGF risks. Filter by type (RC = regulatory and compliance, OP = operational, SEC = security) or document status. Returns ids you can pass to get_risk. |
 | `map_control_to_external` | `id`*: string, `frameworks`: array/null | Crosswalk one control to external frameworks: NIST SP 800-53 r5, NIST AI 600-1, ISO 42001, EU AI Act, OWASP LLM/ML/ASI, FFIEC, IOSCO, SR 11-7 and others. Optionally restrict to the named frameworks (see list_reference_frameworks). |
 | `map_risks_to_controls` | `risk_ids`: array/null, `query`: string/null, `queries`: array/null, `k`: integer, `control_type`: string/null | Map risks to the controls that mitigate them. Pass explicit risk_ids (up to 25), a free-text query (the top k matching risks are used), and/or up to 5 queries (each contributing its own top k matches, unioned with everything else) -- useful for "both X and Y" questions where a single query blurs together two distinct concepts. Controls are ordered by how many of the given risks they cover; control_type (PREV or DET) restricts the result. Reports uncovered risks and any inputs that did not resolve. |
-| `search_framework` | `query`*: string, `scope`: string, `k`: integer | Full-text search over risks and controls. Each hit has an id, the matching section, a snippet, and an aigf:// citation URI. Use scope to limit to risks or controls. |
+| `search_framework` | `query`*: string, `scope`: string, `k`: integer | Search risks and controls with matching sections and citable source URIs. For an unscoped question clearly asking for risks or for controls, rank those record types first while retaining the other type as a fallback. This is a stable partition of the original relevance-ranked results, not a new relevance score. Questions asking for both kinds stay mixed; explicit scope always wins. |
 | `search_status` | - | Report search_framework's active retrieval mode: whether it is BM25-only (lexical) or fused with dense semantic search (hybrid), and why -- e.g. the `semantic` extra is not installed, or a model failed to load. |
 | `server_info` | - | Describe this server: standard version, upstream provenance, exposed counts, latency, policy. |
 
@@ -40,7 +40,7 @@ FINOS AI Governance Framework v2 — upstream `finos/ai-governance-framework@mai
 
 ## finos-mcp-cdm
 
-FINOS Common Domain Model 7.5.0 — upstream `finos/common-domain-model@7.5.0` (be51926a9e34). Exposes: choice_types=16, enums=280, qualify_functions=35, root_types=16, samples=40, schemas=1142, schemas_legacy_vintage=1066, types=766.
+FINOS Common Domain Model 7.8.0 — upstream `finos/common-domain-model@7.8.0` (5b852ed61573). Exposes: choice_types=16, enums=280, qualify_functions=35, root_types=16, samples=40, schemas=1143, schemas_legacy_vintage=1066, types=767.
 
 ### Tools
 
@@ -50,11 +50,11 @@ FINOS Common Domain Model 7.5.0 — upstream `finos/common-domain-model@7.5.0` (
 | `explain_event` | `event`: object/null, `qualifier`: string/null | Explain a CDM BusinessEvent. Pass the event JSON to read its qualifier, instruction kinds, before/after trade states and the products involved; or pass a qualifier name (Execution, Termination, ...) to get the Qualify_* rule from the CDM sources and a sample that exercises it. |
 | `get_sample` | `name`*: string | Fetch one vendored sample document by name (see list_samples), e.g. a Rune-format Execution BusinessEvent for an interest-rate swap, to use as a template. |
 | `list_products` | - | Catalogue of product types: the product template types (NonTransferableProduct, TransferableProduct, TradableProduct, EconomicTerms, Payout) and every Payout alternative (InterestRatePayout, CreditDefaultPayout, OptionPayout, ...), with the vendored samples that use each. |
-| `list_samples` | `format`: string/null | List the vendored sample documents (Rune-format from CDM 7.5.0, legacy from 6.29.0). |
+| `list_samples` | `format`: string/null | List the vendored sample documents (Rune-format from CDM 7.8.0, legacy from 6.30.0). |
 | `list_types` | `namespace`: string/null, `kind`: string/null, `root_only`: boolean, `page`: integer, `page_size`: integer | List CDM types. Filter by namespace prefix (cdm.product), kind (type, enum, choice, meta) or root types only (the 16 top-level document types such as TradeState). |
 | `search_types` | `query`*: string, `k`: integer | Keyword search over CDM type names and descriptions (e.g. 'floating rate payout'). |
 | `server_info` | - | Describe this server: standard version, upstream provenance, exposed counts, latency, policy. |
-| `validate_object` | `object`*: object, `type`: string/null, `format`: string, `schema_version`: string/null | Validate a CDM JSON object against the published schema. The format (Rune with '@type'/'@key'/'@ref' keys, or legacy 'value'/'meta' wrappers) is detected unless given. The type comes from '@type' or the type argument (e.g. TradeState). Use schema_version='6.29.0' for legacy documents produced by CDM 6. Every issue carries the JSON path in your document and a kind (required, cardinality, type, enum, ...). |
+| `validate_object` | `object`*: object, `type`: string/null, `format`: string, `schema_version`: string/null | Validate a CDM JSON object against the published schema. The format (Rune with '@type'/'@key'/'@ref' keys, or legacy 'value'/'meta' wrappers) is detected unless given. The type comes from '@type' or the type argument (e.g. TradeState). Use schema_version='6.30.0' for legacy documents produced by CDM 6. Every issue carries the JSON path in your document and a kind (required, cardinality, type, enum, ...). |
 
 ### Resources
 

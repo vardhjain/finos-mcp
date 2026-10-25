@@ -60,6 +60,10 @@ jobs:
       - name: Verify vendored content provenance
         run: uv run python -m finos_mcp_evals.vendor_check
 
+      - name: Verify generated tool reference is current
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        run: uv run --no-sync python -m finos_mcp_evals.toolref --check
+
       - name: Tests with coverage
         run: uv run pytest --cov --cov-report=xml --cov-report=term-missing:skip-covered --junitxml=junit.xml
 
