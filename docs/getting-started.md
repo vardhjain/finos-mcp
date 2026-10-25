@@ -22,7 +22,7 @@ and verified. Do not use the workspace's unpublished source version as a PyPI pi
 
 ## Claude Desktop
 
-Copy the complete [Claude Desktop JSON example](../examples/claude_desktop_config.json)
+Copy the complete [Claude Desktop JSON example](https://github.com/vardhjain/finos-mcp/blob/main/examples/claude_desktop_config.json)
 into your own `claude_desktop_config.json`, merging its `mcpServers` entries with
 any servers you already have. Do not replace an existing config blindly.
 
@@ -51,7 +51,7 @@ claude mcp add --scope user finos-fdc3 -- uvx --python 3.12 finos-mcp-fdc3==0.3.
 
 `--scope user` makes each available in all your Claude Code projects. To share a
 configuration only with one trusted project, instead copy the
-[Claude Desktop JSON example](../examples/claude_desktop_config.json) as
+[Claude Desktop JSON example](https://github.com/vardhjain/finos-mcp/blob/main/examples/claude_desktop_config.json) as
 `.mcp.json` in that project's root (Claude Code uses the same `mcpServers` shape),
 and approve the project's server configuration when prompted.
 
@@ -63,7 +63,7 @@ Official reference: [Claude Code MCP guide](https://code.claude.com/docs/en/mcp)
 ## VS Code
 
 For the VS Code local MCP configuration format, copy the complete
-[VS Code JSON example](../examples/vscode_mcp.json) into a **trusted**
+[VS Code JSON example](https://github.com/vardhjain/finos-mcp/blob/main/examples/vscode_mcp.json) into a **trusted**
 workspace's `.vscode/mcp.json`, or add its entries to your user-level MCP
 configuration. Unlike Claude Desktop, VS Code requires the top-level **`servers`**
 key and `type: "stdio"` for command-based servers.
@@ -77,7 +77,7 @@ Official reference: [VS Code MCP configuration](https://code.visualstudio.com/do
 ## GitHub Copilot portable MCP configuration
 
 If you use the **Copilot harness** or GitHub Copilot CLI, copy the
-[portable Copilot JSON example](../examples/copilot_mcp.json) into the
+[portable Copilot JSON example](https://github.com/vardhjain/finos-mcp/blob/main/examples/copilot_mcp.json) into the
 workspace-root `.mcp.json` or your Copilot user config
 (`~/.copilot/mcp-config.json`, unless `COPILOT_HOME` is set).
 Portable files use **`mcpServers`**, not VS Code's `servers` format.
