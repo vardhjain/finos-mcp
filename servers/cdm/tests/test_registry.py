@@ -118,9 +118,7 @@ def test_manifest_default_and_vendored_schema_versions_agree() -> None:
     }
     bundles = {path.name for path in SCHEMAS_DIR.glob("cdm-json-schema-*.json")}
     manifest_bundles = {
-        name.removeprefix("schemas/")
-        for name in source["files"]
-        if name.startswith("schemas/")
+        name.removeprefix("schemas/") for name in source["files"] if name.startswith("schemas/")
     }
     assert bundles == manifest_bundles == expected
 
