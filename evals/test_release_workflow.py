@@ -5,6 +5,7 @@ Static GitHub Actions policy checks; no network, tokens or tag creation.
 
 from __future__ import annotations
 
+import tomllib
 from pathlib import Path
 
 import yaml
@@ -56,7 +57,9 @@ def test_announcement_uses_reviewed_tag_release_notes() -> None:
     assert len(publish) == 1
     assert publish[0]["with"]["body_path"] == "docs/releases/${{ github.ref_name }}.md"
     assert "generate_release_notes" not in publish[0]["with"]
-    assert (ROOT / "docs/releases/v0.3.0.md").is_file()
+    manifest = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    version = manifest["project"]["version"]
+    assert (ROOT / f"docs/releases/v{version}.md").is_file()
 
 
 def test_container_publish_is_serialized_after_github_and_pypi_release() -> None:

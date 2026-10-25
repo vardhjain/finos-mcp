@@ -2,14 +2,27 @@
 
 ## Unreleased
 
-### Changed
-- Update the primary vendored FINOS Common Domain Model schema and official Rune
-  samples from 7.7.0 to **7.8.0** (1,143 JSON schemas, 28 Rune samples, 16
-  root types and 35 event qualification functions). Legacy CDM 6.30.0 remains
-  supported with its 1,066 schemas and 12 legacy samples. Regenerate the
-  upstream source SHA-256 manifest and keep all checks offline at runtime.
+## 0.3.1 — pending release
 
-## 0.3.0 — pending release
+### Changed
+- Updated the primary vendored FINOS Common Domain Model JSON Schema and official Rune
+  samples from 7.7.0 to **7.8.0** (1,143 schemas, 28 Rune samples, 16 root types
+  and 35 event qualification functions). CDM 6.30.0 legacy validation remains
+  supported (1,066 schemas and 12 samples), with pinned source SHA-256 metadata.
+
+### Fixed
+- Reject unknown and misnamespaced nested Rune `@type` values rather than dropping
+  them while normalizing CDM documents. Qualified type names must resolve to the
+  requested schema version and namespace, including for legacy-only types.
+- Explicitly specify the GitHub repository when the release workflow dispatches
+  Docker publishing without a local Git checkout.
+
+### Testing
+- Added a repeatable, non-publishing verification workflow that installs the four
+  public PyPI distributions from scratch on Python 3.12 and 3.14 and checks all
+  three installed MCP servers. The published v0.3.0 packages passed this check.
+
+## 0.3.0 — 2026-10-25
 
 ### Added
 - Sixteen deterministic multi-step CDM/FDC3 workflow evaluations (eight each), covering 51 tool and resource interactions, with per-server metrics published by CI.
