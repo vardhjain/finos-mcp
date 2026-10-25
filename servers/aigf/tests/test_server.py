@@ -303,9 +303,7 @@ async def test_search_boosts_exact_standard_crosswalks(client: Client) -> None:
         ("The training dataset contains customer labels", None),
     ],
 )
-def test_narrative_risk_cues_need_multiple_signals(
-    query: str, expected_title: str | None
-) -> None:
+def test_narrative_risk_cues_need_multiple_signals(query: str, expected_title: str | None) -> None:
     from finos_mcp.aigf.server import _narrative_risk_matches
 
     fw = state().framework
@@ -318,14 +316,10 @@ def test_narrative_risk_cues_need_multiple_signals(
 @pytest.mark.anyio
 async def test_narrative_risk_ranking_respects_scope(client: Client) -> None:
     q = "An analyst pasted private client account data into a public chatbot"
-    hits = _structured(await client.call_tool("search_framework", {"query": q, "k": 5}))[
-        "hits"
-    ]
+    hits = _structured(await client.call_tool("search_framework", {"query": q, "k": 5}))["hits"]
     assert hits and hits[0]["id"] == "AIR-RC-001"
     scoped = _structured(
-        await client.call_tool(
-            "search_framework", {"query": q, "scope": "controls", "k": 5}
-        )
+        await client.call_tool("search_framework", {"query": q, "scope": "controls", "k": 5})
     )["hits"]
     assert scoped and all(h["id"] in state().framework.controls for h in scoped)
 
