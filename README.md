@@ -54,6 +54,12 @@ deliberate mistakes in a trade document.
 You need [uv](https://docs.astral.sh/uv/) and nothing else. There is no account, API key or
 database to set up.
 
+**First-time setup:** Follow the [MCP client setup guide](docs/getting-started.md) for
+copy-paste, version-pinned configurations for Claude Desktop, Claude Code,
+VS Code and GitHub Copilot. It also covers Windows and macOS setup, verifying
+a real tool call, and troubleshooting. The quick-start example below installs
+the latest version rather than pinning one.
+
 **Claude Desktop or Claude Code.** Add this to your MCP configuration
 ([full example](examples/claude_desktop_config.json)) and restart:
 
