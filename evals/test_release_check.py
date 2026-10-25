@@ -12,9 +12,8 @@ CHECK = ROOT / "scripts" / "release_check.py"
 
 
 def test_matching_release_manifest_and_lock() -> None:
-    version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))[
-        "project"
-    ]["version"]
+    manifest = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    version = manifest["project"]["version"]
     result = subprocess.run(
         [sys.executable, str(CHECK), "--tag", f"v{version}"],
         cwd=ROOT,
