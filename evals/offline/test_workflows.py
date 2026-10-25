@@ -144,11 +144,14 @@ def test_offline_scenario_dataset() -> None:
             else:
                 assert "expect_json" in step or "contains" in step
     for server in SERVERS:
-        assert sum(
-            any("read" in step for step in t["steps"])
-            for t in SCENARIOS
-            if t["server"] == server
-        ) >= 2
+        assert (
+            sum(
+                any("read" in step for step in t["steps"])
+                for t in SCENARIOS
+                if t["server"] == server
+            )
+            >= 2
+        )
 
 
 @pytest.mark.anyio
