@@ -113,7 +113,7 @@ jobs:
           done
           python scripts/release_check.py --tag "v$VERSION" --dist dist
 
-      - name: Publish annotated tag and explicitly dispatch both release workflows
+      - name: Publish annotated tag and dispatch ordered release workflow
         shell: bash
         run: |
           set -euo pipefail
@@ -124,14 +124,15 @@ jobs:
           git push origin "refs/tags/$TAG"
           # A tag pushed with GITHUB_TOKEN does NOT trigger push workflows.
           # workflow_dispatch is exempt from that suppression, so start both
-          # release workflows explicitly on the newly created annotated tag.
+          # Release workflow explicitly on the newly created annotated tag.
+          # release.yml dispatches Docker only after successful PyPI uploads
+          # and successful GitHub Release creation.
           gh workflow run release.yml --ref "$TAG"
-          gh workflow run docker.yml --ref "$TAG" -f push=true
           {
             echo "### Dispatched FINOS MCP $TAG"
             echo
             echo "- Exact release commit: \`$EXPECTED_SHA\`"
-            echo "- GitHub/PyPI: release.yml on tag \`$TAG\`"
-            echo "- Container: docker.yml on tag \`$TAG\`, push=true"
-            echo "- Review both runs and verify 4 PyPI projects and the GHCR image"
+            echo "- First: release.yml publishes PyPI and GitHub Release"
+            echo "- Only after success: release.yml dispatches Docker on the same tag"
+            echo "- Check both workflows; dispatch is not proof of publication"
           } >> "$GITHUB_STEP_SUMMARY"

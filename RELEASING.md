@@ -2,12 +2,14 @@
 
 Releasing is a **separate, explicit step** from merging a release-preparation PR.
 An annotated `v*` tag activates [`release.yml`](.github/workflows/release.yml),
-which builds four Python wheels and source archives, creates a GitHub Release and
-may publish to PyPI, and [`docker.yml`](.github/workflows/docker.yml),
-which smoke-tests and pushes the multi-architecture container to GHCR.
+which builds four Python wheels and source archives and publishes to PyPI when
+enabled. After successful Python/GitHub publication, it explicitly dispatches
+[`docker.yml`](.github/workflows/docker.yml), which smoke-tests and pushes the
+multi-architecture container to GHCR.
 
-**Do not push a release tag merely to test packaging:** a tag creates a public
-GitHub Release and publishes a GHCR image, even when PyPI uploads are disabled.
+**Do not push a release tag merely to test packaging:** a tag can create a
+public GitHub Release and, if successful, publish a GHCR image even when PyPI
+uploads are disabled.
 Use the safe [`release-preflight.yml`](.github/workflows/release-preflight.yml)
 workflow instead.
 
@@ -32,16 +34,24 @@ a tag if the variables, SHA, CI result, version availability, or archive
 validation do not pass. It does not inspect private PyPI trusted publisher
 configurations, which must be checked manually.
 
-If all checks pass, it creates an annotated `v0.3.0` tag and explicitly
-dispatches `release.yml` and `docker.yml` on that tag. This explicit dispatch
-is important: a GitHub Actions `GITHUB_TOKEN` tag push **does not trigger**
-ordinary tag-push workflows. The publishing workflows accept either a
-user-created tag push or an explicit dispatch on a tag. Review their job
-results independently: launching them is *not* proof of publication.
+If all checks pass, it creates an annotated `v0.3.0` tag and **dispatches
+`release.yml` only**. After all four PyPI uploads succeed, `release.yml`
+creates the public GitHub Release from reviewed release notes and then
+dispatches `docker.yml` on the same tag. Docker builds and checks the real
+image before pushing the versioned and `latest` tags to GHCR.
 
-If the tag is successfully created but an API dispatch fails, do not create
-a second tag. Instead, in the Actions UI run `release` and/or `docker` on
-the existing `v0.3.0` tag and verify the artifacts.
+This ordering prevents a container from going public if PyPI publication
+fails. A `GITHUB_TOKEN` tag push does **not** trigger tag-push workflows,
+so explicit workflow dispatch is necessary. The Docker workflow does not
+publish on tag pushes; a dispatch on a `v*` tag with `push=true` is required.
+
+If a tag exists but dispatch fails, **do not create another tag**.
+Review the failing job and determine whether it is safe to retry. PyPI
+files are immutable; a partial upload cannot simply be repeated. If the
+GitHub Release succeeds but only Docker dispatch fails, manually dispatch
+`docker.yml` on the existing `v0.3.0` tag with `push=true` after checking
+the successful upstream release. Verify the GHCR image separately:
+successful dispatch is not proof of publication.
 
 ## Release 0.3.0 checklist
 
@@ -85,7 +95,8 @@ the existing `v0.3.0` tag and verify the artifacts.
    `docs/releases/v<version>.md` notes; missing reviewed notes fail closed.
    If some PyPI uploads succeed before another fails, PyPI versions cannot
    be reused: investigate and plan recovery before retrying. The Docker
-   workflow is dispatched separately, so verify its publication independently.
+   workflow is dispatched after a successful GitHub Release; verify its
+   publication independently.
 6. Verify both tag workflows and each intended artifact:
    ```bash
    gh run list -R vardhjain/finos-mcp --workflow release.yml --limit 5
