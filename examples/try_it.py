@@ -27,9 +27,9 @@ SERVER_NAMES = ("aigf", "cdm", "fdc3")
 def value_at(data: object, path: list[str | int]) -> object:
     value = data
     for part in path:
-        if isinstance(part, str) and isinstance(value, dict):
-            value = value[part]
-        elif isinstance(part, int) and isinstance(value, list):
+        if (isinstance(part, str) and isinstance(value, dict)) or (
+            isinstance(part, int) and isinstance(value, list)
+        ):
             value = value[part]
         else:
             raise ValueError(f"unexpected result shape at {part!r}")
