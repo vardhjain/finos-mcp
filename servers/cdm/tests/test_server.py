@@ -1,390 +1,474 @@
-"""CDM server tests through the in-memory MCP client, including dual-format validation."""
+"""Validation of CDM JSON objects in both serialisation formats.
+
+The published CDM JSON Schema describes the *legacy* JSON shape (CDM <= 6):
+metadata as ``{"value": v, "meta": {...}}``, references as
+``{"globalReference": ..., "externalReference": ..., "address": ...}`` and
+choice types as an object with exactly one alternative-named property.
+
+CDM 7 documents use the *Rune* JSON shape instead: ``@type`` selects the
+alternative (or subtype), ``@scheme``/``@data`` carry scalar metadata,
+``@key``/``@key:external``/``@key:scoped`` mark keys and ``@ref``/``@ref:external``/
+``@ref:scoped`` are references.  ``finos-cdm``'s Python models would be the
+reference validator for Rune JSON, but they take minutes to import and, at
+7.8.0, reject their own sample files, so this module instead normalises Rune
+JSON into the legacy shape *directed by the schema* and validates that with
+Draft 4, mapping every issue path back to the caller's document.
+
+What the schema cannot express is stated in ``ValidationReport.warnings``:
+Rune ``condition`` rules and one-of constraints across choice alternatives.
+"""
 
 from __future__ import annotations
 
 import copy
-import json
-from collections.abc import AsyncIterator
-from pathlib import Path
-from typing import Any
+from collections import deque
+from dataclasses import dataclass, field
+from typing import Any, Literal
 
-import pytest
-from mcp.client import Client
+from finos_mcp.core import ValidationIssue, ValidationReport
+from finos_mcp.core.errors import invalid_input, not_found
 
-from finos_mcp.cdm.registry import get_registry
-from finos_mcp.cdm.server import create_server
-from finos_mcp.cdm.validate import detect_format
-from finos_mcp.core import ErrorEnvelope, RateLimit, runtime_for
+from .registry import CdmRegistry, parse_schema_filename
 
+Format = Literal["rune", "legacy"]
 
-@pytest.fixture(scope="module")
-def server() -> Any:
-    srv = create_server()
-    # These tests exercise behaviour, not the rate policy (covered in core): validating
-    # all vendored samples back to back would otherwise trip validate_object's 30/min limit.
-    rt = runtime_for(srv)
-    rt.policy.default_limit = RateLimit(calls=1_000_000, window_s=1.0, burst=1_000_000)
-    rt.policy.per_tool.clear()
-    return srv
+RUNE_MARKERS = ("@type", "@model", "@version", "@key", "@ref", "@scheme", "@data")
+RUNE_CONDITION_WARNING = (
+    "Rune `condition` rules and choice-alternative exclusivity are not expressed in the "
+    "published JSON Schema and were not checked."
+)
 
 
-@pytest.fixture
-async def client(server: Any) -> AsyncIterator[Client]:
-    async with Client(server, raise_exceptions=True) as c:
-        yield c
+def detect_format(obj: Any) -> Format:
+    """Rune if any object key starts with '@' (checked breadth-first), else legacy.
 
-
-def _ok(result: Any) -> dict[str, Any]:
-    assert result.is_error is False, result.content
-    assert result.structured_content is not None
-    return dict(result.structured_content)
-
-
-def _err(result: Any) -> ErrorEnvelope:
-    assert result.is_error is True
-    env = ErrorEnvelope.parse_text(result.content[0].text)
-    assert env is not None
-    return env
-
-
-def _samples(fmt: str) -> list[tuple[str, dict[str, Any]]]:
-    out = []
-    for s in get_registry().samples():
-        if s.format == fmt:
-            out.append((s.name, json.loads(Path(s.path).read_text(encoding="utf-8"))))
-    return out
-
-
-@pytest.mark.anyio
-async def test_tools_are_typed_and_read_only(client: Client) -> None:
-    tools = (await client.list_tools()).tools
-    assert {t.name for t in tools} == {
-        "describe_type",
-        "list_types",
-        "list_products",
-        "validate_object",
-        "explain_event",
-        "search_types",
-        "get_sample",
-        "list_samples",
-        "server_info",
-    }
-    assert all(t.annotations and t.annotations.read_only_hint for t in tools)
-    assert all(t.output_schema for t in tools)
-
-
-@pytest.mark.anyio
-async def test_describe_type(client: Client) -> None:
-    ts = _ok(await client.call_tool("describe_type", {"name": "TradeState"}))
-    assert ts["namespace"] == "cdm.event.common" and ts["root_type"] is True
-    trade = next(f for f in ts["fields"] if f["name"] == "trade")
-    assert trade["cardinality"] == "1..1" and trade["type"] == "Trade"
-    assert "BusinessEvent" in ts["used_by"]
-    assert ts["schema_uri"] == "cdm://schema/TradeState"
-    fqn = _ok(await client.call_tool("describe_type", {"name": "cdm.event.common.TradeState"}))
-    assert fqn["name"] == "TradeState"
-    payout = _ok(await client.call_tool("describe_type", {"name": "Payout"}))
-    assert payout["kind"] == "choice" and "InterestRatePayout" in payout["alternatives"]
-    env = _err(await client.call_tool("describe_type", {"name": "TradeStat"}))
-    assert env.code == "not_found" and "TradeState" in (env.hint or "")
-
-
-@pytest.mark.anyio
-async def test_list_types_and_products(client: Client) -> None:
-    roots = _ok(await client.call_tool("list_types", {"root_only": True, "page_size": 100}))
-    assert roots["total"] == 16 and all(t["root_type"] for t in roots["items"])
-    enums = _ok(
-        await client.call_tool(
-            "list_types", {"kind": "enum", "namespace": "cdm.base", "page_size": 5}
-        )
-    )
-    assert enums["items"] and all(t["kind"] == "enum" for t in enums["items"])
-    products = _ok(await client.call_tool("list_products", {}))
-    names = {e["name"]: e for e in products["entries"]}
-    assert {"NonTransferableProduct", "EconomicTerms", "Payout"} <= set(names)
-    assert names["InterestRatePayout"]["role"] == "payout_alternative"
-    assert names["InterestRatePayout"]["samples"], "vendored IRS samples should be listed"
-
-
-@pytest.mark.anyio
-async def test_validate_rune_samples_normalise_cleanly(client: Client) -> None:
-    """Every official 7.8.0 Rune sample normalises without structural errors.
-
-    Pinned upstream discrepancy: the published cdm-json-schema 7.8.0 marks fields as
-    required that CDM's own 7.8.0 function-output samples omit (ClosedState.activityDate,
-    ExecutionDetails, Underlier, DateAdjustments, ExerciseNoticeGiver). The validator
-    reports those truthfully; anything *other* than a `required` miss would indicate a
-    defect in the Rune-to-legacy normalisation, so that is what this test forbids.
-    When upstream fixes the schema or the samples, EXPECTED_VALID below moves.
+    The whole document is scanned: the input is already size-capped by the safety policy,
+    and stopping early turned a large Rune document with late markers into "legacy".
     """
-    samples = _samples("rune")
-    assert samples
-    valid = 0
-    non_required: list[tuple[str, str, str]] = []
-    required_fields: set[str] = set()
-    for name, doc in samples:
-        assert detect_format(doc) == "rune"
-        report = _ok(await client.call_tool("validate_object", {"object": doc}))
-        assert report["format_detected"] == "rune"
-        assert "Rune normalisation" in report["validator"]
-        assert report["stats"]["nodes_normalised"] > 10
-        valid += report["valid"]
-        for issue in report["issues"]:
-            if issue["kind"] == "required":
-                required_fields.add(issue["message"].split("'")[1])
-            else:
-                non_required.append((name, issue["json_path"], issue["message"]))
-    assert not non_required, non_required[:5]
-    assert required_fields <= EXPECTED_REQUIRED_MISSES, required_fields - EXPECTED_REQUIRED_MISSES
-    assert valid == EXPECTED_VALID, (
-        f"{valid}/{len(samples)} valid; update EXPECTED_VALID if upstream changed"
-    )
+    queue: deque[Any] = deque([obj])
+    while queue:
+        node = queue.popleft()
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if isinstance(key, str) and key.startswith("@"):
+                    return "rune"
+                if isinstance(value, (dict, list)):
+                    queue.append(value)
+        elif isinstance(node, list):
+            queue.extend(v for v in node if isinstance(v, (dict, list)))
+    return "legacy"
 
 
-EXPECTED_VALID = 10
-EXPECTED_REQUIRED_MISSES = {
-    "activityDate",
-    "executionDetails",
-    "underlier",
-    "dateAdjustments",
-    "exerciseNoticeGiver",
+@dataclass(slots=True)
+class _Ctx:
+    registry: CdmRegistry
+    version: str
+    issues: list[ValidationIssue] = field(default_factory=list)
+    path_map: dict[str, str] = field(default_factory=dict)  # legacy json path -> rune json path
+    nodes: int = 0
+
+    def schema(self, filename: str) -> dict[str, Any]:
+        return self.registry.schema_registry_for(self.version).schema(filename)
+
+    def has_schema(self, filename: str) -> bool:
+        return filename in self.registry.schema_registry_for(self.version)
+
+
+def _type_name(filename: str) -> str:
+    return filename.removesuffix(".schema.json").rsplit("-", 1)[-1]
+
+
+def _target_filename(prop: dict[str, Any]) -> tuple[str | None, bool]:
+    """Return (referenced schema filename, is_array) for a property schema."""
+    if "$ref" in prop:
+        return str(prop["$ref"]), False
+    if prop.get("type") == "array" and isinstance(prop.get("items"), dict):
+        items = prop["items"]
+        if "$ref" in items:
+            return str(items["$ref"]), True
+    return None, prop.get("type") == "array"
+
+
+def _is_field_with_meta(filename: str) -> bool:
+    return "FieldWithMeta" in filename
+
+
+def _is_reference_with_meta(filename: str) -> bool:
+    return "ReferenceWithMeta" in filename
+
+
+def _is_choice(ctx: _Ctx, filename: str) -> bool:
+    info = ctx.registry.info_for_file(filename)
+    return info is not None and info.kind == "choice"
+
+
+def _choice_chain(
+    ctx: _Ctx, choice_file: str, alt: str, depth: int = 4
+) -> list[tuple[str, str | None]] | None:
+    """Path of (alternative name, schema filename) from a choice type down to `alt`.
+
+    Direct alternatives give a one-element chain; an alternative that is itself a
+    choice type is searched recursively (bounded by `depth`).
+    """
+    props = ctx.schema(choice_file).get("properties", {})
+    if alt in props:
+        return [(alt, _target_filename(props[alt])[0])]
+    if depth <= 0:
+        return None
+    for name, prop in props.items():
+        target, _ = _target_filename(prop)
+        if target is not None and ctx.has_schema(target) and _is_choice(ctx, target):
+            rest = _choice_chain(ctx, target, alt, depth - 1)
+            if rest is not None:
+                return [(name, target), *rest]
+    return None
+
+
+def _filename_for_at_type(ctx: _Ctx, at_type: str) -> str | None:
+    # Resolve within the requested vintage. Qualified names must match exactly;
+    # the legacy version can contain types absent from the primary registry.
+    return ctx.registry.filename_in_version(at_type, ctx.version)
+
+
+def _meta_from_keys(node: dict[str, Any]) -> dict[str, Any]:
+    meta: dict[str, Any] = {}
+    if "@scheme" in node:
+        meta["scheme"] = node["@scheme"]
+    if "@key" in node:
+        meta["globalKey"] = node["@key"]
+    if "@key:external" in node:
+        meta["externalKey"] = node["@key:external"]
+    if "@key:scoped" in node:
+        meta["key"] = [{"scope": "DOCUMENT", "value": node["@key:scoped"]}]
+    return meta
+
+
+def _reference_from_keys(node: dict[str, Any]) -> dict[str, Any]:
+    ref: dict[str, Any] = {}
+    if "@ref" in node:
+        ref["globalReference"] = node["@ref"]
+    if "@ref:external" in node:
+        ref["externalReference"] = node["@ref:external"]
+    if "@ref:scoped" in node:
+        ref["address"] = {"scope": "DOCUMENT", "value": node["@ref:scoped"]}
+    return ref
+
+
+_META_PATHS = {
+    "@scheme": ".meta.scheme",
+    "@key": ".meta.globalKey",
+    "@key:external": ".meta.externalKey",
+    "@key:scoped": ".meta.key",
+}
+_REFERENCE_PATHS = {
+    "@ref": ".globalReference",
+    "@ref:external": ".externalReference",
+    "@ref:scoped": ".address",
 }
 
 
-@pytest.mark.anyio
-async def test_validate_rune_mutations_report_document_paths(client: Client) -> None:
-    _name, doc = next(s for s in _samples("rune") if s[0].startswith("execution__execution-basis"))
-    # 1. required field removed from a nested Rune object
-    broken = copy.deepcopy(doc)
-    broken["after"][0].pop("trade")
-    report = _ok(await client.call_tool("validate_object", {"object": broken}))
-    assert report["valid"] is False
-    kinds = {(i["json_path"], i["kind"]) for i in report["issues"]}
-    assert ("$.after[0]", "required") in kinds, kinds
-    # 2. wrong choice alternative name
-    broken = copy.deepcopy(doc)
-    payout = broken["instruction"][0]["primitiveInstruction"]["execution"]["product"][
-        "economicTerms"
-    ]["payout"][0]
-    payout["@type"] = "cdm.product.asset.NoSuchPayout"
-    report = _ok(await client.call_tool("validate_object", {"object": broken}))
-    assert any(i["kind"] == "enum" and "NoSuchPayout" in i["message"] for i in report["issues"])
-    assert any(i["json_path"].endswith("payout[0].@type") for i in report["issues"])
-    # 3. type error inside a payout: paths map back into the Rune document (no wrapper key)
-    broken = copy.deepcopy(doc)
-    payout = broken["instruction"][0]["primitiveInstruction"]["execution"]["product"][
-        "economicTerms"
-    ]["payout"][0]
-    payout["payerReceiver"]["payer"] = 42
-    report = _ok(await client.call_tool("validate_object", {"object": broken}))
-    paths = [i["json_path"] for i in report["issues"]]
-    assert any(p.endswith("payout[0].payerReceiver.payer") for p in paths), paths
-    assert not any("InterestRatePayout" in p for p in paths)
+def _map_at_keys(
+    ctx: _Ctx, node: dict[str, Any], rune_path: str, legacy_path: str, table: dict[str, str]
+) -> None:
+    """Record where each Rune '@' key landed in the legacy shape, so an issue on it is
+    reported at the key the caller actually wrote."""
+    for key, suffix in table.items():
+        if key in node:
+            ctx.path_map[legacy_path + suffix] = f"{rune_path}.{key}"
+    # The scoped forms wrap the caller's scalar one level deeper in the legacy shape.
+    if table is _META_PATHS and "@key:scoped" in node:
+        ctx.path_map[f"{legacy_path}.meta.key[0].value"] = f"{rune_path}.@key:scoped"
+    if table is _REFERENCE_PATHS and "@ref:scoped" in node:
+        ctx.path_map[f"{legacy_path}.address.value"] = f"{rune_path}.@ref:scoped"
 
 
-@pytest.mark.anyio
-async def test_validate_legacy_sample_against_matching_vintage(client: Client) -> None:
-    samples = _samples("legacy")
-    assert samples
-    _name, doc = samples[0]
-    assert detect_format(doc) == "legacy"
-    primary = _ok(
-        await client.call_tool("validate_object", {"object": doc, "type": "BusinessEvent"})
-    )
-    assert primary["format_detected"] == "legacy" and "6.30.0" in " ".join(primary["warnings"])
-    vintage = _ok(
-        await client.call_tool(
-            "validate_object", {"object": doc, "type": "BusinessEvent", "schema_version": "6.30.0"}
-        )
-    )
-    assert "6.30.0" in vintage["validator"]
-    assert vintage["stats"]["schema_files"] > 1000
-    env = _err(
-        await client.call_tool(
-            "validate_object", {"object": doc, "type": "BusinessEvent", "schema_version": "1.0.0"}
-        )
-    )
-    assert env.code == "not_found"
+def _plain_keys(node: dict[str, Any]) -> dict[str, Any]:
+    return {k: v for k, v in node.items() if not (isinstance(k, str) and k.startswith("@"))}
 
 
-@pytest.mark.anyio
-async def test_validate_errors(client: Client) -> None:
-    env = _err(await client.call_tool("validate_object", {"object": {"eventDate": "2020-01-01"}}))
-    assert env.code == "invalid_input" and "type" in env.message
-    env = _err(await client.call_tool("validate_object", {"object": {}, "type": "Nope"}))
-    assert env.code == "not_found"
+def _normalize(
+    ctx: _Ctx, value: Any, filename: str | None, rune_path: str, legacy_path: str
+) -> Any:
+    """Convert one Rune node to the legacy shape the schema at `filename` expects."""
+    ctx.nodes += 1
+    if legacy_path != rune_path:
+        ctx.path_map[legacy_path] = rune_path
+    if filename is None or not ctx.has_schema(filename):
+        return _strip_at_keys(value)
+
+    # ---- metadata-carrying scalar: FieldWithMetaX -----------------------------------
+    if _is_field_with_meta(filename):
+        if isinstance(value, dict):
+            plain = _plain_keys(value)
+            inner_schema = ctx.schema(filename).get("properties", {}).get("value", {})
+            inner_file, _ = _target_filename(inner_schema)
+            value_path = rune_path
+            if "@data" in value:
+                inner = value["@data"]
+                if isinstance(inner, (dict, list)):
+                    # A complex value under @data is a CDM object like any other: it has to
+                    # be normalised too, or everything beneath it goes unvalidated.
+                    value_path = f"{rune_path}.@data"
+                    inner = _normalize(ctx, inner, inner_file, value_path, f"{legacy_path}.value")
+            elif not plain and any(k.startswith("@ref") for k in value):
+                # a reference where a value was expected: keep it, schema will report
+                _map_at_keys(ctx, value, rune_path, legacy_path, _REFERENCE_PATHS)
+                return _reference_from_keys(value)
+            else:
+                inner = _normalize(ctx, plain, inner_file, rune_path, f"{legacy_path}.value")
+            out: dict[str, Any] = {"value": inner}
+            meta = _meta_from_keys(value)
+            if meta:
+                out["meta"] = meta
+                _map_at_keys(ctx, value, rune_path, legacy_path, _META_PATHS)
+            ctx.path_map[f"{legacy_path}.value"] = value_path
+            return out
+        ctx.path_map[f"{legacy_path}.value"] = rune_path
+        return {"value": value}
+
+    # ---- reference: ReferenceWithMetaX ------------------------------------------------
+    if _is_reference_with_meta(filename):
+        if isinstance(value, dict):
+            ref = _reference_from_keys(value)
+            _map_at_keys(ctx, value, rune_path, legacy_path, _REFERENCE_PATHS)
+            plain = _plain_keys(value)
+            if plain:
+                inner_schema = ctx.schema(filename).get("properties", {}).get("value", {})
+                inner_file, _ = _target_filename(inner_schema)
+                ref["value"] = _normalize(ctx, plain, inner_file, rune_path, f"{legacy_path}.value")
+            meta = _meta_from_keys(value)
+            if meta:
+                ref["meta"] = meta
+                _map_at_keys(ctx, value, rune_path, legacy_path, _META_PATHS)
+            return ref
+        return value
+
+    # ---- choice type: wrap under the alternative named by @type ----------------------
+    if _is_choice(ctx, filename):
+        if not isinstance(value, dict):
+            return value
+        at_type = value.get("@type")
+        if not isinstance(at_type, str):
+            ctx.issues.append(
+                ValidationIssue(
+                    json_path=rune_path,
+                    message=f"choice type {_type_name(filename)} requires '@type' to select an alternative",
+                    kind="type",
+                    validator="rune",
+                )
+            )
+            return _strip_at_keys(value)
+        alt = at_type.rsplit(".", 1)[-1]
+        chain = _choice_chain(ctx, filename, alt)
+        if chain is None:
+            choice_props = ctx.schema(filename).get("properties", {})
+            ctx.issues.append(
+                ValidationIssue(
+                    json_path=f"{rune_path}.@type",
+                    message=f"{alt!r} is not an alternative of {_type_name(filename)}; "
+                    f"expected one of {sorted(choice_props)}",
+                    kind="enum",
+                    validator="rune",
+                )
+            )
+            return _strip_at_keys(value)
+        # Rune names the concrete type; the legacy shape nests one wrapper per choice
+        # level, e.g. Underlier -> Product -> NonTransferableProduct.
+        leaf_file = chain[-1][1]
+        nested_legacy = legacy_path + "".join(f".{name}" for name, _ in chain)
+        inner = _normalize(ctx, value, leaf_file, rune_path, nested_legacy)
+        for name, _ in reversed(chain):
+            inner = {name: inner}
+        return inner
+
+    # ---- ordinary data type (possibly with @type naming a subtype) -------------------
+    if isinstance(value, dict):
+        at_type = value.get("@type")
+        if isinstance(at_type, str):
+            sub = _filename_for_at_type(ctx, at_type)
+            if sub is None:
+                # Do not silently strip an unknown or misnamespaced Rune type.
+                ctx.issues.append(
+                    ValidationIssue(
+                        json_path=f"{rune_path}.@type",
+                        message=f"{at_type!r} is not a known CDM type in {ctx.version}",
+                        kind="type",
+                        validator="rune",
+                    )
+                )
+            elif sub != filename and _is_choice(ctx, sub):
+                # declared type is a base; the document picked a choice subtype
+                return _normalize(ctx, value, sub, rune_path, legacy_path)
+            elif sub != filename:
+                # Only follow @type to a subtype of the declared type. A subtype carries
+                # every property of its base, so anything else is a different type put in
+                # the wrong place, and validating against it would hide real errors.
+                declared = set(ctx.schema(filename).get("properties", {}))
+                if declared <= set(ctx.schema(sub).get("properties", {})):
+                    filename = sub
+                else:
+                    ctx.issues.append(
+                        ValidationIssue(
+                            json_path=f"{rune_path}.@type",
+                            message=f"{at_type!r} is not {_type_name(filename)} or a subtype of it",
+                            kind="type",
+                            validator="rune",
+                        )
+                    )
+        schema = ctx.schema(filename)
+        props = schema.get("properties", {})
+        out = {}
+        meta = _meta_from_keys(value)
+        for key, child in value.items():
+            if isinstance(key, str) and key.startswith("@"):
+                continue
+            prop = props.get(key)
+            child_path = f"{rune_path}.{key}"
+            child_legacy = f"{legacy_path}.{key}"
+            if not isinstance(prop, dict):
+                out[key] = _strip_at_keys(child)
+                continue
+            target, is_array = _target_filename(prop)
+            if is_array and isinstance(child, list):
+                out[key] = [
+                    _normalize(ctx, item, target, f"{child_path}[{i}]", f"{child_legacy}[{i}]")
+                    for i, item in enumerate(child)
+                ]
+            elif target is not None and not is_array:
+                out[key] = _normalize(ctx, child, target, child_path, child_legacy)
+            else:
+                out[key] = _strip_at_keys(child)
+        if meta:
+            _map_at_keys(ctx, value, rune_path, legacy_path, _META_PATHS)
+            existing = out.get("meta")
+            out["meta"] = {**meta, **existing} if isinstance(existing, dict) else meta
+        return out
+    if isinstance(value, list):
+        return [
+            _normalize(ctx, item, filename, f"{rune_path}[{i}]", f"{legacy_path}[{i}]")
+            for i, item in enumerate(value)
+        ]
+    return value
 
 
-@pytest.mark.anyio
-async def test_explain_event_from_document_and_name(client: Client) -> None:
-    _name, doc = next(s for s in _samples("rune") if s[0].startswith("execution__execution-basis"))
-    ex = _ok(await client.call_tool("explain_event", {"event": doc}))
-    assert ex["qualifier"] == "Execution"
-    assert ex["qualify_function"]["name"] == "Qualify_Execution"
-    assert "execution" in ex["instruction_types"]
-    assert ex["after_trade_count"] >= 1
-    assert ex["after_products"][0]["payout_types"]
-    by_name = _ok(await client.call_tool("explain_event", {"qualifier": "Termination"}))
-    assert by_name["qualify_function"]["name"] == "Qualify_Termination"
-    assert by_name["qualify_function"]["condition_text"]
-    unknown = _ok(await client.call_tool("explain_event", {"qualifier": "Teleportation"}))
-    assert unknown["qualify_function"] is None and unknown["notes"]
-    assert _err(await client.call_tool("explain_event", {})).code == "invalid_input"
-
-
-@pytest.mark.anyio
-async def test_search_samples_resources_and_info(client: Client) -> None:
-    hits = _ok(
-        await client.call_tool("search_types", {"query": "floating rate specification", "k": 5})
-    )
-    assert "FloatingRateSpecification" in {h["id"] for h in hits["result"]}
-    samples = _ok(await client.call_tool("list_samples", {"format": "rune"}))
-    first = samples["samples"][0]["name"]
-    sample = _ok(await client.call_tool("get_sample", {"name": first}))
-    assert sample["json_document"]["@type"].endswith("BusinessEvent")
-    schema = json.loads((await client.read_resource("cdm://schema/TradeState")).contents[0].text)  # type: ignore[union-attr]
-    assert schema["required"] == ["trade"]
-    rule = (await client.read_resource("cdm://qualify/Execution")).contents[0].text  # type: ignore[union-attr]
-    assert rule.startswith("# Qualify_Execution")
-    index = json.loads((await client.read_resource("cdm://index")).contents[0].text)  # type: ignore[union-attr]
-    assert len(index["qualifiers"]) == 35 and "6.30.0" in index["schema_versions"]
-    info = _ok(await client.call_tool("server_info", {}))
-    assert info["counts"]["root_types"] == 16 and info["counts"]["qualify_functions"] == 35
-    assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.8.0"
-
-
-def _paths(report: dict[str, Any]) -> set[str]:
-    return {i["json_path"] for i in report["issues"]}
-
-
-@pytest.mark.anyio
-async def test_content_under_at_data_is_validated(client: Client) -> None:
-    """A complex value under `@data` used to be passed through raw, so nothing beneath it
-    was checked: this is the shape of every `priceQuantity[].observable` in the samples."""
-    bad = {
-        "observable": {
-            "@data": {
-                "@type": "cdm.observable.asset.InterestRateIndex",
-                "@data": {
-                    "@type": "cdm.observable.asset.FloatingRateIndex",
-                    "assetClass": 12345,
-                    "identifier": "not-an-array",
-                },
-            }
+def _strip_at_keys(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            k: _strip_at_keys(v)
+            for k, v in value.items()
+            if not (isinstance(k, str) and k.startswith("@"))
         }
-    }
-    args = {"object": bad, "type": "PriceQuantity", "format": "rune"}
-    report = _ok(await client.call_tool("validate_object", args))
-    assert report["valid"] is False
-    assert "$.observable.@data.@data.identifier" in _paths(report)
-    unknown = {"observable": {"@data": {"@type": "cdm.observable.asset.NoSuchThing"}}}
-    args = {"object": unknown, "type": "PriceQuantity", "format": "rune"}
-    assert _ok(await client.call_tool("validate_object", args))["valid"] is False
+    if isinstance(value, list):
+        return [_strip_at_keys(v) for v in value]
+    return value
 
 
-@pytest.mark.anyio
-async def test_nested_at_type_must_be_a_subtype(client: Client) -> None:
-    """A stray `@type` naming an unrelated type must not switch the schema and hide errors."""
-    doc = {
-        "@type": "cdm.base.staticdata.party.Party",
-        "partyId": [{"identifier": {"@data": "X"}}],
-        "account": {
-            "@type": "cdm.base.staticdata.party.Party",
-            "accountNumber": {"@data": 5},
+def _remap_path(path: str, path_map: dict[str, str]) -> str:
+    """Translate a legacy-shape path back to the caller's document via longest prefix."""
+    best = ""
+    for legacy in path_map:
+        if (
+            path == legacy or path.startswith(legacy + ".") or path.startswith(legacy + "[")
+        ) and len(legacy) > len(best):
+            best = legacy
+    if not best:
+        return path
+    return path_map[best] + path[len(best) :]
+
+
+def resolve_type(registry: CdmRegistry, obj: Any, type: str | None) -> str:
+    """Return the fully qualified type to validate against, from `type` or the document's
+    @type. Fully qualified because a few bare names exist in two namespaces."""
+    if type:
+        info = registry.get(type)
+        if info is None:
+            raise not_found("CDM type", type, hint="Call list_types or search_types.")
+        return f"{info.namespace}.{info.name}"
+    if isinstance(obj, dict) and isinstance(obj.get("@type"), str):
+        at_type = str(obj["@type"])
+        info = registry.get(at_type)
+        if info is not None:
+            return f"{info.namespace}.{info.name}"
+        raise not_found("CDM type", at_type, hint="Call list_types or search_types.")
+    raise invalid_input(
+        "Cannot infer the CDM type: pass type (e.g. 'TradeState') or include '@type' in the object.",
+        hint="Root types: " + ", ".join(registry.root_types()[:8]) + ", ...",
+    )
+
+
+def validate_object(
+    registry: CdmRegistry,
+    obj: Any,
+    *,
+    type: str | None = None,
+    format: Literal["auto", "rune", "legacy"] = "auto",
+    schema_version: str | None = None,
+    max_issues: int = 200,
+) -> ValidationReport:
+    if not isinstance(obj, dict):
+        raise invalid_input("object must be a JSON object.")
+    version = schema_version or registry.PRIMARY_VERSION
+    if version not in registry.schema_versions():
+        raise not_found(
+            "schema version", version, hint=f"Available: {', '.join(registry.schema_versions())}"
+        )
+    schemas = registry.schema_registry_for(version)
+    # Look the type up in the requested vintage first: some types exist only in the legacy
+    # schema, and the type index is built from the primary one.
+    at_type = obj.get("@type")
+    wanted = type or (at_type if isinstance(at_type, str) else None)
+    filename = registry.filename_in_version(wanted, version) if wanted else None
+    if filename is None:
+        type_name = resolve_type(registry, obj, type)
+        info = registry.get(type_name)
+        assert info is not None
+        if info.filename not in schemas:
+            raise not_found(
+                "schema",
+                f"{type_name} in cdm-json-schema {version}",
+                hint="Try the primary version.",
+            )
+        filename = info.filename
+    type_label = ".".join(parse_schema_filename(filename))
+    fmt: Format = detect_format(obj) if format == "auto" else format
+    warnings = [RUNE_CONDITION_WARNING]
+    ctx = _Ctx(registry=registry, version=version)
+    if fmt == "rune":
+        instance = _normalize(ctx, copy.deepcopy(obj), filename, "$", "$")
+        validator_label = f"json-schema draft4 (cdm-json-schema {version}) via Rune normalisation"
+    else:
+        instance = obj
+        validator_label = f"json-schema draft4 (cdm-json-schema {version})"
+        if version == registry.PRIMARY_VERSION:
+            warnings.append(
+                "Legacy-format documents produced by CDM <= 6 may not match the 7.x schema; "
+                "pass schema_version='6.30.0' for same-vintage validation."
+            )
+        if format == "auto":
+            warnings.append(
+                "No '@' keys were found, so the document was read as legacy format. If it is "
+                "a Rune (CDM 7) fragment without metadata, pass format='rune'."
+            )
+    report = schemas.validate(instance, filename, max_issues=max_issues)
+    issues = list(ctx.issues)
+    for issue in report.issues:
+        issues.append(
+            issue.model_copy(update={"json_path": _remap_path(issue.json_path, ctx.path_map)})
+            if fmt == "rune"
+            else issue
+        )
+    issues = issues[:max_issues]
+    return ValidationReport(
+        valid=not issues,
+        validator=validator_label,
+        type=type_label,
+        format_detected=fmt,
+        issues=issues,
+        warnings=warnings,
+        stats={
+            "issues": len(issues),
+            "nodes_normalised": ctx.nodes,
+            "schema_files": len(schemas),
+            **({"truncated": 1} if report.stats.get("truncated") else {}),
         },
-    }
-    report = _ok(await client.call_tool("validate_object", {"object": doc}))
-    assert {"$.account.@type", "$.account.accountNumber"} <= _paths(report)
-
-
-@pytest.mark.anyio
-async def test_same_name_in_two_namespaces_resolves_by_full_name(client: Client) -> None:
-    fqn = "cdm.legaldocumentation.master.isda.AdditionalTerminationEvent"
-    described = _ok(await client.call_tool("describe_type", {"name": fqn}))
-    assert [f["name"] for f in described["fields"]] == ["partyElection"]
-    assert described["schema_uri"] == f"cdm://schema/{fqn}"
-    report = _ok(await client.call_tool("validate_object", {"object": {}, "type": fqn}))
-    assert report["valid"] is True and report["type"] == fqn
-
-
-@pytest.mark.anyio
-async def test_legacy_samples_are_reachable(client: Client) -> None:
-    listed = _ok(await client.call_tool("list_samples", {"format": "legacy"}))["samples"]
-    assert listed and all(s["name"].startswith("legacy__") for s in listed)
-    sample = _ok(await client.call_tool("get_sample", {"name": listed[0]["name"]}))
-    assert sample["format"] == "legacy"
-    names = [s["name"] for s in _ok(await client.call_tool("list_samples", {}))["samples"]]
-    assert len(names) == len(set(names))
-
-
-@pytest.mark.anyio
-async def test_explain_event_tolerates_wrongly_typed_fields(client: Client) -> None:
-    for trade in (
-        {"tradeIdentifier": 5},
-        {"party": 7},
-        {"tradeIdentifier": [{"assignedIdentifier": 3}]},
-    ):
-        event = {"after": [{"trade": trade}]}
-        res = _ok(await client.call_tool("explain_event", {"event": event}))
-        assert res["after_trade_count"] == 1
-
-
-@pytest.mark.anyio
-async def test_issue_paths_name_the_rune_keys_the_caller_wrote(client: Client) -> None:
-    doc = {"name": {"@data": "x", "@scheme": 5}, "partyId": [{"identifier": {"@data": "X"}}]}
-    args = {"object": doc, "type": "Party", "format": "rune"}
-    assert "$.name.@scheme" in _paths(_ok(await client.call_tool("validate_object", args)))
-    for key in ("@ref", "@ref:external", "@ref:scoped"):
-        ref = {"partyReference": {key: 5}, "role": "Buyer"}
-        args = {"object": ref, "type": "PartyRole", "format": "rune"}
-        report = _ok(await client.call_tool("validate_object", args))
-        assert f"$.partyReference.{key}" in _paths(report)
-
-
-@pytest.mark.anyio
-async def test_format_detection_scans_the_whole_document(client: Client) -> None:
-    big = {
-        "name": {"@data": "Bank A", "@scheme": "s"},
-        "partyId": [{"identifier": {"@data": "LEI"}}],
-        "businessUnit": [{"name": "u"}] * 3000,
-    }
-    report = _ok(await client.call_tool("validate_object", {"object": big, "type": "Party"}))
-    assert report["format_detected"] == "rune"
-    bare = {"name": "Bank A", "partyId": [{"identifier": "LEI123"}]}
-    report = _ok(await client.call_tool("validate_object", {"object": bare, "type": "Party"}))
-    assert report["format_detected"] == "legacy"
-    assert any("format='rune'" in w for w in report["warnings"])
-
-
-@pytest.mark.anyio
-async def test_types_only_in_the_legacy_vintage_validate_against_it(client: Client) -> None:
-    """The type index is built from the primary schema; a type that exists only in the
-    legacy vintage must still be found when that vintage is asked for."""
-    args = {"object": {}, "type": "AccessConditions", "schema_version": "6.30.0"}
-    report = _ok(await client.call_tool("validate_object", args))
-    assert report["type"] == "cdm.legaldocumentation.csa.AccessConditions"
-    assert "6.30.0" in report["validator"]
-    primary = await client.call_tool("validate_object", {"object": {}, "type": "AccessConditions"})
-    assert _err(primary).code == "not_found"
-
-
-@pytest.mark.anyio
-async def test_legacy_schema_rejects_a_wrong_fully_qualified_namespace(client: Client) -> None:
-    """Wrong namespaces must not be silently mapped to a valid legacy type."""
-    response = await client.call_tool(
-        "validate_object",
-        {"object": {}, "type": "cdm.unrelated.AccessConditions", "schema_version": "6.30.0"},
     )
-    assert _err(response).code == "not_found"
-
-
-@pytest.mark.anyio
-async def test_inferred_rune_type_must_match_the_declared_namespace(client: Client) -> None:
-    """An invalid qualified '@type' must not fall back to a matching bare name."""
-    for version in ("7.8.0", "6.30.0"):
-        args = {
-            "object": {"@type": "cdm.unrelated.TradeState"},
-            "schema_version": version,
-        }
-        response = await client.call_tool("validate_object", args)
-        assert _err(response).code == "not_found"

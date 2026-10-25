@@ -125,11 +125,9 @@ def _choice_chain(
 
 
 def _filename_for_at_type(ctx: _Ctx, at_type: str) -> str | None:
-    # The fully qualified name first: a few bare names exist in two namespaces.
-    info = ctx.registry.get(at_type)
-    if info is None or not ctx.has_schema(info.filename):
-        return None
-    return info.filename
+    # Resolve within the requested vintage. Qualified names must match exactly;
+    # the legacy version can contain types absent from the primary registry.
+    return ctx.registry.filename_in_version(at_type, ctx.version)
 
 
 def _meta_from_keys(node: dict[str, Any]) -> dict[str, Any]:
@@ -288,10 +286,20 @@ def _normalize(
         at_type = value.get("@type")
         if isinstance(at_type, str):
             sub = _filename_for_at_type(ctx, at_type)
-            if sub is not None and sub != filename and _is_choice(ctx, sub):
+            if sub is None:
+                # Do not silently strip an unknown or misnamespaced Rune type.
+                ctx.issues.append(
+                    ValidationIssue(
+                        json_path=f"{rune_path}.@type",
+                        message=f"{at_type!r} is not a known CDM type in {ctx.version}",
+                        kind="type",
+                        validator="rune",
+                    )
+                )
+            elif sub != filename and _is_choice(ctx, sub):
                 # declared type is a base; the document picked a choice subtype
                 return _normalize(ctx, value, sub, rune_path, legacy_path)
-            if sub is not None and sub != filename:
+            elif sub != filename:
                 # Only follow @type to a subtype of the declared type. A subtype carries
                 # every property of its base, so anything else is a different type put in
                 # the wrong place, and validating against it would hide real errors.
