@@ -114,3 +114,26 @@ jobs:
         with:
           files: dist/*
           body_path: docs/releases/${{ github.ref_name }}.md
+
+  dispatch-docker:
+    # Release GHCR only after the four packages and GitHub Release succeed.
+    # GITHUB_TOKEN tag pushes do not trigger other workflows by themselves.
+    needs: github-release
+    if: needs.github-release.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Dispatch GHCR image only after successful release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" != "tag" || ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Docker publication requires a stable release tag"
+            exit 1
+          fi
+          gh workflow run docker.yml --ref "$GITHUB_REF_NAME" -f push=true
+          echo "Dispatched GHCR publishing for $GITHUB_REF_NAME after a successful GitHub Release"
