@@ -29,8 +29,11 @@ not.
 ## Common Domain Model (finos/common-domain-model, Maven `cdm-json-schema`)
 
 These were found against CDM 7.2.0 and 6.27.0 and are written as observed then. The vendored
-content moved to 7.4.0 and 6.29.0 on 2026-10-04 and to 7.5.0 on 2026-10-05, and every test that pins one of these
-findings passed unchanged against the new versions, so none has been fixed upstream. Finding 9
+content moved to 7.4.0 and 6.29.0 on 2026-10-04 and to 7.5.0 on 2026-10-05.
+The current primary schema is 7.8.0 and the legacy schema is 6.30.0, both sourced
+from the official Maven Central releases on 2026-10-25. Known issues remain
+covered by pinned tests; if an upstream fix changes behavior, update the
+corresponding finding and assertion together. Finding 9
 concerns the `finos-cdm` 7.2.0 package and was not re-tested.
 
 3. **Rosetta basic-type names leak into JSON Schema `type`.** Eight 7.2.0 schema files emit
