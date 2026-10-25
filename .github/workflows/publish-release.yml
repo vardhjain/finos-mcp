@@ -1,0 +1,137 @@
+name: publish-release (manual, guarded)
+
+# Publishing is never automatic on a push to main. The repository owner must
+# explicitly supply the version, exact reviewed SHA, and a typed confirmation.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release number, e.g. 0.3.0 (without v)"
+        required: true
+        type: string
+      expected_sha:
+        description: "Exactly 40 hex characters: the reviewed main commit"
+        required: true
+        type: string
+      confirmation:
+        description: "Type PUBLISH v0.3.0 (using your requested version)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  release-gate:
+    name: Verify settings, tag and dispatch publication
+    # workflow_dispatch allows choosing a branch; only the owner on main may
+    # trigger publication. Do not allow a version-changing branch to run this.
+    if: github.ref == 'refs/heads/main' && github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VERSION: ${{ inputs.version }}
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+      PUBLISH_TO_PYPI: ${{ vars.PUBLISH_TO_PYPI }}
+      PYPI_SKIP_PACKAGES: ${{ vars.PYPI_SKIP_PACKAGES }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+
+      - name: Require intentional owner approval, matching SHA and PyPI configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Expected a stable X.Y.Z version"; exit 1
+          fi
+          TAG="v$VERSION"
+          if [[ "$CONFIRMATION" != "PUBLISH $TAG" ]]; then
+            echo "::error::Type exactly PUBLISH $TAG in the confirmation input"; exit 1
+          fi
+          if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Expected the full 40-character commit SHA"; exit 1
+          fi
+          git fetch origin main --no-tags
+          HEAD_SHA=$(git rev-parse HEAD)
+          REMOTE_SHA=$(git rev-parse refs/remotes/origin/main)
+          if [[ "$HEAD_SHA" != "$EXPECTED_SHA" || "$REMOTE_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "::error::Main moved or requested SHA differs from checked-out commit"; exit 1
+          fi
+          if [[ "$PUBLISH_TO_PYPI" != "true" ]]; then
+            echo "::error::Set repository Actions variable PUBLISH_TO_PYPI=true first"; exit 1
+          fi
+          if [[ -n "$(printf '%s' "$PYPI_SKIP_PACKAGES" | tr -d '[:space:]')" ]]; then
+            echo "::error::PYPI_SKIP_PACKAGES must be empty to release all four packages"; exit 1
+          fi
+          if [[ -n "$(git ls-remote --tags origin "refs/tags/$TAG")" ]]; then
+            echo "::error::Tag $TAG already exists; refusing to republish"; exit 1
+          fi
+          python scripts/release_check.py --tag "$TAG"
+          uv lock --check
+
+      - name: Require successful post-merge CI for the reviewed commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          SUCCESSFUL=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SHA&event=push&per_page=30" \
+            --jq '.workflow_runs[] | select(.conclusion == "success") | .head_sha' \
+            | grep -Fxc "$EXPECTED_SHA" || true)
+          if [[ "$SUCCESSFUL" -lt 1 ]]; then
+            echo "::error::No successful push CI run for the exact requested SHA"; exit 1
+          fi
+          echo "Verified successful CI for $EXPECTED_SHA"
+
+      - name: Ensure release version is not already uploaded to PyPI
+        shell: bash
+        run: |
+          set -euo pipefail
+          for component in core aigf cdm fdc3; do
+            url="https://pypi.org/pypi/finos-mcp-$component/$VERSION/json"
+            status=$(curl -sS --retry 3 -o /dev/null -w '%{http_code}' "$url")
+            case "$status" in
+              404) echo "Version available on PyPI: finos-mcp-$component $VERSION" ;;
+              200) echo "::error::finos-mcp-$component $VERSION already exists on PyPI"; exit 1 ;;
+              *) echo "::error::Cannot verify PyPI version: HTTP $status"; exit 1 ;;
+            esac
+          done
+
+      - name: Build and verify eight release files before creating any tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          for package in core aigf cdm fdc3; do
+            uv build --package "finos-mcp-$package" --out-dir dist
+          done
+          python scripts/release_check.py --tag "v$VERSION" --dist dist
+
+      - name: Publish annotated tag and explicitly dispatch both release workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" "$EXPECTED_SHA" -m "FINOS MCP $TAG"
+          git push origin "refs/tags/$TAG"
+          # A tag pushed with GITHUB_TOKEN does NOT trigger push workflows.
+          # workflow_dispatch is exempt from that suppression, so start both
+          # release workflows explicitly on the newly created annotated tag.
+          gh workflow run release.yml --ref "$TAG"
+          gh workflow run docker.yml --ref "$TAG" -f push=true
+          {
+            echo "### Dispatched FINOS MCP $TAG"
+            echo
+            echo "- Exact release commit: \`$EXPECTED_SHA\`"
+            echo "- GitHub/PyPI: release.yml on tag \`$TAG\`"
+            echo "- Container: docker.yml on tag \`$TAG\`, push=true"
+            echo "- Review both runs and verify 4 PyPI projects and the GHCR image"
+          } >> "$GITHUB_STEP_SUMMARY"
