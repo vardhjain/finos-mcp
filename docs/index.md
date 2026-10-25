@@ -9,6 +9,18 @@ standards, so an agent can query them without being able to change anything.
 | `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | 1143 schemas, 16 root types, 35 event-qualification rules, and validation of CDM JSON in both the Rune (CDM 7) and legacy shapes |
 | `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | 19 intents with a generated intent-to-context table, 28 context types, context validation and intent suggestion |
 
+## Pick a question to try
+
+| Your task | Start here |
+|---|---|
+| Find an AI risk or control with a citable identifier | [AIGF example](use-cases.md#1-map-an-ai-governance-control) |
+| Inspect a `TradeState` field or schema | [CDM example](use-cases.md#2-understand-a-cdm-trade-type) |
+| Suggest a standard desktop action for an instrument | [FDC3 example](use-cases.md#3-find-an-fdc3-action-for-a-selected-instrument) |
+
+The [example recipes](use-cases.md) run real tools locally with **no paid
+model API or API key**. To connect them to Claude, VS Code, or Copilot, use the
+[MCP client setup guide](getting-started.md).
+
 ## Start here
 
 - **[Safety model](safety.md)** — what "read-only" is enforced to mean, and the rate limits,
