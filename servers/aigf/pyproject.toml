@@ -13,7 +13,7 @@ finos-mcp-aigf = "finos_mcp.aigf.__main__:main"
 
 [project.optional-dependencies]
 semantic = [
-    "finos-mcp-core[semantic]>=0.2.6",
+    "finos-mcp-core[semantic]>=0.3.0",
 ]
 
 [project.urls]
