@@ -1,0 +1,381 @@
+[
+  {
+    "id": "cdm-trade-schema-validation",
+    "description": "Discover TradeState, inspect its source schema and validate a Rune trade.",
+    "steps": [
+      {
+        "id": "type",
+        "tool": "describe_type",
+        "args": {
+          "name": "TradeState"
+        },
+        "expect": {
+          "name": "TradeState",
+          "kind": "type",
+          "root_type": true,
+          "fields": {
+            "$any": {
+              "name": "trade",
+              "type": "Trade",
+              "cardinality": "1..1"
+            }
+          },
+          "schema_uri": "cdm://schema/TradeState"
+        }
+      },
+      {
+        "id": "schema",
+        "read": {
+          "$from": "type.schema_uri"
+        },
+        "expect_json": {
+          "required": {
+            "$contains": [
+              "trade"
+            ]
+          }
+        }
+      },
+      {
+        "id": "validation",
+        "tool": "validate_object",
+        "args": {
+          "object": {
+            "@type": "cdm.event.common.TradeState",
+            "trade": {
+              "tradeDate": "2024-01-15"
+            }
+          }
+        },
+        "expect": {
+          "type": "cdm.event.common.TradeState",
+          "format_detected": "rune"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cdm-root-legacy",
+    "description": "Find root types and report a missing required field in legacy-format JSON.",
+    "steps": [
+      {
+        "id": "roots",
+        "tool": "list_types",
+        "args": {
+          "root_only": true,
+          "page_size": 100
+        },
+        "expect": {
+          "total": 16,
+          "items": {
+            "$min_len": 16,
+            "$any": {
+              "name": "TradeState",
+              "root_type": true
+            }
+          }
+        }
+      },
+      {
+        "id": "check",
+        "tool": "validate_object",
+        "args": {
+          "object": {
+            "state": {}
+          },
+          "type": "TradeState",
+          "format": "legacy"
+        },
+        "expect": {
+          "valid": false,
+          "format_detected": "legacy",
+          "issues": {
+            "$any": {
+              "kind": "required"
+            }
+          }
+        }
+      },
+      {
+        "id": "index",
+        "read": "cdm://index",
+        "expect_json": {
+          "schema_versions": {
+            "$min_len": 2
+          },
+          "root_types": {
+            "$min_len": 16
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "cdm-payout-discovery",
+    "description": "Discover CDM Payout alternatives and their schema resource.",
+    "steps": [
+      {
+        "id": "payout",
+        "tool": "describe_type",
+        "args": {
+          "name": "cdm.product.template.Payout"
+        },
+        "expect": {
+          "name": "Payout",
+          "kind": "choice",
+          "alternatives": {
+            "$contains": [
+              "InterestRatePayout",
+              "OptionPayout"
+            ]
+          }
+        }
+      },
+      {
+        "id": "catalog",
+        "tool": "list_products",
+        "args": {},
+        "expect": {
+          "entries": {
+            "$any": {
+              "name": "InterestRatePayout",
+              "role": "payout_alternative"
+            }
+          }
+        }
+      },
+      {
+        "id": "schema",
+        "read": {
+          "$from": "payout.schema_uri"
+        },
+        "expect_json": {
+          "properties": {
+            "InterestRatePayout": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "cdm-sample-self-check",
+    "description": "Obtain a source sample, inspect its citation, and validate the same JSON.",
+    "steps": [
+      {
+        "id": "samples",
+        "tool": "list_samples",
+        "args": {
+          "format": "rune"
+        },
+        "expect": {
+          "samples": {
+            "$min_len": 1,
+            "$first": {
+              "format": "rune"
+            }
+          }
+        }
+      },
+      {
+        "id": "sample",
+        "tool": "get_sample",
+        "args": {
+          "name": {
+            "$from": "samples.samples.0.name"
+          }
+        },
+        "expect": {
+          "format": "rune",
+          "root_type": {
+            "$suffix": "BusinessEvent"
+          }
+        }
+      },
+      {
+        "id": "document",
+        "read": {
+          "$from": "sample.citation_uri"
+        },
+        "expect_json": {
+          "@type": {
+            "$suffix": "BusinessEvent"
+          }
+        }
+      },
+      {
+        "id": "validate",
+        "tool": "validate_object",
+        "args": {
+          "object": {
+            "$from": "sample.json_document"
+          }
+        },
+        "expect": {
+          "format_detected": "rune",
+          "stats": {
+            "nodes_normalised": {
+              "$min": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "cdm-qualifier-explanation",
+    "description": "Look up the official Execution rule and cite its Rosetta source.",
+    "steps": [
+      {
+        "id": "explain",
+        "tool": "explain_event",
+        "args": {
+          "qualifier": "Execution"
+        },
+        "expect": {
+          "qualifier": "Execution",
+          "qualify_function": {
+            "name": "Qualify_Execution"
+          },
+          "sample_uris": {
+            "$min_len": 1
+          }
+        }
+      },
+      {
+        "id": "source",
+        "read": "cdm://qualify/Execution",
+        "contains": "Qualify_Execution"
+      },
+      {
+        "id": "samples",
+        "tool": "list_samples",
+        "args": {
+          "format": "rune"
+        },
+        "expect": {
+          "samples": {
+            "$min_len": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "cdm-error-recovery",
+    "description": "Recognize missing type inference and unknown schema type as structured errors.",
+    "steps": [
+      {
+        "id": "browse",
+        "tool": "describe_type",
+        "args": {
+          "name": "TradeState"
+        },
+        "expect": {
+          "name": "TradeState",
+          "root_type": true
+        }
+      },
+      {
+        "id": "missing_type",
+        "tool": "validate_object",
+        "args": {
+          "object": {
+            "eventDate": "2020-01-01"
+          }
+        },
+        "expect_error": "invalid_input"
+      },
+      {
+        "id": "unknown_type",
+        "tool": "validate_object",
+        "args": {
+          "object": {},
+          "type": "UnrealTradeType"
+        },
+        "expect_error": "not_found"
+      }
+    ]
+  },
+  {
+    "id": "cdm-search-explain",
+    "description": "Find a floating-rate schema from text and inspect its fields.",
+    "steps": [
+      {
+        "id": "hits",
+        "tool": "search_types",
+        "args": {
+          "query": "floating rate specification",
+          "k": 5
+        },
+        "expect": {
+          "result": {
+            "$any": {
+              "id": "FloatingRateSpecification"
+            }
+          }
+        }
+      },
+      {
+        "id": "type",
+        "tool": "describe_type",
+        "args": {
+          "name": "FloatingRateSpecification"
+        },
+        "expect": {
+          "name": "FloatingRateSpecification",
+          "fields": {
+            "$min_len": 1
+          }
+        }
+      },
+      {
+        "id": "schema",
+        "read": {
+          "$from": "type.schema_uri"
+        },
+        "expect_json": {
+          "type": "object"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cdm-missing-qualifier",
+    "description": "Distinguish real and nonexistent event qualifiers without making up a rule.",
+    "steps": [
+      {
+        "id": "real",
+        "tool": "explain_event",
+        "args": {
+          "qualifier": "Termination"
+        },
+        "expect": {
+          "qualifier": "Termination",
+          "qualify_function": {
+            "name": "Qualify_Termination"
+          }
+        }
+      },
+      {
+        "id": "unknown",
+        "tool": "explain_event",
+        "args": {
+          "qualifier": "Teleportation"
+        },
+        "expect": {
+          "qualifier": "Teleportation",
+          "qualify_function": null,
+          "notes": {
+            "$min_len": 1
+          }
+        }
+      },
+      {
+        "id": "missing_args",
+        "tool": "explain_event",
+        "args": {},
+        "expect_error": "invalid_input"
+      }
+    ]
+  }
+]

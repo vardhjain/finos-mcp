@@ -1,0 +1,418 @@
+[
+  {
+    "id": "fdc3-instrument-chart",
+    "description": "Validate instrument context, suggest a chart, read its intent documentation.",
+    "steps": [
+      {
+        "id": "valid",
+        "tool": "validate_context",
+        "args": {
+          "context": {
+            "type": "fdc3.instrument",
+            "id": {
+              "ticker": "AAPL"
+            }
+          }
+        },
+        "expect": {
+          "valid": true,
+          "type": "fdc3.instrument",
+          "issues": {
+            "$len": 0
+          }
+        }
+      },
+      {
+        "id": "suggest",
+        "tool": "suggest_intent",
+        "args": {
+          "context": {
+            "type": "fdc3.instrument",
+            "id": {
+              "ticker": "AAPL"
+            }
+          },
+          "goal": "show a price chart"
+        },
+        "expect": {
+          "context_type": "fdc3.instrument",
+          "detected_by": "type_field",
+          "suggestions": {
+            "$first": {
+              "name": "ViewChart"
+            }
+          }
+        }
+      },
+      {
+        "id": "intent",
+        "tool": "get_intent",
+        "args": {
+          "name": {
+            "$from": "suggest.suggestions.0.name"
+          }
+        },
+        "expect": {
+          "name": "ViewChart",
+          "contexts": {
+            "$contains": [
+              "fdc3.instrument"
+            ]
+          },
+          "deprecated": false
+        }
+      },
+      {
+        "id": "reference",
+        "read": {
+          "$from": "intent.citation_uri"
+        },
+        "contains": "Possible Contexts"
+      }
+    ]
+  },
+  {
+    "id": "fdc3-infer-instrument",
+    "description": "Infer an untyped ticker object structurally and retrieve its schema.",
+    "steps": [
+      {
+        "id": "detect",
+        "tool": "suggest_intent",
+        "args": {
+          "context": {
+            "id": {
+              "ticker": "AAPL"
+            }
+          }
+        },
+        "expect": {
+          "context_type": "fdc3.instrument",
+          "detected_by": "structural_match",
+          "suggestions": {
+            "$any": {
+              "name": "ViewInstrument"
+            }
+          }
+        }
+      },
+      {
+        "id": "schema",
+        "tool": "get_context_schema",
+        "args": {
+          "type": {
+            "$from": "detect.context_type"
+          }
+        },
+        "expect": {
+          "type": "fdc3.instrument",
+          "required": {
+            "$contains": [
+              "type",
+              "id"
+            ]
+          }
+        }
+      },
+      {
+        "id": "source",
+        "read": {
+          "$from": "schema.schema_uri"
+        },
+        "expect_json": {
+          "allOf": {
+            "$min_len": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "fdc3-contact-handoff",
+    "description": "Infer contact details, suggest a communication intent and cite its source.",
+    "steps": [
+      {
+        "id": "detect",
+        "tool": "suggest_intent",
+        "args": {
+          "context": {
+            "id": {
+              "email": "analyst@example.org"
+            },
+            "name": "Analyst"
+          }
+        },
+        "expect": {
+          "context_type": "fdc3.contact",
+          "detected_by": "structural_match",
+          "suggestions": {
+            "$any": {
+              "name": "StartChat"
+            }
+          }
+        }
+      },
+      {
+        "id": "intent",
+        "tool": "get_intent",
+        "args": {
+          "name": "StartChat"
+        },
+        "expect": {
+          "name": "StartChat",
+          "contexts": {
+            "$contains": [
+              "fdc3.contact"
+            ]
+          }
+        }
+      },
+      {
+        "id": "reference",
+        "read": {
+          "$from": "intent.citation_uri"
+        },
+        "contains": "StartChat"
+      }
+    ]
+  },
+  {
+    "id": "fdc3-invalid-instrument",
+    "description": "Inspect the required instrument ID and refuse a malformed instrument.",
+    "steps": [
+      {
+        "id": "schema",
+        "tool": "get_context_schema",
+        "args": {
+          "type": "Instrument"
+        },
+        "expect": {
+          "type": "fdc3.instrument",
+          "required": {
+            "$contains": [
+              "id"
+            ]
+          }
+        }
+      },
+      {
+        "id": "invalid",
+        "tool": "validate_context",
+        "args": {
+          "context": {
+            "type": "fdc3.instrument",
+            "id": "AAPL"
+          }
+        },
+        "expect": {
+          "valid": false,
+          "type": "fdc3.instrument",
+          "issues": {
+            "$any": {
+              "json_path": "$.id"
+            }
+          }
+        }
+      },
+      {
+        "id": "suggest",
+        "tool": "suggest_intent",
+        "args": {
+          "context": {
+            "type": "fdc3.instrument",
+            "id": "AAPL"
+          }
+        },
+        "expect": {
+          "detected_by": "type_field",
+          "context_type": "fdc3.instrument",
+          "validation": {
+            "valid": false
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "fdc3-unknown-type",
+    "description": "Avoid hallucinating nonstandard context types and return actionable structured errors.",
+    "steps": [
+      {
+        "id": "types",
+        "tool": "list_context_types",
+        "args": {},
+        "expect": {
+          "context_types": {
+            "$min_len": 25,
+            "$any": {
+              "type": "fdc3.instrument"
+            }
+          }
+        }
+      },
+      {
+        "id": "unknown",
+        "tool": "validate_context",
+        "args": {
+          "context": {
+            "type": "fdc3.spaceship"
+          }
+        },
+        "expect_error": "not_found"
+      },
+      {
+        "id": "schema_missing",
+        "tool": "get_context_schema",
+        "args": {
+          "type": "fdc3.spaceship"
+        },
+        "expect_error": "not_found"
+      }
+    ]
+  },
+  {
+    "id": "fdc3-explicit-contact",
+    "description": "Discover accepted contact intents and handle missing suggestion inputs.",
+    "steps": [
+      {
+        "id": "invalid_call",
+        "tool": "suggest_intent",
+        "args": {},
+        "expect_error": "invalid_input"
+      },
+      {
+        "id": "suggest",
+        "tool": "suggest_intent",
+        "args": {
+          "context_type": "fdc3.contact"
+        },
+        "expect": {
+          "detected_by": "explicit",
+          "context_type": "fdc3.contact",
+          "suggestions": {
+            "$any": {
+              "name": "StartCall"
+            }
+          }
+        }
+      },
+      {
+        "id": "intent",
+        "tool": "get_intent",
+        "args": {
+          "name": "StartCall"
+        },
+        "expect": {
+          "name": "StartCall",
+          "contexts": {
+            "$contains": [
+              "fdc3.contact"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "fdc3-instrument-list",
+    "description": "Explain the required instrument-list shape and validate a missing list.",
+    "steps": [
+      {
+        "id": "schema",
+        "tool": "get_context_schema",
+        "args": {
+          "type": "fdc3.instrumentList"
+        },
+        "expect": {
+          "type": "fdc3.instrumentList",
+          "required": {
+            "$contains": [
+              "type",
+              "instruments"
+            ]
+          }
+        }
+      },
+      {
+        "id": "invalid",
+        "tool": "validate_context",
+        "args": {
+          "context": {
+            "type": "fdc3.instrumentList"
+          }
+        },
+        "expect": {
+          "valid": false,
+          "issues": {
+            "$min_len": 1
+          }
+        }
+      },
+      {
+        "id": "intents",
+        "tool": "list_intents",
+        "args": {
+          "context_type": "fdc3.instrumentList"
+        },
+        "expect": {
+          "intents": {
+            "$min_len": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "fdc3-intent-crosswalk",
+    "description": "Cross-check available instrument intents against their accepted contexts.",
+    "steps": [
+      {
+        "id": "catalog",
+        "tool": "list_intents",
+        "args": {
+          "context_type": "fdc3.instrument"
+        },
+        "expect": {
+          "intents": {
+            "$any": {
+              "name": "ViewChart"
+            }
+          }
+        }
+      },
+      {
+        "id": "chart",
+        "tool": "get_intent",
+        "args": {
+          "name": "ViewChart"
+        },
+        "expect": {
+          "name": "ViewChart",
+          "contexts": {
+            "$contains": [
+              "fdc3.instrument",
+              "fdc3.chart"
+            ]
+          }
+        }
+      },
+      {
+        "id": "schema",
+        "tool": "get_context_schema",
+        "args": {
+          "type": "fdc3.chart"
+        },
+        "expect": {
+          "type": "fdc3.chart",
+          "schema_uri": "fdc3://schema/fdc3.chart"
+        }
+      },
+      {
+        "id": "source",
+        "read": {
+          "$from": "chart.citation_uri"
+        },
+        "contains": "ViewChart"
+      }
+    ]
+  }
+]
