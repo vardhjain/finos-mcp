@@ -12,6 +12,25 @@
 [![recall@5](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics.json&query=%24.retrieval.recall_at_5&label=retrieval%20recall%405&color=0f7a68)](evals/retrieval)
 [![hallucinated ids](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvardhjain%2Ffinos-mcp%2Fmetrics%2Fmetrics-agent.json&query=%24.agent.hallucinated_id_rate&label=agent%20hallucinated%20ids&color=0f7a68)](evals/agent)
 
+## Start with a question
+
+| What you want to do | Pick this server | See it work |
+|---|---|---|
+| Find AI governance risks and controls with traceable references | **AIGF** | [Governance example](docs/use-cases.md#1-map-an-ai-governance-control) |
+| Understand a trade field or validate CDM JSON | **CDM** | [CDM example](docs/use-cases.md#2-understand-a-cdm-trade-type) |
+| Find the right desktop intent for a financial instrument | **FDC3** | [FDC3 example](docs/use-cases.md#3-find-an-fdc3-action-for-a-selected-instrument) |
+
+To **connect to an assistant**, use the [copy-paste client setup guide](docs/getting-started.md).
+To **see a real MCP call without a model or API key**, clone this repository,
+run `uv sync --all-packages`, then try:
+
+```bash
+uv run --no-sync python examples/try_it.py aigf
+```
+
+Choose either of the other two servers in the [tested example recipes](docs/use-cases.md).
+This is independent community software, not an official FINOS product.
+
 ## What is this?
 
 Banks and other financial firms share a set of open standards published by

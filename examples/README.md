@@ -1,5 +1,11 @@
 # Using the servers
 
+For three small, reproducible **first tool calls** across AIGF, CDM and FDC3,
+see [the quick use cases](../docs/use-cases.md) and run
+`uv run --no-sync python examples/try_it.py aigf` after
+`uv sync --all-packages` from the repository root. These local tools require
+no paid inference or LLM account.
+
 ## Demo
 
 [`demo_session.py`](demo_session.py) demonstrates **five real MCP calls** across AIGF, CDM

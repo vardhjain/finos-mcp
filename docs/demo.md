@@ -20,11 +20,13 @@ Omit `--fast` for a paced terminal presentation. To generate
 `docs/demo.gif` on a machine with the free [VHS](https://github.com/charmbracelet/vhs)
 terminal recorder installed, run `vhs examples/demo.tape`.
 
-The transcript below was captured from the **combined stabilization integration branch**
-with AIGF's latest vendored governance records, CDM 7.7.0 and the improved AIGF search.
-It is not yet released on `main`. Future upstream changes may legitimately alter
-schema-validator messages and intent rankings. CI runs the demo on every PR and
-uploads `demo-transcript.txt` in its metrics artifact.
+**Historical snapshot:** The transcript below was captured with CDM 7.7.0
+before the v0.3.1 release. Current `main` and published v0.3.1 instead bundle
+**CDM 7.8.0**, so current validator messages may differ from the example below.
+The live demo script is still run on every CI pull request and uploads
+`demo-transcript.txt` in the metrics artifact; follow the commands above to
+produce a fresh transcript. For simpler, currently tested examples, see
+[three use cases](use-cases.md).
 
 ```console
 starting FINOS MCP demo (isolated servers, one at a time) ...

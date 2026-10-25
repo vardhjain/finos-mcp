@@ -1,0 +1,60 @@
+{
+  "aigf": {
+    "label": "Govern an AI use case",
+    "tool": "get_control",
+    "arguments": {
+      "id": "mi-20",
+      "include_sections": false
+    },
+    "expect": {
+      "path": [
+        "id"
+      ],
+      "equals": "AIR-PREV-020"
+    },
+    "citation": {
+      "path": [
+        "citation_uri"
+      ]
+    }
+  },
+  "cdm": {
+    "label": "Understand a trade schema",
+    "tool": "describe_type",
+    "arguments": {
+      "name": "TradeState"
+    },
+    "expect": {
+      "path": [
+        "name"
+      ],
+      "equals": "TradeState"
+    },
+    "citation": {
+      "path": [
+        "schema_uri"
+      ]
+    }
+  },
+  "fdc3": {
+    "label": "Suggest a finance desktop action",
+    "tool": "suggest_intent",
+    "arguments": {
+      "context": {
+        "type": "fdc3.instrument",
+        "id": {
+          "ticker": "AAPL"
+        }
+      },
+      "goal": "show a price chart"
+    },
+    "expect": {
+      "path": [
+        "suggestions",
+        0,
+        "name"
+      ],
+      "equals": "ViewChart"
+    }
+  }
+}
