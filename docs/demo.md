@@ -1,7 +1,7 @@
 # Live demo
 
 This is the **actual output** of the low-memory demonstration recorded in
-[GitHub Actions CI](https://github.com/vardhjain/finos-mcp/actions/runs/40156637876),
+[GitHub Actions CI](https://github.com/vardhjain/finos-mcp/actions/runs/40158262833),
 not mocked tool results. Five real MCP calls are made across AIGF, CDM and FDC3.
 
 Unlike the earlier version, `examples/demo_session.py` launches each server in a
@@ -20,10 +20,11 @@ Omit `--fast` for a paced terminal presentation. To generate
 `docs/demo.gif` on a machine with the free [VHS](https://github.com/charmbracelet/vhs)
 terminal recorder installed, run `vhs examples/demo.tape`.
 
-The transcript below comes from the **currently released main-branch vendored data**.
-After upstream updates (including the separate CDM 7.7.0 upgrade in PR #15), precise
-validator messages and FDC3 intent rankings may legitimately change. GitHub CI
-runs the real demo again and uploads `demo-transcript.txt` in its metrics artifact.
+The transcript below was captured from the **combined stabilization integration branch**
+with AIGF's latest vendored governance records, CDM 7.7.0 and the improved AIGF search.
+It is not yet released on `main`. Future upstream changes may legitimately alter
+schema-validator messages and intent rankings. CI runs the demo on every PR and
+uploads `demo-transcript.txt` in its metrics artifact.
 
 ```console
 starting FINOS MCP demo (isolated servers, one at a time) ...
@@ -36,7 +37,7 @@ $ aigf > get_control {"id": "mi-20", "include_sections": false}
 AIR-PREV-020  MCP Server Security Governance  [Preventative, Approved-Specification]
 mitigates        AIR-SEC-026, AIR-SEC-008, AIR-RC-001
 related controls AIR-PREV-007, AIR-DET-004
-crosswalks to    9 references across 3 frameworks
+crosswalks to    8 references across 3 frameworks
 cite             aigf://control/AIR-PREV-020
 [read-only, rate-limited, audited]
 
@@ -51,18 +52,18 @@ $ aigf > find_by_external_reference {"key": "sa-9"}
 
 # AIGF: search in plain language, every hit is citable
 $ aigf > search_framework {"query": "an employee pastes client data into a public chatbot", "k": 3}
+  AIR-RC-001  Information Leaked To Hosted Model
+      aigf://risk/AIR-RC-001
   AIR-RC-023  Intellectual Property (IP) and Copyright
       aigf://risk/AIR-RC-023
   AIR-SEC-010  Prompt Injection
       aigf://risk/AIR-SEC-010
-  AIR-PREV-017  AI Firewall Implementation and Management
-      aigf://control/AIR-PREV-017
 [read-only, rate-limited, audited]
 
 # CDM: validate a Rune BusinessEvent an agent got wrong (3 planted defects)
 $ cdm > validate_object {"object": "<broken_execution.json>"}
 valid=False   format=rune   type=cdm.event.common.BusinessEvent
-validator: json-schema draft4 (cdm-json-schema 7.5.0) via Rune normalisation
+validator: json-schema draft4 (cdm-json-schema 7.7.0) via Rune normalisation
 3 issue(s):
   [enum       ] $.instruction[0].primitiveInstruction.execution.product.economicTerms.payout[0].@type
       'InterestRatePayoutt' is not an alternative of Payout; expected one of ['AssetPayout', 'Commodit
