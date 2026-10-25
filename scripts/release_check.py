@@ -84,7 +84,9 @@ def validate_artifacts(path: Path, version: str) -> None:
             ):
                 raise ValueError(f"{wheel.name}: missing minimum core dependency")
             # All published wheels must carry the exact offline provenance records.
-            if component != "core" and not any(n.endswith("/_vendor/SOURCE.json") for n in zf.namelist()):
+            if component != "core" and not any(
+                n.endswith("/_vendor/SOURCE.json") for n in zf.namelist()
+            ):
                 raise ValueError(f"{wheel.name}: missing vendored content provenance")
         with tarfile.open(archive, "r:gz") as tf:
             if not any(n.endswith("pyproject.toml") for n in tf.getnames()):
