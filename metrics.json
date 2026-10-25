@@ -1,6 +1,6 @@
 {
   "agent": {},
-  "commit": "77ada45f293f73ce5b5aea38cbf60923da0042e9",
+  "commit": "e1db5e413016010abefbe4bf828cd2f46d457bc3",
   "exposure": {
     "aigf.controls": 25,
     "aigf.crosswalk_refs": 763,
@@ -22,154 +22,154 @@
     "resources_total": 14,
     "tools_total": 29
   },
-  "generated_at": "2026-10-25T17:13:04+00:00",
+  "generated_at": "2026-10-25T18:42:10+00:00",
   "latency_detail": {
     "aigf.find_by_external_reference": {
       "budget_p95": 10.0,
-      "mean": 1.578,
+      "mean": 1.079,
       "n": 100,
-      "p50": 1.569,
-      "p95": 1.64,
-      "p99": 1.741
+      "p50": 1.07,
+      "p95": 1.15,
+      "p99": 1.24
     },
     "aigf.get_control": {
       "budget_p95": 10.0,
-      "mean": 1.347,
+      "mean": 0.94,
       "n": 100,
-      "p50": 1.33,
-      "p95": 1.391,
-      "p99": 1.454
+      "p50": 0.921,
+      "p95": 0.968,
+      "p99": 1.075
     },
     "aigf.get_risk": {
       "budget_p95": 10.0,
-      "mean": 2.108,
+      "mean": 1.487,
       "n": 100,
-      "p50": 2.09,
-      "p95": 2.182,
-      "p99": 2.254
+      "p50": 1.48,
+      "p95": 1.541,
+      "p99": 1.636
     },
     "aigf.list_risks": {
       "budget_p95": 10.0,
-      "mean": 1.982,
+      "mean": 1.408,
       "n": 100,
-      "p50": 1.973,
-      "p95": 2.053,
-      "p99": 2.157
+      "p50": 1.404,
+      "p95": 1.464,
+      "p99": 1.512
     },
     "aigf.map_risks_to_controls": {
       "budget_p95": 10.0,
-      "mean": 1.945,
+      "mean": 1.372,
       "n": 100,
-      "p50": 1.932,
-      "p95": 2.04,
-      "p99": 2.069
+      "p50": 1.366,
+      "p95": 1.41,
+      "p99": 1.513
     },
     "aigf.search_framework": {
       "budget_p95": 25.0,
-      "mean": 3.024,
+      "mean": 2.23,
       "n": 100,
-      "p50": 3.013,
-      "p95": 3.145,
-      "p99": 3.245
+      "p50": 2.219,
+      "p95": 2.356,
+      "p99": 2.432
     },
     "aigf.search_status": {
       "budget_p95": 5.0,
-      "mean": 0.594,
+      "mean": 0.372,
       "n": 100,
-      "p50": 0.59,
-      "p95": 0.656,
-      "p99": 0.743
+      "p50": 0.367,
+      "p95": 0.408,
+      "p99": 0.474
     },
     "cdm.describe_type": {
       "budget_p95": 5.0,
-      "mean": 1.249,
+      "mean": 0.881,
       "n": 100,
-      "p50": 1.238,
-      "p95": 1.292,
-      "p99": 1.362
+      "p50": 0.869,
+      "p95": 0.92,
+      "p99": 1.0
     },
     "cdm.explain_event": {
       "budget_p95": 10.0,
-      "mean": 0.801,
+      "mean": 0.552,
       "n": 100,
-      "p50": 0.797,
-      "p95": 0.834,
-      "p99": 0.928
+      "p50": 0.547,
+      "p95": 0.574,
+      "p99": 0.684
     },
     "cdm.list_types": {
       "budget_p95": 10.0,
-      "mean": 6.312,
+      "mean": 4.701,
       "n": 100,
-      "p50": 5.652,
-      "p95": 6.423,
-      "p99": 8.311
+      "p50": 4.002,
+      "p95": 4.597,
+      "p99": 4.718
     },
     "cdm.search_types": {
       "budget_p95": 25.0,
-      "mean": 3.168,
+      "mean": 2.421,
       "n": 100,
-      "p50": 3.126,
-      "p95": 3.311,
-      "p99": 3.94
+      "p50": 2.412,
+      "p95": 2.463,
+      "p99": 2.582
     },
     "cdm.validate_object": {
       "budget_p95": 150.0,
-      "mean": 36.315,
+      "mean": 26.076,
       "n": 100,
-      "p50": 36.249,
-      "p95": 37.11,
-      "p99": 37.821
+      "p50": 25.97,
+      "p95": 26.68,
+      "p99": 26.79
     },
     "fdc3.get_context_schema": {
       "budget_p95": 5.0,
-      "mean": 1.074,
+      "mean": 0.771,
       "n": 100,
-      "p50": 1.066,
-      "p95": 1.162,
-      "p99": 1.196
+      "p50": 0.768,
+      "p95": 0.797,
+      "p99": 0.881
     },
     "fdc3.list_intents": {
       "budget_p95": 10.0,
-      "mean": 2.074,
+      "mean": 1.464,
       "n": 100,
-      "p50": 2.069,
-      "p95": 2.121,
-      "p99": 2.211
+      "p50": 1.453,
+      "p95": 1.518,
+      "p99": 1.604
     },
     "fdc3.suggest_intent": {
       "budget_p95": 10.0,
-      "mean": 1.651,
+      "mean": 1.09,
       "n": 100,
-      "p50": 1.565,
-      "p95": 2.156,
-      "p99": 2.339
+      "p50": 1.078,
+      "p95": 1.134,
+      "p99": 1.206
     },
     "fdc3.validate_context": {
       "budget_p95": 10.0,
-      "mean": 0.771,
+      "mean": 0.504,
       "n": 100,
-      "p50": 0.764,
-      "p95": 0.844,
-      "p99": 0.966
+      "p50": 0.497,
+      "p95": 0.545,
+      "p99": 0.616
     }
   },
   "latency_ms_p95": {
-    "aigf.find_by_external_reference": 1.64,
-    "aigf.get_control": 1.391,
-    "aigf.get_risk": 2.182,
-    "aigf.list_risks": 2.053,
-    "aigf.map_risks_to_controls": 2.04,
-    "aigf.search_framework": 3.145,
-    "aigf.search_status": 0.656,
-    "cdm.describe_type": 1.292,
-    "cdm.explain_event": 0.834,
-    "cdm.list_types": 6.423,
-    "cdm.search_types": 3.311,
-    "cdm.validate_object": 37.11,
-    "fdc3.get_context_schema": 1.162,
-    "fdc3.list_intents": 2.121,
-    "fdc3.suggest_intent": 2.156,
-    "fdc3.validate_context": 0.844
+    "aigf.find_by_external_reference": 1.15,
+    "aigf.get_control": 0.968,
+    "aigf.get_risk": 1.541,
+    "aigf.list_risks": 1.464,
+    "aigf.map_risks_to_controls": 1.41,
+    "aigf.search_framework": 2.356,
+    "aigf.search_status": 0.408,
+    "cdm.describe_type": 0.92,
+    "cdm.explain_event": 0.574,
+    "cdm.list_types": 4.597,
+    "cdm.search_types": 2.463,
+    "cdm.validate_object": 26.68,
+    "fdc3.get_context_schema": 0.797,
+    "fdc3.list_intents": 1.518,
+    "fdc3.suggest_intent": 1.134,
+    "fdc3.validate_context": 0.545
   },
   "offline_evals": {
     "by_server": {
