@@ -50,7 +50,9 @@ def test_announcement_uses_reviewed_tag_release_notes() -> None:
         and "docs/releases/${GITHUB_REF_NAME}.md" in step.get("run", "")
         for step in steps
     )
-    publish = [step for step in steps if step.get("uses", "").startswith("softprops/action-gh-release@")]
+    publish = [
+        step for step in steps if step.get("uses", "").startswith("softprops/action-gh-release@")
+    ]
     assert len(publish) == 1
     assert publish[0]["with"]["body_path"] == "docs/releases/${{ github.ref_name }}.md"
     assert "generate_release_notes" not in publish[0]["with"]
