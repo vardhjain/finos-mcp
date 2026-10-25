@@ -48,7 +48,13 @@ def _check(actual: Any, expected: Any, path: str = "$") -> None:
     if isinstance(expected, dict):
         operators = [key for key in expected if key.startswith("$")]
         if operators:
-            assert len(operators) == len(expected) == 1, f"{path}: ambiguous operators"
+            assert len(operators) == len(expected), f"{path}: mixed operators and object keys"
+            if len(operators) > 1:
+                # Multiple list constraints are a conjunction, e.g. at least
+                # 16 entries AND one entry has a particular schema name.
+                for operator in operators:
+                    _check(actual, {operator: expected[operator]}, path)
+                return
             op = operators[0]
             target = expected[op]
             if op == "$len":
@@ -127,6 +133,13 @@ async def _run(task: dict[str, Any]) -> int:
     if failure is not None:
         raise failure
     return len(task["steps"])
+
+
+def test_assertion_operators_can_be_combined() -> None:
+    sample = [{"name": "TradeState"}, {"name": "Payout"}]
+    _check(sample, {"$min_len": 2, "$any": {"name": "Payout"}})
+    with pytest.raises(AssertionError):
+        _check(sample, {"$min_len": 3, "$any": {"name": "Payout"}})
 
 
 def test_offline_scenario_dataset() -> None:
