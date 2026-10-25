@@ -85,7 +85,8 @@ The allowed-hosts setting makes the server refuse requests that arrive under any
 name, which stops a web page in your browser from reaching the port.
 
 Swap `finos-mcp-aigf` for `finos-mcp-cdm` or `finos-mcp-fdc3` to run the other servers.
-[examples/](examples/) has a short Python client and a LangGraph agent.
+[examples/](examples/) includes a [low-memory, reproducible live demo](examples/README.md),
+a short Python client, and a LangGraph agent.
 
 ## Why it is safe to connect
 
