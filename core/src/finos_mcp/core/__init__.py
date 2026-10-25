@@ -1,5 +1,7 @@
 """finos-mcp-core: the shared safety layer for finos-mcp servers."""
 
+from importlib.metadata import version as _distribution_version
+
 from .audit import AuditLog
 from .catalog import (
     DEFAULT_EMBEDDING_MODEL,
@@ -36,7 +38,7 @@ from .schema import SchemaRegistry
 from .server import READ_ONLY, build_server, register_server_info, register_tool, runtime_for
 from .vendor import SourceManifest, VendorIntegrityError, build_manifest, verify
 
-__version__ = "0.2.6"
+__version__ = _distribution_version("finos-mcp-core")
 
 __all__ = [
     "DEFAULT_EMBEDDING_MODEL",
