@@ -88,9 +88,12 @@ def test_container_publish_is_serialized_after_github_and_pypi_release() -> None
     assert "push" not in docker["on"]
     assert "workflow_dispatch" in docker["on"]
     steps = docker["jobs"]["build-and-smoke-test"]["steps"]
-    pushes = [step for step in steps if step.get("name") in {
-        "Log in to ghcr.io", "Build and push multi-arch with SBOM and provenance"
-    }]
+    pushes = [
+        step
+        for step in steps
+        if step.get("name")
+        in {"Log in to ghcr.io", "Build and push multi-arch with SBOM and provenance"}
+    ]
     assert len(pushes) == 2
     for step in pushes:
         assert step["if"] == "inputs.push && startsWith(github.ref, 'refs/tags/v')"
