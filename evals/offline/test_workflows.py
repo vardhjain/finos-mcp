@@ -88,36 +88,44 @@ def _check(actual: Any, expected: Any, path: str = "$") -> None:
 async def _run(task: dict[str, Any]) -> int:
     module = importlib.import_module(f"finos_mcp.{task['server']}.server")
     outputs: dict[str, Any] = {}
+    # Keep the original assertion outside Client.__aexit__: anyio task-group
+    # shutdown otherwise wraps the actionable error in an opaque ExceptionGroup.
+    failure: Exception | None = None
     async with Client(module.create_server(), raise_exceptions=True) as client:
-        available = {t.name for t in (await client.list_tools()).tools}
-        for step in task["steps"]:
-            name = f"{task['id']}.{step['id']}"
-            if "tool" in step:
-                assert step["tool"] in available, f"{name}: unknown tool"
-                result = await client.call_tool(step["tool"], _resolve(step["args"], outputs))
-                if "expect_error" in step:
-                    assert result.is_error, f"{name}: expected {step['expect_error']}"
-                    error = ErrorEnvelope.parse_text(result.content[0].text)
-                    assert error is not None and error.code == step["expect_error"], (
-                        f"{name}: incorrect error: {result.content}"
-                    )
+        try:
+            available = {t.name for t in (await client.list_tools()).tools}
+            for step in task["steps"]:
+                name = f"{task['id']}.{step['id']}"
+                if "tool" in step:
+                    assert step["tool"] in available, f"{name}: unknown tool"
+                    result = await client.call_tool(step["tool"], _resolve(step["args"], outputs))
+                    if "expect_error" in step:
+                        assert result.is_error, f"{name}: expected {step['expect_error']}"
+                        error = ErrorEnvelope.parse_text(result.content[0].text)
+                        assert error is not None and error.code == step["expect_error"], (
+                            f"{name}: incorrect error: {result.content}"
+                        )
+                    else:
+                        assert not result.is_error, f"{name}: {result.content}"
+                        assert result.structured_content is not None, f"{name}: no structured data"
+                        outputs[step["id"]] = result.structured_content
+                        _check(result.structured_content, step["expect"], name)
                 else:
-                    assert not result.is_error, f"{name}: {result.content}"
-                    assert result.structured_content is not None, f"{name}: no structured data"
-                    outputs[step["id"]] = result.structured_content
-                    _check(result.structured_content, step["expect"], name)
-            else:
-                uri = _resolve(step["read"], outputs)
-                assert isinstance(uri, str) and uri.startswith(f"{task['server']}://"), name
-                response = await client.read_resource(uri)
-                assert response.contents, f"{name}: empty resource"
-                content = response.contents[0].text
-                assert isinstance(content, str) and content, f"{name}: no resource text"
-                if "expect_json" in step:
-                    _check(json.loads(content), step["expect_json"], name)
-                if "contains" in step:
-                    assert step["contains"] in content, f"{name}: missing citation text"
-                outputs[step["id"]] = content
+                    uri = _resolve(step["read"], outputs)
+                    assert isinstance(uri, str) and uri.startswith(f"{task['server']}://"), name
+                    response = await client.read_resource(uri)
+                    assert response.contents, f"{name}: empty resource"
+                    content = response.contents[0].text
+                    assert isinstance(content, str) and content, f"{name}: no resource text"
+                    if "expect_json" in step:
+                        _check(json.loads(content), step["expect_json"], name)
+                    if "contains" in step:
+                        assert step["contains"] in content, f"{name}: missing citation text"
+                    outputs[step["id"]] = content
+        except Exception as exc:
+            failure = exc
+    if failure is not None:
+        raise failure
     return len(task["steps"])
 
 
