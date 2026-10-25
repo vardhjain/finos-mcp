@@ -257,8 +257,9 @@ class CdmRegistry:
                 index.setdefault(f"{namespace}.{name}".lower(), filename)
                 index.setdefault(name.lower(), filename)
             self._names_by_version[version] = index
-        key = name_or_fqn.strip().lower()
-        return index.get(key) or index.get(key.rsplit(".", 1)[-1])
+        # A qualified name must match its namespace; falling back to the bare
+        # suffix could silently validate an unrelated type.
+        return index.get(name_or_fqn.strip().lower())
 
     def info_for_file(self, filename: str) -> TypeInfo | None:
         """The type a schema file defines. Exact, unlike a lookup by bare name."""

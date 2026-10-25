@@ -292,6 +292,15 @@ def test_schema_registry_for_unknown_version_raises(registry: CdmRegistry) -> No
         registry.schema_registry_for("9.9.9")
 
 
+def test_legacy_qualified_names_do_not_fall_back_to_bare_type(registry: CdmRegistry) -> None:
+    version = LEGACY_SCHEMA_VERSION
+    expected = "cdm-legaldocumentation-csa-AccessConditions.schema.json"
+    correct = "cdm.legaldocumentation.csa.AccessConditions"
+    assert registry.filename_in_version("AccessConditions", version) == expected
+    assert registry.filename_in_version(correct, version) == expected
+    assert registry.filename_in_version("cdm.unrelated.AccessConditions", version) is None
+
+
 def test_legacy_samples_validate_or_report_known_issues(registry: CdmRegistry) -> None:
     """Validate every vendored legacy (6.30.0) sample against the 7.8.0
     `BusinessEvent` schema and assert what is *actually* true of the vendored

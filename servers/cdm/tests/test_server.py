@@ -366,3 +366,13 @@ async def test_types_only_in_the_legacy_vintage_validate_against_it(client: Clie
     assert "6.30.0" in report["validator"]
     primary = await client.call_tool("validate_object", {"object": {}, "type": "AccessConditions"})
     assert _err(primary).code == "not_found"
+
+@pytest.mark.anyio
+async def test_legacy_schema_rejects_a_wrong_fully_qualified_namespace(client: Client) -> None:
+    """Wrong namespaces must not be silently mapped to a valid legacy type."""
+    response = await client.call_tool(
+        "validate_object",
+        {"object": {}, "type": "cdm.unrelated.AccessConditions", "schema_version": "6.30.0"},
+    )
+    assert _err(response).code == "not_found"
+
