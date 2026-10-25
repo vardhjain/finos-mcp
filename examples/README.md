@@ -2,23 +2,35 @@
 
 ## Demo
 
-[`demo_session.py`](demo_session.py) loads all three servers in one process and makes five
-real tool calls through the in-memory MCP client. Its captured output is committed as
-[`../docs/demo.md`](../docs/demo.md); reproduce it with:
+[`demo_session.py`](demo_session.py) demonstrates **five real MCP calls** across AIGF, CDM
+and FDC3. Each server runs in a **separate, short-lived Python process** and exits
+before the next server starts. This avoids the previous demo-only out-of-memory
+failure caused by holding all three registries and an embedding model at once.
 
 ```bash
-uv run python examples/demo_session.py
+uv sync --all-packages --all-extras
+uv run --no-sync python examples/demo_session.py
+uv run --no-sync python examples/demo_session.py --fast  # same output, no recording pauses
 ```
 
-[`demo.tape`](demo.tape) records the same session as a GIF with
-[VHS](https://github.com/charmbracelet/vhs) (`vhs examples/demo.tape`, and on Windows it needs
-Git Bash on `PATH`). **This is not wired into CI and is not currently reproducible on either a
-GitHub runner or a typical laptop.** The recording consistently dies partway through the CDM
-validation step, with output stopping mid-step and no Python traceback, which points at the
-process being killed rather than at the recorder: this one process holds all three servers,
-both CDM schema vintages (~2200 schemas) and the embedding model at once. That is unique to
-the demo harness, since each server normally runs in its own process. `docs/demo.md` is the
-supported artifact; the tape is kept for anyone who wants to render it on a larger machine.
+The output is produced by the **actual MCP client**, not a mock, and is checked
+in CI on Ubuntu and Windows. A clean transcript from the Ubuntu CI run is also
+uploaded as `demo-transcript.txt` in the GitHub Actions `metrics` artifact.
+[`../docs/demo.md`](../docs/demo.md) shows the readable sample transcript.
+
+To make an animated terminal recording, install the free
+[VHS](https://github.com/charmbracelet/vhs) CLI (plus its terminal/font
+requirements), then run:
+
+```bash
+vhs examples/demo.tape
+```
+
+This generates `docs/demo.gif`. Because each FINOS server is terminated between
+segments, the recording no longer needs the memory to hold AIGF, both CDM schema
+vintages, FDC3 and the search model simultaneously. GIF rendering still needs
+VHS and a browser/terminal recorder; CI verifies the live text demo, not the
+optional VHS installation.
 
 ## Claude Desktop
 
