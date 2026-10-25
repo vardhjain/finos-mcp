@@ -255,7 +255,10 @@ async def test_search_boosts_exact_standard_crosswalks(client: Client) -> None:
     owasp = _structured(
         await client.call_tool(
             "search_framework",
-            {"query": "Which AIGF risk addresses OWASP LLM08:2026 Hidden Context Exposure?", "k": 5},
+            {
+                "query": "Which AIGF risk addresses OWASP LLM08:2026 Hidden Context Exposure?",
+                "k": 5,
+            },
         )
     )["hits"]
     assert owasp and owasp[0]["id"] == "AIR-OP-014"
