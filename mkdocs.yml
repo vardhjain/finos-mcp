@@ -40,6 +40,7 @@ nav:
   - Tool reference: tools.md
   - Demo transcript: demo.md
   - Upstream findings: upstream-findings.md
+  - Registry and directory listings: directory-listings.md
   - Outreach:
       - Overview: outreach/README.md
       - "AIGF: front-matter bug": outreach/aigf-issue-frontmatter.md
