@@ -512,9 +512,7 @@ def _narrative_risk_matches(query: str, fw: Framework) -> set[str]:
         for title, patterns in _NARRATIVE_RISK_CUES
         if all(re.search(pattern, text) for pattern in patterns)
     }
-    return {
-        risk.id for risk in fw.risks.values() if risk.title.casefold() in matched_titles
-    }
+    return {risk.id for risk in fw.risks.values() if risk.title.casefold() in matched_titles}
 
 
 def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchResults:
@@ -533,9 +531,7 @@ def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchRes
     predicate = None if scope == "all" else (lambda d: d.kind == scope[:-1])
     preferred = _requested_record_kind(query) if scope == "all" else None
     reference_ids = _explicit_reference_matches(query, st.framework)
-    narrative_ids = (
-        _narrative_risk_matches(query, st.framework) if scope != "controls" else set()
-    )
+    narrative_ids = _narrative_risk_matches(query, st.framework) if scope != "controls" else set()
     # Explicit standards codes and user-requested record kind come first.
     # Strong narrative cues improve matches *within* that type. Otherwise
     # preserve the original BM25/dense order, score, snippet and citation.
