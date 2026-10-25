@@ -182,6 +182,11 @@ what changed in each release, [RELEASING.md](RELEASING.md) for how releases are 
 
 ## Status
 
+For maintainers, [MCP directory and registry readiness](docs/directory-listings.md)
+records where this project is already indexed, which listing metadata is stale,
+and the ownership checks required before separately registering the three
+published server packages. Directory submissions require explicit approval.
+
 The [latest published release](https://github.com/vardhjain/finos-mcp/releases/latest) is available on
 PyPI as [`finos-mcp-core`](https://pypi.org/project/finos-mcp-core/),
 [`finos-mcp-aigf`](https://pypi.org/project/finos-mcp-aigf/),

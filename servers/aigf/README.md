@@ -1,5 +1,7 @@
 # finos-mcp-aigf
 
+<!-- mcp-name: io.github.vardhjain/finos-mcp-aigf -->
+
 A read-only [MCP](https://modelcontextprotocol.io) server for the FINOS [AI Governance Framework](https://air-governance-framework.finos.org/): its risks and controls with their public `AIR-*` ids, risk-to-control mapping, crosswalks to NIST SP 800-53, ISO 42001, the EU AI Act and OWASP, and full-text search with citable `aigf://` resources.
 
 **Not affiliated with or endorsed by FINOS.** This is an independent, community package. On PyPI the `finos-` prefix is also used by official FINOS packages such as `finos-cdm`; this is not one of them.
