@@ -5,10 +5,10 @@ layout: risk
 doc-status: Approved-Specification
 type: SEC
 owasp-llm_references:
-  - llm01-2025  # LLM01:2025 Prompt Injection
-  - llm04-2025  # LLM04: Data and Model Poisoning
-  - llm06-2025  # LLM06:2025 Excessive Agency
-  - llm10-2025  # LLM10:2025 Unbounded Consumption
+  - llm01-2026  # LLM01:2026 Prompt Injection
+  - llm03-2026  # LLM03:2026 Excessive Agency
+  - llm05-2026  # LLM05:2026 Data and Model Poisoning
+  - llm06-2026  # LLM06:2026 Unbounded Consumption
 owasp-asi_references:
   - asi01-2026  # ASI01: Agent Goal Hijack
 ffiec-itbooklets_references:
@@ -82,10 +82,10 @@ Sophisticated prompt injection techniques can also be used to probe the internal
 This enables intellectual property theft, enables future attacks, or facilitates the creation of clone models.
 
 
-## Links
+## Links
 
 * [OWASP Top 10 for LLM Applications (PDF)](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-2023-v1_1.pdf)
-* [MITRE Prompt Injection Technique](https://attack.mitre.org/techniques/T1055/)
+* [MITRE ATLAS – LLM Prompt Injection (AML.T0051)](https://atlas.mitre.org/techniques/AML.T0051)
 * [DPD Chatbot Swears at Customer – BBC](https://www.bbc.co.uk/news/technology-68025677)
 * [Indirect Prompt Injection – Simon Willison](https://simonwillison.net/2023/Apr/3/indirect-prompt-injection/) – Excellent technical explanation and examples of indirect prompt injection risks.
 * [Jailbreaking LLMs via Prompt Injection – ArXiv](https://arxiv.org/abs/2302.12173) – Research exploring how models can be jailbroken using carefully crafted prompts.

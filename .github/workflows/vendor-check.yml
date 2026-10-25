@@ -24,7 +24,7 @@ jobs:
       - name: Re-sync every upstream
         run: |
           uv run python servers/aigf/scripts/sync_upstream.py --ref main
-          uv run python servers/cdm/scripts/sync_upstream.py --version 7.5.0 --legacy-version 6.29.0
+          uv run python servers/cdm/scripts/sync_upstream.py --version 7.7.0 --legacy-version 6.30.0
           uv run python servers/fdc3/scripts/sync_upstream.py --ref v2.2.3
           uv run python servers/fdc3/scripts/generate_intents.py
       - name: Summarise what changed
@@ -37,8 +37,12 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
             git diff --cached --stat -- ':!**/SOURCE.json' | tail -40 > /tmp/stat.txt
           fi
+      # A changed upstream may invalidate our pinned tests. Keep the failure visible but
+      # still create a reviewable sync PR containing the new upstream content.
       - name: Run the parser and drift tests against the new content
+        id: drift_tests
         if: steps.diff.outputs.changed == 'true'
+        continue-on-error: true
         run: uv run pytest servers/aigf/tests servers/cdm/tests/test_registry.py servers/fdc3/tests -rf
       - name: Open a pull request
         if: steps.diff.outputs.changed == 'true'
@@ -49,6 +53,11 @@ jobs:
           commit-message: "chore(vendor): resync upstream content"
           body-path: /tmp/stat.txt
           labels: vendor
+      - name: Fail if updated content broke drift tests
+        if: steps.diff.outputs.changed == 'true' && steps.drift_tests.outcome == 'failure'
+        run: |
+          echo "::error::Upstream changed: review the vendor sync PR and update fixtures before merging."
+          exit 1
 
   # The resync above re-fetches the CDM versions already vendored, so it cannot notice a new
   # CDM release. This job compares them with Maven Central and keeps one issue open while a

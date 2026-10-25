@@ -40,8 +40,8 @@ Each answer comes with an identifier or link the reader can check against the st
 
 | Server | Standard | What an assistant can do with it |
 |---|---|---|
-| `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | Look up 23 risks and 23 controls by their published ids, see which controls address which risks, cross-reference 13 outside frameworks (NIST, ISO 42001, EU AI Act, OWASP), and search in plain language |
-| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | Describe any of 1,142 data types, browse products and trade events, and check a trade document for errors, with the location of each one |
+| `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | Look up 24 risks and 25 controls by their published ids, see which controls address which risks, cross-reference 13 outside frameworks (NIST, ISO 42001, EU AI Act, OWASP), and search in plain language |
+| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | Describe any of 1,143 data types, browse products and trade events, and check a trade document for errors, with the location of each one |
 | `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | Look up 19 standard actions ("intents") and 28 data types, check a data object, and suggest which actions fit it |
 
 All three are built on [`finos-mcp-core`](core/), a shared package that holds the safety rules
@@ -85,7 +85,8 @@ The allowed-hosts setting makes the server refuse requests that arrive under any
 name, which stops a web page in your browser from reaching the port.
 
 Swap `finos-mcp-aigf` for `finos-mcp-cdm` or `finos-mcp-fdc3` to run the other servers.
-[examples/](examples/) has a short Python client and a LangGraph agent.
+[examples/](examples/) includes a [low-memory, reproducible live demo](examples/README.md),
+a short Python client, and a LangGraph agent.
 
 ## Why it is safe to connect
 
@@ -120,13 +121,16 @@ that file directly, so they show measurements from a specific commit.
 | An AI model answering 20 governance questions through the server | 0 invented ids; 95% of answers cited a valid id |
 | Response time per tool call | A few milliseconds on the benchmarked tools |
 
-The badges update on every push to `main`, so they are the current figures; the search
-result in this table is from October 2026. The model test uses Claude Haiku 4.5 and runs
-nightly; its figures are from its last completed run, on 14 September 2026.
+The offline metrics update on every push to `main`; the search result in this
+table is from October 2026. The agent test uses Claude Haiku 4.5 and requires paid
+Anthropic API credits. To prevent surprise costs, it only runs through an explicit
+manual opt-in in GitHub Actions, never on a timer or PR label. Its published figures
+are from the last successful evaluation on 14 September 2026 and are not live data.
+Deterministic tests and retrieval evaluations continue to run in CI without LLM API calls.
 
 Building this also turned up 15 defects in the upstream standards, recorded in
-[docs/upstream-findings.md](docs/upstream-findings.md). The first has been reported to FINOS
-with a proposed fix.
+[docs/upstream-findings.md](docs/upstream-findings.md). The first was reported to FINOS, and its YAML fix merged upstream
+in PR #380 on October 21, 2026.
 
 ## Project layout
 
@@ -134,7 +138,7 @@ with a proposed fix.
 |---|---|
 | [`core/`](core/) | Shared safety layer: read-only enforcement, rate limits, size caps, audit log, search |
 | [`servers/`](servers/) | One package per standard, each with its copy of the upstream content |
-| [`evals/`](evals/) | The measurements above: reference answers, search quality, speed, and the AI model test |
+| [`evals/`](evals/) | Golden tests, AIGF retrieval, [offline CDM/FDC3 workflows](evals/offline/), latency and optional agent evaluation |
 | [`examples/`](examples/) | Configuration and sample clients |
 | [`docs/`](docs/) | Documentation, also published at <https://vardhjain.github.io/finos-mcp/> |
 
@@ -143,6 +147,7 @@ with a proposed fix.
 ```bash
 uv sync --all-packages --all-extras
 uv run pytest
+uv run pytest evals/offline/test_workflows.py -v  # 16 multi-tool scenarios, no paid APIs
 uv run ruff check . && uv run mypy core/src servers/*/src
 ```
 

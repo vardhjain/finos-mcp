@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Updated the pinned FINOS CDM schema bundles from 7.5.0 to 7.7.0 (1,143 JSON schemas), and from 6.29.0 to 6.30.0 for legacy validation (1,066 schemas). The primary release and legacy samples, root types, and qualifiers were resynced from the corresponding FINOS tags. Per-file SHA-256 hashes and upstream commit IDs are recorded in the vendored SOURCE.json.
+- Updated CDM schema version defaults, golden metadata, regression assertions, and automated upstream version pinning. No paid API evaluations are required for validation.
+
+- Refresh AIGF vendored source to FINOS commit `8b0e80132f05a46e3e64cc27a6a3e56d59b5479f`: 24 risks, 25 controls, and updated OWASP LLM Top 10 (2026) mappings. The skill/plugin supply-chain risk (AIR-SEC-030), action approval gate (AIR-PREV-024), and plugin integrity control (AIR-PREV-025) are all Draft upstream.
+- Include the frontmatter fix merged in FINOS PR #380, restoring related-risk links and removing malformed external references. Update pinned tests, provenance, and documentation.
+
+
 ## 0.2.6 — 2026-10-05
 
 ### Added

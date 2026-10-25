@@ -1,10 +1,14 @@
 name: llm-evals
 
+# Agent evals call a paid third-party API. Never start them from a schedule, PR label,
+# or push. The deterministic tests and retrieval evals still run in ci.yml for free.
 on:
-  schedule:
-    - cron: "17 3 * * *"
   workflow_dispatch:
     inputs:
+      confirm_paid_api_calls:
+        description: "I explicitly approve Anthropic API charges for this run"
+        type: boolean
+        default: false
       model:
         description: "Model under test (only claude-haiku-4-5 runs publish to the metrics branch)"
         type: choice
@@ -17,16 +21,13 @@ on:
         description: "Also run the rubric judge (EVAL_JUDGE=1)"
         type: boolean
         default: false
-  pull_request:
-    types: [labeled]
-
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   tier-c:
-    if: github.event_name != 'pull_request' || github.event.label.name == 'run-llm-evals'
+    # An unchecked dispatch is a no-op. No model request is made without consent.
+    if: inputs.confirm_paid_api_calls == true
     runs-on: ubuntu-latest
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -67,22 +68,6 @@ jobs:
             metrics-llm.json
           retention-days: 90
 
-      - name: Comment summary on the PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const fs = require('fs');
-            const m = JSON.parse(fs.readFileSync('metrics-llm.json', 'utf8'));
-            const a = m.agent || {};
-            const body = [
-              '### finos-mcp tier C evals',
-              `model: \`${a.model}\` · tasks: ${a.tasks}`,
-              `cited-valid-id rate: **${a.cited_valid_id_rate}** · must-cite rate: **${a.must_cite_rate}** · tool correctness: **${a.tool_correctness}**`,
-              `refusals: ${a.refusals} · errors: ${a.errors} · tokens: ${a.input_tokens} in / ${a.output_tokens} out`,
-            ].join('\n');
-            await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });
-
   # Publish the agent numbers to their own file on the metrics branch, from a clean checkout.
   # A separate file rather than a merge into metrics.json, so this can never race the ci
   # workflow's publish of the deterministic metrics.
@@ -90,11 +75,12 @@ jobs:
     needs: tier-c
     # always(): publish the numbers a run produced even when they failed a gate. A metrics
     # feed that only records passing runs is not a measurement, it is advertising.
-    # Only the default model feeds the published series: a manual run on a stronger model would
-    # otherwise replace the nightly baseline the README badge describes.
+    # Only explicit runs on the baseline model update the published agent series.
+    # Keep the last measured result when the opt-in is unchecked or a run is skipped.
     if: >-
-      always() && github.event_name != 'pull_request' &&
-      (github.event_name == 'schedule' || github.event.inputs.model == 'claude-haiku-4-5')
+      always() && needs.tier-c.result != 'skipped' &&
+      inputs.confirm_paid_api_calls == true &&
+      inputs.model == 'claude-haiku-4-5'
     runs-on: ubuntu-latest
     permissions:
       contents: write

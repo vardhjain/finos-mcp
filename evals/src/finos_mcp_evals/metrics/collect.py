@@ -136,6 +136,15 @@ def render_summary(metrics: dict[str, Any]) -> str:
                         lines.append(f"| {section}.{k}.{sub_k} | {_fmt(sub_v)} |")
             elif not isinstance(v, list):
                 lines.append(f"| {section}.{k} | {_fmt(v)} |")
+    offline = metrics.get("offline_evals", {})
+    if offline:
+        lines.append(
+            f"| offline workflow scenarios | {offline.get('passed', 0)}/{offline.get('scenarios', 0)} passed |"
+        )
+        for name, row in sorted(offline.get("by_server", {}).items()):
+            lines.append(
+                f"| offline {name} workflows | {row.get('passed', 0)}/{row.get('count', 0)} passed |"
+            )
     for k, v in sorted(metrics.get("latency_ms_p95", {}).items()):
         lines.append(f"| p95 {k} | {v} ms |")
     return "\n".join(lines) + "\n"
@@ -158,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
         "tests": {**tests_from_junit(args.junit), **coverage_from_xml(args.coverage)},
         "retrieval": {},
         "agent": {},
+        "offline_evals": {},
         "latency_ms_p95": {},
     }
     for extra in args.extra:

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -393,17 +394,159 @@ def map_control_to_external(id: str, frameworks: list[str] | None = None) -> Cro
     )
 
 
+# A mixed AIGF catalog often ranks controls above the risks a question is asking
+# about (or vice versa) because control descriptions repeat risk titles. Recognise a
+# *requested result type*, not a mere mention of the words somewhere in the question.
+# Scope remains explicit and authoritative when the caller supplies risks/controls.
+_ASK_KIND_RE = re.compile(
+    r"^\s*(?:what|which|find|list|show|identify|recommend|suggest)\b"
+    r"[^?.]{0,100}?\b(risks?|controls?|mitigations?)\b",
+    re.IGNORECASE,
+)
+_BOTH_KINDS_RE = re.compile(
+    r"\brisks?\s+(?:and|or|&)\s+(?:\w+\s+){0,2}(?:controls?|mitigations?)\b"
+    r"|\b(?:controls?|mitigations?)\s+(?:and|or|&)\s+(?:\w+\s+){0,2}risks?\b",
+    re.IGNORECASE,
+)
+
+
+def _requested_record_kind(query: str) -> str | None:
+    """Return the unambiguous kind the question asks us to return, if any."""
+    if _BOTH_KINDS_RE.search(query):
+        return None
+    match = _ASK_KIND_RE.search(query)
+    if match is None:
+        return None
+    return "risk" if match.group(1).lower().startswith("risk") else "control"
+
+
+_REFERENCE_FRAMEWORK_HINTS: tuple[tuple[str, str], ...] = (
+    ("nist", "nist-"),
+    ("owasp", "owasp-"),
+    ("iso", "iso-"),
+    ("ffiec", "ffiec-"),
+    ("iosco", "iosco-"),
+    ("atr", "atr"),
+    ("eu ai act", "eu-ai-act"),
+)
+
+
+def _explicit_reference_matches(query: str, fw: Framework) -> set[str]:
+    """Find records citing a specific external framework + code in the question.
+
+    Public standards codes commonly use punctuation variants: NIST SA-9 vs
+    SA.9, OWASP LLM07:2025 vs llm07-2025, ISO A.3.2 vs a-3-2. Only boost
+    *resolved* keys when the question names their framework. Never guess from
+    a number alone or from generic words such as "control".
+    """
+    lower = query.casefold()
+    frameworks = {
+        name
+        for hint, prefix in _REFERENCE_FRAMEWORK_HINTS
+        if re.search(r"\b" + re.escape(hint) + r"\b", lower)
+        for name in fw.references
+        if name == prefix or name.startswith(prefix)
+    }
+    if not frameworks:
+        return set()
+
+    matches: set[str] = set()
+    key_found: dict[str, bool] = {}
+    records: list[Risk | Control] = [*fw.risks.values(), *fw.controls.values()]
+    for record in records:
+        for reference in record.references:
+            if reference.framework not in frameworks or reference.title is None:
+                continue
+            key = reference.key.casefold()
+            if key not in key_found:
+                tokens = re.findall(r"[a-z0-9]+", key)
+                pattern = (
+                    r"(?<![a-z0-9])" + r"[\s:./_-]*".join(map(re.escape, tokens)) + r"(?![a-z0-9])"
+                )
+                key_found[key] = bool(tokens) and bool(re.search(pattern, lower))
+            if key_found[key]:
+                matches.add(record.id)
+    return matches
+
+
+# Conservative vocabulary for descriptions people use instead of the upstream
+# risk titles. These are *concept* cues, not eval question text or AIR IDs. All
+# independent signs in a group must occur to make a strong match.
+_NARRATIVE_RISK_CUES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "Foundation Model Versioning",
+        (
+            r"\b(?:model|llm)\b",
+            r"\b(?:swap\w*|replac\w*|switch\w*|updat\w*|chang\w*)\b",
+            r"\b(?:vendor|provider|silently|unannounced|behind.the.scenes)\b",
+        ),
+    ),
+    (
+        "Information Leaked To Hosted Model",
+        (
+            r"\b(?:chatbot|chatgpt|llm|ai.assistant|(?:hosted|external|public).{0,12}model)\b",
+            r"\b(?:past\w*|ent\w*|send\w*|shar\w*|upload\w*|input\w*|disclos\w*)\b",
+            r"\b(?:client|customer|account|pii|confidential|proprietary|private|sensitive)\b",
+        ),
+    ),
+    (
+        "Data Poisoning",
+        (
+            r"\b(?:train\w*|fine.tun\w*|dataset\w*)\b",
+            r"\b(?:fabricat\w*|mislabel\w*|poison\w*|tamper\w*|inject\w*|falsif\w*|corrupt\w*)\b",
+            r"\b(?:data|set|model|record\w*|sample\w*|document\w*|fraud)\b",
+        ),
+    ),
+)
+
+
+def _narrative_risk_matches(query: str, fw: Framework) -> set[str]:
+    """Match strong multi-clue paraphrases to official risk titles.
+
+    No assumptions about sequence numbers or AIR IDs. A missing/renamed
+    upstream concept simply stops matching. Partial cues do not trigger.
+    """
+    text = query.casefold()
+    matched_titles = {
+        title.casefold()
+        for title, patterns in _NARRATIVE_RISK_CUES
+        if all(re.search(pattern, text) for pattern in patterns)
+    }
+    return {risk.id for risk in fw.risks.values() if risk.title.casefold() in matched_titles}
+
+
 def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchResults:
-    """Full-text search over risks and controls. Each hit has an id, the matching section,
-    a snippet, and an aigf:// citation URI. Use scope to limit to risks or controls."""
+    """Search risks and controls with matching sections and citable source URIs.
+
+    For an unscoped question clearly asking for risks or for controls, rank those
+    record types first while retaining the other type as a fallback. This is a
+    stable partition of the original relevance-ranked results, not a new relevance
+    score. Questions asking for both kinds stay mixed; explicit scope always wins.
+    """
     if not query.strip():
         raise invalid_input("query must not be empty.")
     if k < 1 or k > 20:
         raise invalid_input("k must be between 1 and 20.")
     st = state()
     predicate = None if scope == "all" else (lambda d: d.kind == scope[:-1])
-    hits: list[SearchHit] = st.combined.search(query, k=k, predicate=predicate)
-    return SearchResults(query=query, scope=scope, hits=hits)
+    preferred = _requested_record_kind(query) if scope == "all" else None
+    reference_ids = _explicit_reference_matches(query, st.framework)
+    narrative_ids = _narrative_risk_matches(query, st.framework) if scope != "controls" else set()
+    # Explicit standards codes and user-requested record kind come first.
+    # Strong narrative cues improve matches *within* that type. Otherwise
+    # preserve the original BM25/dense order, score, snippet and citation.
+    n = len(st.combined) if (preferred is not None or reference_ids or narrative_ids) else k
+    hits: list[SearchHit] = st.combined.search(query, k=n, predicate=predicate)
+    if reference_ids or preferred is not None or narrative_ids:
+        preferred_ids = st.framework.risks if preferred == "risk" else st.framework.controls
+        hits.sort(
+            key=lambda hit: (
+                hit.id not in reference_ids if reference_ids else False,
+                hit.id not in preferred_ids if preferred is not None else False,
+                hit.id not in narrative_ids if narrative_ids else False,
+            )
+        )
+    return SearchResults(query=query, scope=scope, hits=hits[:k])
 
 
 _SEARCH_MODES: tuple[SearchMode, ...] = ("hybrid", "lexical", "dense")
