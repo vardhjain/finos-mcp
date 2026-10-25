@@ -77,7 +77,16 @@ the existing `v0.3.0` tag and verify the artifacts.
    git push origin v0.3.0
    ```
 
-5. Verify both tag workflows and each intended artifact:
+5. The `release.yml` GitHub Release job intentionally **waits for all
+   four PyPI matrix jobs to succeed** when `PUBLISH_TO_PYPI=true`. An upload
+   failure or a nonempty `PYPI_SKIP_PACKAGES` prevents public GitHub Release
+   creation. If PyPI is disabled, a GitHub-only release is still allowed and
+   must be described as such. GitHub Release uses the checked-in
+   `docs/releases/v<version>.md` notes; missing reviewed notes fail closed.
+   If some PyPI uploads succeed before another fails, PyPI versions cannot
+   be reused: investigate and plan recovery before retrying. The Docker
+   workflow is dispatched separately, so verify its publication independently.
+6. Verify both tag workflows and each intended artifact:
    ```bash
    gh run list -R vardhjain/finos-mcp --workflow release.yml --limit 5
    gh run list -R vardhjain/finos-mcp --workflow docker.yml --limit 5
