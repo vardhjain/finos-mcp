@@ -1,0 +1,70 @@
+name: verify-public-pypi
+
+# Verify *published* distributions from pypi.org, not local workspace wheels.
+# Runs for this workflow's own PR and can be dispatched for later releases.
+# Never tags, publishes packages or calls a paid LLM API.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/verify-public-pypi.yml
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Already published version to test (X.Y.Z)"
+        required: true
+        default: "0.3.0"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  public-install:
+    name: Clean PyPI install (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.14"]
+    env:
+      VERSION: ${{ inputs.version || '0.3.0' }}
+      FINOS_MCP_AUDIT_PATH: ""
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "${{ matrix.python }}"
+
+      - name: Validate the requested published version
+        shell: bash
+        run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Expected an already published X.Y.Z version"
+            exit 1
+          fi
+
+      - name: Install all four published packages from PyPI without a cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv venv --python "${{ matrix.python }}" "$RUNNER_TEMP/finos-public-pypi"
+          PYTHON="$RUNNER_TEMP/finos-public-pypi/bin/python"
+          uv pip install --no-cache --python "$PYTHON" --index-url https://pypi.org/simple \
+            "finos-mcp-core==$VERSION" \
+            "finos-mcp-aigf==$VERSION" \
+            "finos-mcp-cdm==$VERSION" \
+            "finos-mcp-fdc3==$VERSION"
+          uv pip check --python "$PYTHON"
+
+      - name: Smoke-test installed packages outside the workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON="$RUNNER_TEMP/finos-public-pypi/bin/python"
+          cd "$RUNNER_TEMP"
+          for component in aigf cdm fdc3; do
+            "$PYTHON" -I "$GITHUB_WORKSPACE/scripts/smoke_installed_wheel.py" "$component" "$VERSION"
+            "$RUNNER_TEMP/finos-public-pypi/bin/finos-mcp-$component" --help > /dev/null
+          done
+          echo "PASS: four PyPI packages at $VERSION install and all three servers start on Python ${{ matrix.python }}"
