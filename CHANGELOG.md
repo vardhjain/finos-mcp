@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Update the primary vendored FINOS Common Domain Model schema and official Rune
+  samples from 7.7.0 to **7.8.0** (1,143 JSON schemas, 28 Rune samples, 16
+  root types and 35 event qualification functions). Legacy CDM 6.30.0 remains
+  supported with its 1,066 schemas and 12 legacy samples. Regenerate the
+  upstream source SHA-256 manifest and keep all checks offline at runtime.
+
 ## 0.3.0 — pending release
 
 ### Added

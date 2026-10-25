@@ -108,10 +108,10 @@ async def test_list_types_and_products(client: Client) -> None:
 
 @pytest.mark.anyio
 async def test_validate_rune_samples_normalise_cleanly(client: Client) -> None:
-    """Every official 7.7.0 Rune sample normalises without structural errors.
+    """Every official 7.8.0 Rune sample normalises without structural errors.
 
-    Pinned upstream discrepancy: the published cdm-json-schema 7.7.0 marks fields as
-    required that CDM's own 7.7.0 function-output samples omit (ClosedState.activityDate,
+    Pinned upstream discrepancy: the published cdm-json-schema 7.8.0 marks fields as
+    required that CDM's own 7.8.0 function-output samples omit (ClosedState.activityDate,
     ExecutionDetails, Underlier, DateAdjustments, ExerciseNoticeGiver). The validator
     reports those truthfully; anything *other* than a `required` miss would indicate a
     defect in the Rune-to-legacy normalisation, so that is what this test forbids.
@@ -250,7 +250,7 @@ async def test_search_samples_resources_and_info(client: Client) -> None:
     assert len(index["qualifiers"]) == 35 and "6.30.0" in index["schema_versions"]
     info = _ok(await client.call_tool("server_info", {}))
     assert info["counts"]["root_types"] == 16 and info["counts"]["qualify_functions"] == 35
-    assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.7.0"
+    assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.8.0"
 
 
 def _paths(report: dict[str, Any]) -> set[str]:
@@ -295,6 +295,19 @@ async def test_nested_at_type_must_be_a_subtype(client: Client) -> None:
     }
     report = _ok(await client.call_tool("validate_object", {"object": doc}))
     assert {"$.account.@type", "$.account.accountNumber"} <= _paths(report)
+
+
+@pytest.mark.anyio
+async def test_unknown_nested_rune_type_is_reported(client: Client) -> None:
+    """An invalid nested '@type' must not vanish when Rune metadata is stripped."""
+    for at_type in ("cdm.unrelated.Account", "cdm.unrelated.NoSuchType"):
+        doc = {
+            "@type": "cdm.base.staticdata.party.Party",
+            "account": {"@type": at_type, "accountNumber": {"@data": "A"}},
+        }
+        report = _ok(await client.call_tool("validate_object", {"object": doc}))
+        assert report["valid"] is False
+        assert "$.account.@type" in _paths(report)
 
 
 @pytest.mark.anyio
@@ -366,3 +379,25 @@ async def test_types_only_in_the_legacy_vintage_validate_against_it(client: Clie
     assert "6.30.0" in report["validator"]
     primary = await client.call_tool("validate_object", {"object": {}, "type": "AccessConditions"})
     assert _err(primary).code == "not_found"
+
+
+@pytest.mark.anyio
+async def test_legacy_schema_rejects_a_wrong_fully_qualified_namespace(client: Client) -> None:
+    """Wrong namespaces must not be silently mapped to a valid legacy type."""
+    response = await client.call_tool(
+        "validate_object",
+        {"object": {}, "type": "cdm.unrelated.AccessConditions", "schema_version": "6.30.0"},
+    )
+    assert _err(response).code == "not_found"
+
+
+@pytest.mark.anyio
+async def test_inferred_rune_type_must_match_the_declared_namespace(client: Client) -> None:
+    """An invalid qualified '@type' must not fall back to a matching bare name."""
+    for version in ("7.8.0", "6.30.0"):
+        args = {
+            "object": {"@type": "cdm.unrelated.TradeState"},
+            "schema_version": version,
+        }
+        response = await client.call_tool("validate_object", args)
+        assert _err(response).code == "not_found"

@@ -1,12 +1,12 @@
 {
   "upstream_repo": "finos/common-domain-model",
-  "ref": "7.7.0",
-  "commit_sha": "1c976666da7ce30699061e90474a3317b200a85b",
-  "version": "7.7.0",
-  "fetched_at": "2026-10-24T22:20:17+00:00",
+  "ref": "7.8.0",
+  "commit_sha": "5b852ed61573467c8f8e6bb5cc02779a70df032d",
+  "version": "7.8.0",
+  "fetched_at": "2026-10-25T06:44:28+00:00",
   "license": "Community-Spec-1.0",
   "license_url": "https://github.com/finos/common-domain-model/blob/master/LICENSE.md",
-  "notes": "cdm-json-schema-7.7.0.zip from Maven Central, bundled into _vendor/schemas/cdm-json-schema-7.7.0.json (primary version=7.7.0, one JSON file holding every *.schema.json member keyed by filename, instead of one file per schema); cdm-json-schema-6.30.0.zip also vendored the same way to _vendor/schemas/cdm-json-schema-6.30.0.json so legacy-format samples can be validated against a schema of matching vintage; samples from tags 7.7.0 (Rune JSON) and 6.30.0 (legacy JSON); qualify.json and root_types.json extracted from .rosetta sources",
+  "notes": "cdm-json-schema-7.8.0.zip from Maven Central, bundled into _vendor/schemas/cdm-json-schema-7.8.0.json (primary version=7.8.0, one JSON file holding every *.schema.json member keyed by filename, instead of one file per schema); cdm-json-schema-6.30.0.zip also vendored the same way to _vendor/schemas/cdm-json-schema-6.30.0.json so legacy-format samples can be validated against a schema of matching vintage; samples from tags 7.8.0 (Rune JSON) and 6.30.0 (legacy JSON); qualify.json and root_types.json extracted from .rosetta sources",
   "files": {
     "choice_types.json": "e11fbb0709e83140652680eea2754a48f57d45e63f677086453d48eb353f775b",
     "qualify.json": "6493d2f778c5baee6ef5194bb3b81b83e53b39afe090dad392f08f52e6da209b",
@@ -53,6 +53,6 @@
     "samples/rune/quantity-change__increase-equity-swap-func-output.json": "06ea468c3704c989f292b0119ce24db07ddf977b2e59c8f70225c481747a1a57",
     "samples/rune/stock-split__stock-split-equity-swap-func-output.json": "d4c6fca511857f1a52771780186472505146f96f6cb52f3aa3aa902da359448d",
     "schemas/cdm-json-schema-6.30.0.json": "1d902465e9f68ee2f281a2c99907f1a0e55016fce20bf0634edf652586754776",
-    "schemas/cdm-json-schema-7.7.0.json": "c58d1123c96f14483e0e6260fbd5702d8be485594d59bf1aab96238f33a4176a"
+    "schemas/cdm-json-schema-7.8.0.json": "d49aad41610273d95847d5af9c86322a21b48eb986c0e3c36fe2f3e833c2fb6c"
   }
 }

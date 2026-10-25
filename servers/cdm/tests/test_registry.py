@@ -1,19 +1,19 @@
-"""Tests for `finos_mcp.cdm.registry`, checked against the vendored 7.7.0 drop.
+"""Tests for `finos_mcp.cdm.registry`, checked against the vendored 7.8.0 drop.
 
 These tests are deliberately about the *actual* content of `_vendor/`, not an
 idealised one: PLAN.md 5.1/5.3 describe expected counts (~1136 schemas, 16 root
 types, 35 qualify functions) which this file asserts against the real numbers
 found by `sync_upstream.py`, and it records -- rather than hides -- the real
-outcome of validating older-tag legacy samples against the 7.7.0 schema (see
+outcome of validating older-tag legacy samples against the 7.8.0 schema (see
 `test_legacy_samples_validate_or_report_known_issues`).
 
 `_vendor/` also carries a second, older JSON Schema vintage bundled at
 `_vendor/schemas/cdm-json-schema-6.30.0.json`, matching the vintage the
-vendored legacy-format samples were pulled from (the primary 7.7.0 vintage is
-`_vendor/schemas/cdm-json-schema-7.7.0.json`; each bundle is one JSON file
+vendored legacy-format samples were pulled from (the primary 7.8.0 vintage is
+`_vendor/schemas/cdm-json-schema-7.8.0.json`; each bundle is one JSON file
 holding every `*.schema.json` member keyed by filename, rather than one file
 per schema -- see `scripts/sync_upstream.py`). `CdmRegistry.schema_registry_for`
-exposes it alongside the primary 7.7.0 registry;
+exposes it alongside the primary 7.8.0 registry;
 `test_legacy_samples_validate_against_matching_vintage_schema` is the
 counterpart to `test_legacy_samples_validate_or_report_known_issues` that
 actually exercises the legacy JSON Schema path meaningfully, same vintage
@@ -35,10 +35,10 @@ from finos_mcp.core import verify
 
 VENDOR_DIR = Path(__file__).parents[1] / "src" / "finos_mcp" / "cdm" / "_vendor"
 SCHEMAS_DIR = VENDOR_DIR / "schemas"
-PRIMARY_SCHEMA_VERSION = "7.7.0"
+PRIMARY_SCHEMA_VERSION = "7.8.0"
 LEGACY_SCHEMA_VERSION = "6.30.0"
 
-# Two 7.7.0 enum files ship raw control characters inside string values, which
+# Two 7.8.0 enum files ship raw control characters inside string values, which
 # strict `json.loads` rejects; `sync_upstream.py` retries those members with
 # `strict=False` and records them here (see `_load_schema_bundle` in
 # registry.py, and PLAN.md 1.2).
@@ -63,10 +63,10 @@ EXPECTED_LEGACY_SCHEMA_COUNT = 1066
 # `test_legacy_samples_validate_against_matching_vintage_schema`. Real,
 # counted result: 5 valid, 7 invalid, 0 crashed. Every one of the 7 failures
 # is a `required`-property miss (`activityDate`, `underlier`, `dateAdjustments`,
-# `executionDetails`) at a nested path -- fields that became required only
-# somewhere between 6.30.0 and 7.7.0 and so are genuinely absent from these
-# older-tag sample documents; it is not a workaround-needed defect like the
-# BusinessCenter/NonNegativeNumber one `_drop_bogus_type_keywords` handles.
+# `executionDetails`) at a nested path. Those fields are required by the
+# *matching* 6.30.0 schema yet absent from its published samples; this is
+# upstream schema/sample disagreement, not 7.8.0 cross-version drift or a
+# workaround-needed defect like `_drop_bogus_type_keywords` handles.
 EXPECTED_LEGACY_SAMPLES_VALID_AGAINST_OWN_VINTAGE = 5
 
 
@@ -106,6 +106,23 @@ def test_verify_passes() -> None:
     verify(VENDOR_DIR)
 
 
+def test_manifest_default_and_vendored_schema_versions_agree() -> None:
+    """Catch a source/version mismatch before releasing a regenerated CDM drop."""
+    source = json.loads((VENDOR_DIR / "SOURCE.json").read_text(encoding="utf-8"))
+    assert source["version"] == source["ref"] == PRIMARY_SCHEMA_VERSION
+    assert CdmRegistry.PRIMARY_VERSION == PRIMARY_SCHEMA_VERSION
+
+    expected = {
+        f"cdm-json-schema-{version}.json"
+        for version in (PRIMARY_SCHEMA_VERSION, LEGACY_SCHEMA_VERSION)
+    }
+    bundles = {path.name for path in SCHEMAS_DIR.glob("cdm-json-schema-*.json")}
+    manifest_bundles = {
+        name.removeprefix("schemas/") for name in source["files"] if name.startswith("schemas/")
+    }
+    assert bundles == manifest_bundles == expected
+
+
 def test_schema_count() -> None:
     schemas = _load_bundle_schemas(PRIMARY_SCHEMA_VERSION)
     assert len(schemas) == EXPECTED_SCHEMA_COUNT
@@ -113,7 +130,7 @@ def test_schema_count() -> None:
 
 def test_primary_bundle_metadata_and_lenient_parse_files() -> None:
     """The bundle's own `count`/`version` fields agree with its `schemas`
-    dict, and the two known 7.7.0 members with raw control characters are
+    dict, and the two known 7.8.0 members with raw control characters are
     recorded under `lenient_parse` (see `sync_upstream.py`'s
     `_parse_schema_member`)."""
     bundle = _load_bundle(PRIMARY_SCHEMA_VERSION)
@@ -137,7 +154,7 @@ def test_no_dangling_refs() -> None:
 
 def test_legacy_schema_count() -> None:
     """`_vendor/schemas/cdm-json-schema-6.30.0.json` is vendored alongside the
-    primary 7.7.0 bundle (see `sync_upstream.py`) so legacy-format samples can
+    primary 7.8.0 bundle (see `sync_upstream.py`) so legacy-format samples can
     be validated against a schema of matching vintage."""
     schemas = _load_bundle_schemas(LEGACY_SCHEMA_VERSION)
     assert len(schemas) == EXPECTED_LEGACY_SCHEMA_COUNT
@@ -252,14 +269,14 @@ def test_draft4validator_compiles_for_tradestate(registry: CdmRegistry) -> None:
 
 
 def test_schema_versions(registry: CdmRegistry) -> None:
-    assert registry.schema_versions() == ["7.7.0", LEGACY_SCHEMA_VERSION]
+    assert registry.schema_versions() == ["7.8.0", LEGACY_SCHEMA_VERSION]
 
 
 def test_schema_registry_for_default_and_explicit_primary_are_the_primary_registry(
     registry: CdmRegistry,
 ) -> None:
     assert registry.schema_registry_for() is registry.schema_registry
-    assert registry.schema_registry_for("7.7.0") is registry.schema_registry
+    assert registry.schema_registry_for("7.8.0") is registry.schema_registry
 
 
 def test_schema_registry_for_legacy_version(registry: CdmRegistry) -> None:
@@ -275,17 +292,33 @@ def test_schema_registry_for_unknown_version_raises(registry: CdmRegistry) -> No
         registry.schema_registry_for("9.9.9")
 
 
+def test_legacy_qualified_names_do_not_fall_back_to_bare_type(registry: CdmRegistry) -> None:
+    version = LEGACY_SCHEMA_VERSION
+    expected = "cdm-legaldocumentation-csa-AccessConditions.schema.json"
+    correct = "cdm.legaldocumentation.csa.AccessConditions"
+    assert registry.filename_in_version("AccessConditions", version) == expected
+    assert registry.filename_in_version(correct, version) == expected
+    assert registry.filename_in_version("cdm.unrelated.AccessConditions", version) is None
+
+
+def test_primary_and_legacy_reject_wrong_qualified_type_names(registry: CdmRegistry) -> None:
+    for version in (PRIMARY_SCHEMA_VERSION, LEGACY_SCHEMA_VERSION):
+        expected = registry.filename_in_version("TradeState", version)
+        assert expected is not None
+        assert registry.filename_in_version("cdm.unrelated.TradeState", version) is None
+
+
 def test_legacy_samples_validate_or_report_known_issues(registry: CdmRegistry) -> None:
-    """Validate every vendored legacy (6.30.0) sample against the 7.7.0
+    """Validate every vendored legacy (6.30.0) sample against the 7.8.0
     `BusinessEvent` schema and assert what is *actually* true of the vendored
     snapshot, rather than an assumed-clean result.
 
     Two real findings, surfaced here rather than swallowed:
 
-    1. A handful of 7.7.0 schema files (`ValuationTime`, `CreditEventNotice`,
+    1. A handful of 7.8.0 schema files (`ValuationTime`, `CreditEventNotice`,
        ...) emit a literal Rosetta basictype name as a JSON Schema `"type"`
        keyword (`{"type": "BusinessCenter"}`, `{"type": "NonNegativeNumber"}`)
-       instead of a JSON primitive or `$ref` -- a cdm-json-schema 7.7.0
+       instead of a JSON primitive or `$ref` -- a cdm-json-schema 7.8.0
        generator defect (confirmed: no `cdm-*-BusinessCenter.schema.json` or
        `cdm-*-NonNegativeNumber.schema.json` file exists). Left as-is, this
        hard-crashes `Draft4Validator` with `jsonschema.exceptions.UnknownType`
@@ -296,15 +329,15 @@ def test_legacy_samples_validate_or_report_known_issues(registry: CdmRegistry) -
        than un-validatable). This test asserts that workaround holds: no
        sample may raise `UnknownType`.
     2. With that workaround in place, all 12 vendored legacy (6.30.0-tag)
-       samples still fail *real* schema validation against the 7.7.0 schema
+       samples still fail *real* schema validation against the 7.8.0 schema
        -- **zero validate cleanly**. The dominant, recurring cause is that
-       `priceQuantity[].quantity` is `array`-typed (`1..*`) in the 7.7.0
+       `priceQuantity[].quantity` is `array`-typed (`1..*`) in the 7.8.0
        schema but a bare object in the 6.30.0-tag sample shape; a smaller
        set of samples also hit newly-`required` fields
        (`activityDate`/`underlier`/`securityType`/`dateAdjustments`) that did
        not exist, or were not required, at 6.30.0. This is genuine structural
        drift between the two tags this vendoring pulls from (CDM's JSON shape
-       evolved between 6.30.0 and 7.7.0 even before the 7.x Rune-format
+       evolved between 6.30.0 and 7.8.0 even before the 7.x Rune-format
        switch) -- not a bug in this registry. Anyone building the dual
        validator on top of `schema_registry` needs to know the legacy JSON
        Schema path only proves *shape*, and even that only for
@@ -349,7 +382,7 @@ def test_legacy_samples_validate_or_report_known_issues(registry: CdmRegistry) -
 
     # The actual, current truth for this vendored snapshot (see docstring):
     # every legacy sample carries at least one real schema mismatch against
-    # the newer 7.7.0 schema, so none validate cleanly.
+    # the newer 7.8.0 schema, so none validate cleanly.
     assert len(valid) == 0
     assert len(invalid) == EXPECTED_LEGACY_SAMPLE_COUNT
     for issues in invalid.values():
@@ -360,7 +393,7 @@ def test_legacy_samples_validate_against_matching_vintage_schema(registry: CdmRe
     """Validate every vendored legacy sample against the *matching-vintage*
     6.30.0 `BusinessEvent` schema (`registry.schema_registry_for("6.30.0")`),
     in contrast to `test_legacy_samples_validate_or_report_known_issues` above,
-    which deliberately validates the same samples against the newer 7.7.0
+    which deliberately validates the same samples against the newer 7.8.0
     schema and documents that none validate cleanly there.
 
     This is the check that makes the legacy JSON Schema path meaningful: it
