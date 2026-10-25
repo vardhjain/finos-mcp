@@ -83,7 +83,8 @@ jobs:
           set -euo pipefail
           SUCCESSFUL=$(gh api \
             "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SHA&event=push&per_page=30" \
-            --jq '[.workflow_runs[] | select(.head_sha == env.EXPECTED_SHA and .conclusion == "success")] | length')
+            --jq '.workflow_runs[] | select(.conclusion == "success") | .head_sha' \
+            | grep -Fxc "$EXPECTED_SHA" || true)
           if [[ "$SUCCESSFUL" -lt 1 ]]; then
             echo "::error::No successful push CI run for the exact requested SHA"; exit 1
           fi
