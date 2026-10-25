@@ -135,5 +135,6 @@ jobs:
             echo "::error::Docker publication requires a stable release tag"
             exit 1
           fi
-          gh workflow run docker.yml --ref "$GITHUB_REF_NAME" -f push=true
+          # This job has no checkout: gh cannot infer the repository from .git.
+          gh workflow run docker.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" -f push=true
           echo "Dispatched GHCR publishing for $GITHUB_REF_NAME after a successful GitHub Release"
