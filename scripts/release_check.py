@@ -91,8 +91,13 @@ def validate_artifacts(path: Path, version: str) -> None:
         with tarfile.open(archive, "r:gz") as tf:
             if not any(n.endswith("pyproject.toml") for n in tf.getnames()):
                 raise ValueError(f"{archive.name}: missing project metadata")
-    if {p.name for p in path.iterdir() if p.is_file()} != expected:
-        raise ValueError("dist/ includes unexpected or incomplete release artifacts")
+    # uv may create a dist/.gitignore marker; it is not a release artifact.
+    found = {p.name for p in path.iterdir() if p.is_file() and p.name != ".gitignore"}
+    if found != expected:
+        raise ValueError(
+            f"dist/ contains unexpected files {sorted(found - expected)} "
+            f"or is missing files {sorted(expected - found)}"
+        )
     print(f"PASS: {len(expected)} valid release artifacts (wheel + sdist per package)")
 
 
