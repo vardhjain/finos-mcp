@@ -36,7 +36,7 @@ async def test_find_by_external_reference(client: Client) -> None:
     assert all(m["framework"] == "nist-sp-800-53r5" for m in hits["matches"])
     scoped = _structured(
         await client.call_tool(
-            "find_by_external_reference", {"key": "llm01-2025", "framework": "owasp-llm"}
+            "find_by_external_reference", {"key": "llm01-2026", "framework": "owasp-llm"}
         )
     )
     assert "AIR-SEC-010" in {m["id"] for m in scoped["matches"]}
@@ -85,7 +85,7 @@ async def test_tool_surface_is_typed_and_read_only(client: Client) -> None:
 @pytest.mark.anyio
 async def test_list_risks_filters_and_paginates(client: Client) -> None:
     page = _structured(await client.call_tool("list_risks", {"page_size": 10}))
-    assert page["total"] == 23 and len(page["items"]) == 10 and page["page"] == 1
+    assert page["total"] == 24 and len(page["items"]) == 10 and page["page"] == 1
     sec = _structured(await client.call_tool("list_risks", {"type": "SEC", "page_size": 50}))
     assert sec["total"] > 0 and all(i["type"] == "SEC" for i in sec["items"])
     assert all(i["id"].startswith("AIR-SEC-") for i in sec["items"])
@@ -205,6 +205,125 @@ async def test_map_control_to_external_filters_frameworks(client: Client) -> Non
     assert env.code == "not_found"
 
 
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("What operational risk explains model drift?", "risk"),
+        ("Which detective controls address prompt injection?", "control"),
+        ("Which mitigations apply to agent authorization?", "control"),
+        ("List risks from the governance framework", "risk"),
+        ("Which risks and controls concern model use?", None),
+        ("What controls and risks address model use?", None),
+        ("An employee pastes client data into a public chatbot", None),
+    ],
+)
+def test_requested_record_kind(question: str, expected: str | None) -> None:
+    from finos_mcp.aigf.server import _requested_record_kind
+
+    assert _requested_record_kind(question) == expected
+
+
+@pytest.mark.anyio
+async def test_search_prefers_requested_kind_but_respects_explicit_scope(
+    client: Client,
+) -> None:
+    risk_question = "What operational risk is associated with model drift?"
+    risk_hits = _structured(
+        await client.call_tool("search_framework", {"query": risk_question, "k": 5})
+    )["hits"]
+    assert risk_hits and all(hit["id"] in state().framework.risks for hit in risk_hits)
+
+    controls_question = "Which preventative controls address prompt injection?"
+    control_hits = _structured(
+        await client.call_tool("search_framework", {"query": controls_question, "k": 5})
+    )["hits"]
+    assert control_hits and all(hit["id"] in state().framework.controls for hit in control_hits)
+
+    # An explicit filter is authoritative even when the question requests the other type.
+    scoped = _structured(
+        await client.call_tool(
+            "search_framework", {"query": risk_question, "scope": "controls", "k": 5}
+        )
+    )["hits"]
+    assert scoped and all(hit["id"] in state().framework.controls for hit in scoped)
+
+
+@pytest.mark.anyio
+async def test_search_boosts_exact_standard_crosswalks(client: Client) -> None:
+    # References are stored as hyphenated keys, but people ask about standards
+    # using punctuation from their published title. No paid model is involved.
+    owasp = _structured(
+        await client.call_tool(
+            "search_framework",
+            {"query": "Which AIGF risk addresses OWASP LLM08:2026 Hidden Context Exposure?", "k": 5},
+        )
+    )["hits"]
+    assert owasp and owasp[0]["id"] == "AIR-OP-014"
+
+    nist = _structured(
+        await client.call_tool(
+            "search_framework",
+            {"query": "Which AIGF controls map to NIST SP 800-53 SA-9?", "k": 10},
+        )
+    )["hits"]
+    exact = {
+        control.id
+        for control in state().framework.controls.values()
+        if any(
+            ref.framework == "nist-sp-800-53r5" and ref.key == "sa-9" for ref in control.references
+        )
+    }
+    assert exact and {hit["id"] for hit in nist[: len(exact)]} == exact
+
+
+@pytest.mark.parametrize(
+    ("query", "expected_title"),
+    [
+        ("A provider silently replaced its language model", "Foundation Model Versioning"),
+        ("Our vendor updated the LLM without notifying us", "Foundation Model Versioning"),
+        (
+            "A teammate shared confidential account information with a public chatbot",
+            "Information Leaked To Hosted Model",
+        ),
+        (
+            "Someone uploads private customer records to a hosted model",
+            "Information Leaked To Hosted Model",
+        ),
+        (
+            "Attackers injected mislabeled samples into a training dataset",
+            "Data Poisoning",
+        ),
+        (
+            "A fraud model trains on fabricated documents",
+            "Data Poisoning",
+        ),
+        ("The company switched its cloud hosting provider", None),
+        ("We shared an AI model release announcement", None),
+        ("The chatbot displays an account balance", None),
+        ("The training dataset contains customer labels", None),
+    ],
+)
+def test_narrative_risk_cues_need_multiple_signals(query: str, expected_title: str | None) -> None:
+    from finos_mcp.aigf.server import _narrative_risk_matches
+
+    fw = state().framework
+    ids = _narrative_risk_matches(query, fw)
+    assert {fw.risks[id].title for id in ids} == (
+        {expected_title} if expected_title is not None else set()
+    )
+
+
+@pytest.mark.anyio
+async def test_narrative_risk_ranking_respects_scope(client: Client) -> None:
+    q = "An analyst pasted private client account data into a public chatbot"
+    hits = _structured(await client.call_tool("search_framework", {"query": q, "k": 5}))["hits"]
+    assert hits and hits[0]["id"] == "AIR-RC-001"
+    scoped = _structured(
+        await client.call_tool("search_framework", {"query": q, "scope": "controls", "k": 5})
+    )["hits"]
+    assert scoped and all(h["id"] in state().framework.controls for h in scoped)
+
+
 @pytest.mark.anyio
 async def test_search_framework_ranks_and_cites(client: Client) -> None:
     res = _structured(
@@ -233,7 +352,7 @@ async def test_reference_frameworks_and_server_info(client: Client) -> None:
     assert {"nist-sp-800-53r5", "eu-ai-act", "owasp-llm", "iso-42001"} <= names
     assert all(f["entry_count"] > 0 for f in refs["frameworks"])
     info = _structured(await client.call_tool("server_info", {}))
-    assert info["counts"]["risks"] == 23 and info["counts"]["controls"] == 23
+    assert info["counts"]["risks"] == 24 and info["counts"]["controls"] == 25
     assert info["counts"]["risk_control_edges"] > 23
     assert info["upstream_commit"] and info["standard_version"]
     assert info["read_only"] is True
@@ -257,7 +376,7 @@ async def test_resources_serve_citable_markdown_and_index(client: Client) -> Non
     section = await client.read_resource(f"aigf://control/AIR-PREV-020/section/{first_slug}")
     assert section.contents[0].text.startswith("## ")  # type: ignore[union-attr]
     index = json.loads((await client.read_resource("aigf://index")).contents[0].text)  # type: ignore[union-attr]
-    assert len(index["risks"]) == 23 and len(index["controls"]) == 23
+    assert len(index["risks"]) == 24 and len(index["controls"]) == 25
     dataset = json.loads(
         (await client.read_resource("aigf://reference/nist-sp-800-53r5")).contents[0].text  # type: ignore[union-attr]
     )

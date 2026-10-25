@@ -10,33 +10,9 @@ from finos_mcp.core import verify
 
 VENDOR_DIR = Path(__file__).parents[1] / "src" / "finos_mcp" / "aigf" / "_vendor"
 
-# A handful of upstream risk files have a missing newline between the last
-# uk-regulations_references comment and a following `related_risks:` key, which
-# folds that key into the YAML comment and leaves stray `ri-N` tokens inside
-# uk-regulations_references (see parser.py module docstring). Those tokens do not
-# exist in the uk-regulations dataset and are the only unresolved reference keys
-# on the currently vendored snapshot.
-EXPECTED_UNRESOLVED_REFS = {
-    ("AIR-OP-016", "uk-regulations", "ri-19"),
-    ("AIR-OP-016", "uk-regulations", "ri-22"),
-    ("AIR-OP-017", "uk-regulations", "ri-22"),
-    ("AIR-OP-017", "uk-regulations", "ri-16"),
-    ("AIR-OP-017", "uk-regulations", "ri-18"),
-    ("AIR-OP-018", "uk-regulations", "ri-10"),
-    ("AIR-OP-018", "uk-regulations", "ri-17"),
-    ("AIR-OP-018", "uk-regulations", "ri-22"),
-    ("AIR-OP-019", "uk-regulations", "ri-4"),
-    ("AIR-OP-019", "uk-regulations", "ri-16"),
-    ("AIR-OP-019", "uk-regulations", "ri-9"),
-    ("AIR-RC-001", "uk-regulations", "ri-2"),
-    ("AIR-RC-001", "uk-regulations", "ri-23"),
-    ("AIR-OP-020", "uk-regulations", "ri-10"),
-    ("AIR-OP-020", "uk-regulations", "ri-16"),
-    ("AIR-OP-020", "uk-regulations", "ri-4"),
-    ("AIR-RC-022", "uk-regulations", "ri-16"),
-    ("AIR-RC-022", "uk-regulations", "ri-17"),
-    ("AIR-RC-022", "uk-regulations", "ri-18"),
-}
+# FINOS PR #380 repaired the malformed related_risks frontmatter on 2026-10-21.
+# Keep this set pinned to detect any new unresolved external references.
+EXPECTED_UNRESOLVED_REFS: set[tuple[str, str, str]] = set()
 
 
 @pytest.fixture(scope="module")
@@ -48,9 +24,9 @@ def test_vendor_integrity_passes() -> None:
     verify(VENDOR_DIR)
 
 
-def test_exactly_23_risks_and_23_controls(framework: Framework) -> None:
-    assert len(framework.risks) == 23
-    assert len(framework.controls) == 23
+def test_exactly_24_risks_and_25_controls(framework: Framework) -> None:
+    assert len(framework.risks) == 24
+    assert len(framework.controls) == 25
 
 
 def test_ri10_is_prompt_injection(framework: Framework) -> None:
@@ -59,6 +35,19 @@ def test_ri10_is_prompt_injection(framework: Framework) -> None:
     assert risk.title == "Prompt Injection"
     assert risk.type == "SEC"
     assert risk.id == "AIR-SEC-010"
+
+
+def test_new_draft_skill_risk_and_controls(framework: Framework) -> None:
+    risk = framework.risks["AIR-SEC-030"]
+    integrity_control = framework.controls["AIR-PREV-025"]
+    approval_control = framework.controls["AIR-PREV-024"]
+    assert risk.title == "Skill/Plugin Supply Chain Compromise"
+    assert risk.status == "Draft"
+    assert integrity_control.title == "Skill/Plugin Integrity and Governance"
+    assert integrity_control.status == "Draft"
+    assert risk.id in integrity_control.mitigates
+    assert integrity_control.id in risk.mitigated_by
+    assert "AIR-SEC-024" in approval_control.mitigates
 
 
 def test_mi20_mitigates_expected_risks(framework: Framework) -> None:
@@ -120,8 +109,8 @@ def test_framework_version_matches_config(framework: Framework) -> None:
 
 def test_framework_documents_aliases_include_short_ids(framework: Framework) -> None:
     risk_docs, control_docs = framework_documents(framework)
-    assert len(risk_docs) == 23
-    assert len(control_docs) == 23
+    assert len(risk_docs) == 24
+    assert len(control_docs) == 25
 
     risk10 = next(d for d in risk_docs if d.id == "AIR-SEC-010")
     assert "ri-10" in risk10.aliases

@@ -63,6 +63,14 @@ jobs:
       - name: Tests with coverage
         run: uv run pytest --cov --cov-report=xml --cov-report=term-missing:skip-covered --junitxml=junit.xml
 
+      - name: Capture low-memory live demo
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        env:
+          FINOS_MCP_AUDIT_PATH: /tmp/finos-demo-audit-ci.jsonl
+        run: |
+          uv run --no-sync python examples/demo_session.py --fast > demo-transcript.txt
+          cat demo-transcript.txt
+
       - name: Latency benchmark
         if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         run: uv run python evals/perf/bench.py --n 100 --out perf.json
@@ -72,7 +80,7 @@ jobs:
         run: >-
           uv run python -m finos_mcp_evals.metrics.collect
           --junit junit.xml --coverage coverage.xml
-          --extra perf.json --extra retrieval.json
+          --extra perf.json --extra retrieval.json --extra offline-evals.json
           --out metrics.json
 
       - name: Upload metrics
@@ -82,9 +90,66 @@ jobs:
           name: metrics
           path: |
             metrics.json
+            demo-transcript.txt
+            offline-evals.json
             coverage.xml
             junit.xml
           retention-days: 90
+
+  # The Docker image has its own Python runtime, independently of the uv test
+  # matrix above. Exercise the actual container before accepting a base-image bump.
+  container-smoke:
+    name: container smoke (offline, read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build production container
+        run: docker build --pull --tag finos-mcp:ci .
+
+      - name: Verify packaged servers offline without writable filesystem
+        run: |
+          docker run --rm -i --read-only --cap-drop ALL --network none \
+            --entrypoint python finos-mcp:ci - <<'PY'
+          from importlib import import_module
+          from pathlib import Path
+
+          from finos_mcp.core import verify
+
+          for name in ("finos_mcp.aigf", "finos_mcp.cdm", "finos_mcp.fdc3"):
+              module = import_module(name)
+              source = verify(Path(module.__file__).parent / "_vendor")
+              assert source.files, f"{name}: vendored provenance is empty"
+
+          from finos_mcp.aigf.parser import load_framework
+          from finos_mcp.cdm.registry import get_registry as cdm_registry
+          from finos_mcp.fdc3.registry import get_registry as fdc3_registry
+          from finos_mcp.aigf.server import create_server as aigf_server
+          from finos_mcp.cdm.server import create_server as cdm_server
+          from finos_mcp.fdc3.server import create_server as fdc3_server
+
+          aigf = load_framework(Path(import_module("finos_mcp.aigf").__file__).parent / "_vendor")
+          assert len(aigf.risks) >= 23 and len(aigf.controls) >= 23
+          cdm = cdm_registry()
+          assert cdm.get("TradeState") is not None
+          assert len(cdm.types()) >= 1000
+          fdc3 = fdc3_registry()
+          assert len(fdc3.context_types()) >= 28
+          assert len(fdc3.intents()) >= 19
+
+          for create in (aigf_server, cdm_server, fdc3_server):
+              assert create() is not None
+          print("All three MCP servers load, validate vendored content and start offline.")
+          PY
+
+      - name: Check all three console commands
+        run: |
+          for server in finos-mcp-aigf finos-mcp-cdm finos-mcp-fdc3; do
+            docker run --rm --read-only --cap-drop ALL --network none \
+              --entrypoint "$server" finos-mcp:ci --help > /dev/null
+            echo "ok: $server"
+          done
 
   publish-metrics:
     name: publish metrics branch

@@ -5,8 +5,8 @@ layout: risk
 doc-status: Approved-Specification
 type: SEC
 owasp-llm_references:
-  - llm02-2025  # LLM02:2025 Sensitive Information Disclosure
-  - llm08-2025  # LLM08:2025 Vector and Embedding Weaknesses
+  - llm02-2026  # LLM02:2026 Sensitive Information Disclosure
+  - llm09-2026  # LLM09:2026 Vector and Embedding Weaknesses
 nist-ai-600-1_references:
   - 2-4  # 2.4. Data Privacy
   - 2-9  # 2.9. Information Security
@@ -46,7 +46,8 @@ uk-regulations_references:
   # Data protection and AI-specific privacy controls
   - uk-gdpr-dpa-2018 # UK GDPR/DPA applies where embeddings or metadata include personal data
   - ico-guidance-ai-data-protection # ICO AI guidance covers security, minimisation and reuse controls
-  - ico-ai-data-protection-toolkit # Toolkit supports AI privacy risk assessment for retrieval storesrelated_risks:
+  - ico-ai-data-protection-toolkit # Toolkit supports AI privacy risk assessment for retrieval stores
+related_risks:
 related_risks:
   - ri-1  # Information Leaked To Hosted Model
   - ri-9  # Data Poisoning

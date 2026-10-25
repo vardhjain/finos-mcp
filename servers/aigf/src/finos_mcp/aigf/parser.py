@@ -13,13 +13,8 @@ Upstream quirks this parser is written to tolerate (see PLAN.md sections 1.1 and
   ``mitigates:``); ``Risk.mitigated_by`` is computed here by inversion.
 * ``<dataset>_references`` lists carry inline ``# comment`` annotations, which is
   ordinary YAML and requires no special handling from ``yaml.safe_load``.
-* A handful of upstream risk files have a missing newline between the last
-  ``uk-regulations_references`` entry's comment and a following ``related_risks:``
-  key, which folds ``related_risks:`` and its items into the YAML comment and
-  leaves stray ``ri-N`` tokens inside ``uk-regulations_references``. Those tokens
-  simply fail to resolve against the uk-regulations dataset and are kept as
-  unresolved ``ExternalRef``s (title/url/issuer left ``None``), exactly like any
-  other reference key the dataset does not define.
+* FINOS PR #380 repaired malformed ``related_risks`` frontmatter in
+  eight risk files; the vendored snapshot includes those restored links.
 """
 
 from __future__ import annotations

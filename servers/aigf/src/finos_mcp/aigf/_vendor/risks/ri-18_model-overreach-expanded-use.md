@@ -5,7 +5,7 @@ layout: risk
 doc-status: Approved-Specification
 type: OP
 owasp-llm_references:
-  - llm06-2025  # LLM06:2025 Excessive Agency
+  - llm03-2026  # LLM03:2026 Excessive Agency
 ffiec-itbooklets_references:
   - mgt-1  # MGT: I   Governance
   - mgt-2  # MGT: II Risk Management
@@ -42,7 +42,8 @@ uk-regulations_references:
   - fca-cobs-9 # Suitability rules limit unsupported use in personal recommendations
   - fca-cobs-9a # MiFID suitability requirements constrain portfolio/advice automation scope
   - pra-ss1-23-mrm # Model inventory, tiering and change controls address model-use drift
-  - pra-ai-mrm-roundtable-2025 # PRA AI/ML MRM discussion emphasises governance of AI model userelated_risks:
+  - pra-ai-mrm-roundtable-2025 # PRA AI/ML MRM discussion emphasises governance of AI model use
+related_risks:
   - ri-10  # Prompt Injection
   - ri-17  # Lack of Explainability
   - ri-22  # Regulatory Compliance and Oversight

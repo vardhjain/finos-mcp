@@ -1,17 +1,34 @@
-# Demo
+# Live demo
 
-The exact output of `examples/demo_session.py`, which loads all three servers in one
-process and makes five real tool calls through the in-memory MCP client. Reproduce it with:
+This is the **actual output** of the low-memory demonstration recorded in
+[GitHub Actions CI](https://github.com/vardhjain/finos-mcp/actions/runs/40156637876),
+not mocked tool results. Five real MCP calls are made across AIGF, CDM and FDC3.
+
+Unlike the earlier version, `examples/demo_session.py` launches each server in a
+**separate, short-lived subprocess**, sequentially. The parent does not load any
+standard's registry. This prevents the CDM schema-validation step from having to
+share one Python process with the AIGF embeddings and FDC3 registry.
+
+Reproduce this output with no API key or paid AI model:
 
 ```bash
-uv run python examples/demo_session.py
+uv sync --all-packages --all-extras
+uv run --no-sync python examples/demo_session.py --fast
 ```
 
-Latencies are measured per call on the machine that produced this transcript, with the
-safety middleware (rate limiting, size caps, audit) in the path. `examples/demo.tape` records
-the same session as a GIF, with the caveats in [examples/README.md](https://github.com/vardhjain/finos-mcp/blob/main/examples/README.md).
+Omit `--fast` for a paced terminal presentation. To generate
+`docs/demo.gif` on a machine with the free [VHS](https://github.com/charmbracelet/vhs)
+terminal recorder installed, run `vhs examples/demo.tape`.
+
+The transcript below comes from the **currently released main-branch vendored data**.
+After upstream updates (including the separate CDM 7.7.0 upgrade in PR #15), precise
+validator messages and FDC3 intent rankings may legitimately change. GitHub CI
+runs the real demo again and uploads `demo-transcript.txt` in its metrics artifact.
 
 ```console
+starting FINOS MCP demo (isolated servers, one at a time) ...
+READY
+
 $ finos-mcp: read-only MCP servers for FINOS standards (AIGF, CDM, FDC3)
 
 # AIGF: resolve a control by its short id and see what it mitigates
@@ -21,7 +38,7 @@ mitigates        AIR-SEC-026, AIR-SEC-008, AIR-RC-001
 related controls AIR-PREV-007, AIR-DET-004
 crosswalks to    9 references across 3 frameworks
 cite             aigf://control/AIR-PREV-020
-[54 ms, read-only, rate-limited, audited]
+[read-only, rate-limited, audited]
 
 # AIGF: reverse crosswalk, which records cite NIST SP 800-53 SA-9?
 $ aigf > find_by_external_reference {"key": "sa-9"}
@@ -30,7 +47,7 @@ $ aigf > find_by_external_reference {"key": "sa-9"}
   control AIR-PREV-007  Legal and Contractual Frameworks for AI Systems
   control AIR-PREV-014  Encryption of AI Data at Rest
   control AIR-PREV-020  MCP Server Security Governance
-[29 ms, read-only, rate-limited, audited]
+[read-only, rate-limited, audited]
 
 # AIGF: search in plain language, every hit is citable
 $ aigf > search_framework {"query": "an employee pastes client data into a public chatbot", "k": 3}
@@ -40,7 +57,7 @@ $ aigf > search_framework {"query": "an employee pastes client data into a publi
       aigf://risk/AIR-SEC-010
   AIR-PREV-017  AI Firewall Implementation and Management
       aigf://control/AIR-PREV-017
-[35 ms, read-only, rate-limited, audited]
+[read-only, rate-limited, audited]
 
 # CDM: validate a Rune BusinessEvent an agent got wrong (3 planted defects)
 $ cdm > validate_object {"object": "<broken_execution.json>"}
@@ -53,7 +70,7 @@ validator: json-schema draft4 (cdm-json-schema 7.5.0) via Rune normalisation
       'trade' is a required property
   [required   ] $.instruction[0].primitiveInstruction.execution
       'executionDetails' is a required property
-[59 ms, read-only, rate-limited, audited]
+[read-only, rate-limited, audited]
 
 # FDC3: which intents can I raise for an instrument, and which shows a chart?
 $ fdc3 > suggest_intent {"context": {"type": "fdc3.instrument", "id": {"ticker": "AAPL"}}, "goal": "show a price chart"}
@@ -61,15 +78,17 @@ context fdc3.instrument (detected by type_field); ranked intents:
   1.44  ViewChart          ViewChart accepts fdc3.instrument; matches goal 'show a pr
   1.31  ViewQuote          ViewQuote accepts fdc3.instrument; matches goal 'show a pr
   1.22  ViewResearch       ViewResearch accepts fdc3.instrument; matches goal 'show a
-  1.00  ViewInstrument     ViewInstrument accepts fdc3.instrument; matches goal 'show
-  0.80  ViewAnalysis       ViewAnalysis accepts fdc3.instrument; matches goal 'show a
-[43 ms, read-only, rate-limited, audited]
+  1.18  ViewInstrument     ViewInstrument accepts fdc3.instrument; matches goal 'show
+  0.96  ViewHoldings       ViewHoldings accepts fdc3.instrument; matches goal 'show a
+[read-only, rate-limited, audited]
 
 $ every tool is read-only; nothing here writes to any external system.
 DEMO DONE
 ```
 
-The CDM step validates [`examples/broken_execution.json`](https://github.com/vardhjain/finos-mcp/blob/main/examples/broken_execution.json):
-a real CDM 7 Rune-format `BusinessEvent` with three deliberate defects (a misspelled payout
-alternative, a removed required `trade`, and a missing `executionDetails`). Each is reported
-with the JSON path *in the submitted document*, which is what lets an agent fix its own output.
+The CDM step uses [`examples/broken_execution.json`](https://github.com/vardhjain/finos-mcp/blob/main/examples/broken_execution.json),
+a real CDM 7 Rune-format `BusinessEvent` with three deliberate defects:
+a misspelled payout alternative, a missing required `trade`, and a missing
+`executionDetails`. The validator pinpoints the corresponding JSON paths in
+the submitted document. Every other result also comes from the real MCP
+tools and is read-only, with citeable identifiers where applicable.
