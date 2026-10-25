@@ -276,6 +276,60 @@ async def test_search_boosts_exact_standard_crosswalks(client: Client) -> None:
     assert exact and {hit["id"] for hit in nist[: len(exact)]} == exact
 
 
+@pytest.mark.parametrize(
+    ("query", "expected_title"),
+    [
+        ("A provider silently replaced its language model", "Foundation Model Versioning"),
+        ("Our vendor updated the LLM without notifying us", "Foundation Model Versioning"),
+        (
+            "A teammate shared confidential account information with a public chatbot",
+            "Information Leaked To Hosted Model",
+        ),
+        (
+            "Someone uploads private customer records to a hosted model",
+            "Information Leaked To Hosted Model",
+        ),
+        (
+            "Attackers injected mislabeled samples into a training dataset",
+            "Data Poisoning",
+        ),
+        (
+            "A fraud model trains on fabricated documents",
+            "Data Poisoning",
+        ),
+        ("The company switched its cloud hosting provider", None),
+        ("We shared an AI model release announcement", None),
+        ("The chatbot displays an account balance", None),
+        ("The training dataset contains customer labels", None),
+    ],
+)
+def test_narrative_risk_cues_need_multiple_signals(
+    query: str, expected_title: str | None
+) -> None:
+    from finos_mcp.aigf.server import _narrative_risk_matches
+
+    fw = state().framework
+    ids = _narrative_risk_matches(query, fw)
+    assert {fw.risks[id].title for id in ids} == (
+        {expected_title} if expected_title is not None else set()
+    )
+
+
+@pytest.mark.anyio
+async def test_narrative_risk_ranking_respects_scope(client: Client) -> None:
+    q = "An analyst pasted private client account data into a public chatbot"
+    hits = _structured(await client.call_tool("search_framework", {"query": q, "k": 5}))[
+        "hits"
+    ]
+    assert hits and hits[0]["id"] == "AIR-RC-001"
+    scoped = _structured(
+        await client.call_tool(
+            "search_framework", {"query": q, "scope": "controls", "k": 5}
+        )
+    )["hits"]
+    assert scoped and all(h["id"] in state().framework.controls for h in scoped)
+
+
 @pytest.mark.anyio
 async def test_search_framework_ranks_and_cites(client: Client) -> None:
     res = _structured(

@@ -469,6 +469,54 @@ def _explicit_reference_matches(query: str, fw: Framework) -> set[str]:
     return matches
 
 
+# Conservative vocabulary for descriptions people use instead of the upstream
+# risk titles. These are *concept* cues, not eval question text or AIR IDs. All
+# independent signs in a group must occur to make a strong match.
+_NARRATIVE_RISK_CUES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "Foundation Model Versioning",
+        (
+            r"\b(?:model|llm)\b",
+            r"\b(?:swap\w*|replac\w*|switch\w*|updat\w*|chang\w*)\b",
+            r"\b(?:vendor|provider|silently|unannounced|behind.the.scenes)\b",
+        ),
+    ),
+    (
+        "Information Leaked To Hosted Model",
+        (
+            r"\b(?:chatbot|chatgpt|llm|ai.assistant|(?:hosted|external|public).{0,12}model)\b",
+            r"\b(?:past\w*|ent\w*|send\w*|shar\w*|upload\w*|input\w*|disclos\w*)\b",
+            r"\b(?:client|customer|account|pii|confidential|proprietary|private|sensitive)\b",
+        ),
+    ),
+    (
+        "Data Poisoning",
+        (
+            r"\b(?:train\w*|fine.tun\w*|dataset\w*)\b",
+            r"\b(?:fabricat\w*|mislabel\w*|poison\w*|tamper\w*|inject\w*|falsif\w*|corrupt\w*)\b",
+            r"\b(?:data|set|model|record\w*|sample\w*|document\w*|fraud)\b",
+        ),
+    ),
+)
+
+
+def _narrative_risk_matches(query: str, fw: Framework) -> set[str]:
+    """Match strong multi-clue paraphrases to official risk titles.
+
+    No assumptions about sequence numbers or AIR IDs. A missing/renamed
+    upstream concept simply stops matching. Partial cues do not trigger.
+    """
+    text = query.casefold()
+    matched_titles = {
+        title.casefold()
+        for title, patterns in _NARRATIVE_RISK_CUES
+        if all(re.search(pattern, text) for pattern in patterns)
+    }
+    return {
+        risk.id for risk in fw.risks.values() if risk.title.casefold() in matched_titles
+    }
+
+
 def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchResults:
     """Search risks and controls with matching sections and citable source URIs.
 
@@ -485,17 +533,21 @@ def search_framework(query: str, scope: Scope = "all", k: int = 10) -> SearchRes
     predicate = None if scope == "all" else (lambda d: d.kind == scope[:-1])
     preferred = _requested_record_kind(query) if scope == "all" else None
     reference_ids = _explicit_reference_matches(query, st.framework)
-    # An explicit cited standard code is stronger evidence than loose text
-    # similarity. Otherwise prefer the requested kind; preserve the BM25/dense
-    # ordering inside each group and retain other records as a fallback.
-    n = len(st.combined) if (preferred is not None or reference_ids) else k
+    narrative_ids = (
+        _narrative_risk_matches(query, st.framework) if scope != "controls" else set()
+    )
+    # Explicit standards codes and user-requested record kind come first.
+    # Strong narrative cues improve matches *within* that type. Otherwise
+    # preserve the original BM25/dense order, score, snippet and citation.
+    n = len(st.combined) if (preferred is not None or reference_ids or narrative_ids) else k
     hits: list[SearchHit] = st.combined.search(query, k=n, predicate=predicate)
-    if reference_ids or preferred is not None:
+    if reference_ids or preferred is not None or narrative_ids:
         preferred_ids = st.framework.risks if preferred == "risk" else st.framework.controls
         hits.sort(
             key=lambda hit: (
                 hit.id not in reference_ids if reference_ids else False,
                 hit.id not in preferred_ids if preferred is not None else False,
+                hit.id not in narrative_ids if narrative_ids else False,
             )
         )
     return SearchResults(query=query, scope=scope, hits=hits[:k])
