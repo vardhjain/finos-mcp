@@ -63,10 +63,10 @@ EXPECTED_LEGACY_SCHEMA_COUNT = 1066
 # `test_legacy_samples_validate_against_matching_vintage_schema`. Real,
 # counted result: 5 valid, 7 invalid, 0 crashed. Every one of the 7 failures
 # is a `required`-property miss (`activityDate`, `underlier`, `dateAdjustments`,
-# `executionDetails`) at a nested path -- fields that became required only
-# somewhere between 6.30.0 and 7.8.0 and so are genuinely absent from these
-# older-tag sample documents; it is not a workaround-needed defect like the
-# BusinessCenter/NonNegativeNumber one `_drop_bogus_type_keywords` handles.
+# `executionDetails`) at a nested path. Those fields are required by the
+# *matching* 6.30.0 schema yet absent from its published samples; this is
+# upstream schema/sample disagreement, not 7.8.0 cross-version drift or a
+# workaround-needed defect like `_drop_bogus_type_keywords` handles.
 EXPECTED_LEGACY_SAMPLES_VALID_AGAINST_OWN_VINTAGE = 5
 
 
@@ -104,6 +104,25 @@ def _load_bundle_schemas(version: str) -> dict[str, Any]:
 
 def test_verify_passes() -> None:
     verify(VENDOR_DIR)
+
+
+def test_manifest_default_and_vendored_schema_versions_agree() -> None:
+    """Catch a source/version mismatch before releasing a regenerated CDM drop."""
+    source = json.loads((VENDOR_DIR / "SOURCE.json").read_text(encoding="utf-8"))
+    assert source["version"] == source["ref"] == PRIMARY_SCHEMA_VERSION
+    assert CdmRegistry.PRIMARY_VERSION == PRIMARY_SCHEMA_VERSION
+
+    expected = {
+        f"cdm-json-schema-{version}.json"
+        for version in (PRIMARY_SCHEMA_VERSION, LEGACY_SCHEMA_VERSION)
+    }
+    bundles = {path.name for path in SCHEMAS_DIR.glob("cdm-json-schema-*.json")}
+    manifest_bundles = {
+        name.removeprefix("schemas/")
+        for name in source["files"]
+        if name.startswith("schemas/")
+    }
+    assert bundles == manifest_bundles == expected
 
 
 def test_schema_count() -> None:
