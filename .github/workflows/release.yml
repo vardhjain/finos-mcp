@@ -90,7 +90,11 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
-    needs: build
+    # Public announcement comes *after* the four package uploads when PyPI is
+    # enabled. A failed or partially skipped upload must not look like a
+    # successful release. GitHub-only releases are allowed when PyPI is disabled.
+    needs: [build, publish-pypi]
+    if: "${{ !cancelled() && needs.build.result == 'success' && (vars.PUBLISH_TO_PYPI != 'true' || (needs.publish-pypi.result == 'success' && vars.PYPI_SKIP_PACKAGES == '')) }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -98,7 +102,15 @@ jobs:
         with:
           name: dist
           path: dist/
+      - name: Require reviewed release notes for this tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -s "docs/releases/${GITHUB_REF_NAME}.md" ]]; then
+            echo "::error::Missing reviewed release notes for ${GITHUB_REF_NAME}"
+            exit 1
+          fi
       - uses: softprops/action-gh-release@v3
         with:
           files: dist/*
-          generate_release_notes: true
+          body_path: docs/releases/${{ github.ref_name }}.md
