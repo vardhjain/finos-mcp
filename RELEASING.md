@@ -11,6 +11,38 @@ GitHub Release and publishes a GHCR image, even when PyPI uploads are disabled.
 Use the safe [`release-preflight.yml`](.github/workflows/release-preflight.yml)
 workflow instead.
 
+## One-click manual release (recommended)
+
+The [guarded release workflow](.github/workflows/publish-release.yml) lets the
+repository owner publish the reviewed release from the **Actions** tab, without
+a local Git checkout or a persistent PyPI token. It still requires confirmation
+of the four PyPI trusted publishers described below.
+
+Go to **Actions → publish-release (manual, guarded) → Run workflow**, select
+`main`, and enter these three inputs:
+
+- Version: `0.3.0`
+- Expected SHA: `a450f391021cf66f9e19c97ea4fec89ee04ff13a`
+- Confirmation: `PUBLISH v0.3.0`
+
+**Before running it**, verify Actions repository variable
+`PUBLISH_TO_PYPI=true`, empty `PYPI_SKIP_PACKAGES`, and each of the four
+trusted-publisher environments in PyPI. The workflow will fail without making
+a tag if the variables, SHA, CI result, version availability, or archive
+validation do not pass. It does not inspect private PyPI trusted publisher
+configurations, which must be checked manually.
+
+If all checks pass, it creates an annotated `v0.3.0` tag and explicitly
+dispatches `release.yml` and `docker.yml` on that tag. This explicit dispatch
+is important: a GitHub Actions `GITHUB_TOKEN` tag push **does not trigger**
+ordinary tag-push workflows. The publishing workflows accept either a
+user-created tag push or an explicit dispatch on a tag. Review their job
+results independently: launching them is *not* proof of publication.
+
+If the tag is successfully created but an API dispatch fails, do not create
+a second tag. Instead, in the Actions UI run `release` and/or `docker` on
+the existing `v0.3.0` tag and verify the artifacts.
+
 ## Release 0.3.0 checklist
 
 1. Review and merge the version/changelog PR after green cross-platform CI and
