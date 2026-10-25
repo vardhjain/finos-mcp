@@ -72,7 +72,7 @@ jobs:
         run: >-
           uv run python -m finos_mcp_evals.metrics.collect
           --junit junit.xml --coverage coverage.xml
-          --extra perf.json --extra retrieval.json
+          --extra perf.json --extra retrieval.json --extra offline-evals.json
           --out metrics.json
 
       - name: Upload metrics
@@ -82,6 +82,7 @@ jobs:
           name: metrics
           path: |
             metrics.json
+            offline-evals.json
             coverage.xml
             junit.xml
           retention-days: 90
