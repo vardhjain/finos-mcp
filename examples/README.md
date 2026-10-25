@@ -32,42 +32,21 @@ vintages, FDC3 and the search model simultaneously. GIF rendering still needs
 VHS and a browser/terminal recorder; CI verifies the live text demo, not the
 optional VHS installation.
 
-## Claude Desktop
+## Connect a client
 
-Merge [`claude_desktop_config.json`](claude_desktop_config.json) into your Claude Desktop config
-(`%APPDATA%\Claude\claude_desktop_config.json` on Windows, `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS).
-It uses `uvx`, so nothing has to be installed first; the first launch downloads the packages.
+Follow the [MCP client setup guide](../docs/getting-started.md) for installation,
+platform-specific paths, verified commands and troubleshooting. These sample files are
+**examples to copy into your own client settings**, not live workspace configuration:
 
-To run from a checkout instead, for development:
+- [Claude Desktop config](claude_desktop_config.json) — `mcpServers` JSON; also compatible
+  with Claude Code's project-scoped `.mcp.json`.
+- [VS Code config](vscode_mcp.json) — `servers` JSON for `.vscode/mcp.json`.
+- [Portable GitHub Copilot config](copilot_mcp.json) — `mcpServers` JSON for workspace
+  `.mcp.json` or Copilot user configuration.
 
-```json
-{
-  "mcpServers": {
-    "finos-aigf": {
-      "command": "uv",
-      "args": ["run", "--directory", "/path/to/finos-mcp", "finos-mcp-aigf"]
-    }
-  }
-}
-```
-
-Then ask, for example: *"Which AIGF controls mitigate prompt injection, and what do they map to in NIST SP 800-53? Cite the control ids."*
-
-## Claude Code
-
-```bash
-claude mcp add finos-aigf -- uvx --python 3.12 finos-mcp-aigf
-```
-
-or, for a project-scoped `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "finos-aigf": { "command": "uvx", "args": ["--python", "3.12", "finos-mcp-aigf"] }
-  }
-}
-```
+The examples pin the already published **v0.3.1** Python packages and run each
+server via `uvx` with Python 3.12. This needs no paid model API calls or API keys for
+the FINOS MCP servers.
 
 ## MCP Inspector
 

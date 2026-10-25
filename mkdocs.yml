@@ -34,6 +34,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - MCP client setup: getting-started.md
   - Safety model: safety.md
   - Tool reference: tools.md
   - Demo transcript: demo.md
