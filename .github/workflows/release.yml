@@ -17,11 +17,18 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
+      - name: Refuse mismatched release tag and lockfile
+        run: |
+          python scripts/release_check.py --tag "${GITHUB_REF_NAME}"
+          uv lock --check
+
       - name: Build wheels and sdists for every package
         run: |
-          for pkg in core servers/aigf servers/cdm servers/fdc3; do
-            uv build --package "$(uv run python -c "import tomllib,sys;print(tomllib.load(open('$pkg/pyproject.toml','rb'))['project']['name'])")" --out-dir dist
+          set -euo pipefail
+          for pkg in core aigf cdm fdc3; do
+            uv build --package "finos-mcp-$pkg" --out-dir dist
           done
+          python scripts/release_check.py --tag "${GITHUB_REF_NAME}" --dist dist
           ls -la dist
       - uses: actions/upload-artifact@v7
         with:

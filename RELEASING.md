@@ -1,94 +1,89 @@
-# Releasing
+# Releasing FINOS MCP
 
-Tagging `v*` runs [`release.yml`](.github/workflows/release.yml), which builds a wheel and
-sdist for each of the four packages and cuts a GitHub release with them attached, and
-[`docker.yml`](.github/workflows/docker.yml), which builds the container, smoke-tests it, and
-pushes a multi-arch image with SBOM and provenance to `ghcr.io`.
+Releasing is a **separate, explicit step** from merging a release-preparation PR.
+An annotated `v*` tag activates [`release.yml`](.github/workflows/release.yml),
+which builds four Python wheels and source archives, creates a GitHub Release and
+may publish to PyPI, and [`docker.yml`](.github/workflows/docker.yml),
+which smoke-tests and pushes the multi-architecture container to GHCR.
 
-```bash
-git tag -a v0.1.1 -m "..." && git push origin v0.1.1
-```
+**Do not push a release tag merely to test packaging:** a tag creates a public
+GitHub Release and publishes a GHCR image, even when PyPI uploads are disabled.
+Use the safe [`release-preflight.yml`](.github/workflows/release-preflight.yml)
+workflow instead.
 
-Each server declares a minimum `finos-mcp-core` version in its `pyproject.toml`. Raise it in a
-release where a server starts to rely on something new in core, including a newer MCP SDK.
+## Release 0.3.0 checklist
 
-Publishing to PyPI is **off by default** and does not happen on a tag until it is switched on
-below, so a tag is always safe to cut.
+1. Review and merge the version/changelog PR after green cross-platform CI and
+   green **release-preflight**. The latter builds and inspects all four wheels
+   and source archives, verifies pinned core requirements and vendored manifests,
+   and uploads artifacts for inspection without publishing.
+2. Verify all six workspace project versions, `uv.lock`, and the release tag
+   agree. Locally:
 
-## PyPI trusted publishing
+   ```bash
+   uv lock --check
+   python scripts/release_check.py --tag v0.3.0
+   ```
 
-Trusted publishing uses a short-lived OIDC token instead of a long-lived API token, so there
-is no secret to store or rotate. Two halves have to agree: what PyPI expects, and what this
-repository sends. The repository half is already in place.
+3. Decide **before tagging** whether PyPI publishing should happen.
+   `release.yml` publishes only when repository variable
+   `PUBLISH_TO_PYPI=true`. Check its current value using GitHub's repository
+   Actions variables UI or `gh variable list -R vardhjain/finos-mcp`.
+   Also review `PYPI_SKIP_PACKAGES` (comma-separated `core,aigf,cdm,fdc3`
+   exclusions) and each package's trusted-publisher configuration and tag
+   restrictions. This file does **not** assume their current values.
+   If PyPI publishing is wanted, confirm OIDC publisher configuration first.
+4. Confirm the successful `main` CI checks after merging. Only then create
+   the annotated tag **at that reviewed commit**:
 
-### Repository half (done)
+   ```bash
+   git fetch origin
+   git checkout main
+   git pull --ff-only
+   python scripts/release_check.py --tag v0.3.0
+   git tag -a v0.3.0 -m "FINOS MCP v0.3.0"
+   git push origin v0.3.0
+   ```
 
-| Piece | Value | Where |
-|---|---|---|
-| Workflow | `release.yml` | `.github/workflows/release.yml` |
-| Job | `publish-pypi`, a matrix with one job per package | gated on `vars.PUBLISH_TO_PYPI == 'true'` |
-| Environments | `pypi`, `pypi-aigf`, `pypi-cdm`, `pypi-fdc3` | one per package, each restricted to tags matching `v*` so no branch can deploy to them |
-| OIDC permission | `id-token: write` | workflow-level `permissions` |
-| Action | `pypa/gh-action-pypi-publish@release/v1` | no username, no password, no token |
+5. Verify both tag workflows and each intended artifact:
+   ```bash
+   gh run list -R vardhjain/finos-mcp --workflow release.yml --limit 5
+   gh run list -R vardhjain/finos-mcp --workflow docker.yml --limit 5
+   gh release view v0.3.0 -R vardhjain/finos-mcp
+   ```
 
-### PyPI half (needs a human)
+   GitHub Release should attach **four wheels and four source archives**.
+   Review the curated [v0.3.0 release notes](docs/releases/v0.3.0.md)
+   against the generated release body. Confirm the GHCR `v0.3.0` image
+   and multi-arch manifest. If `PUBLISH_TO_PYPI` was enabled, verify
+   all four PyPI package pages show the new version; otherwise describe
+   it as a GitHub/container release only, not a PyPI release.
 
-Only a logged-in PyPI account owner can register a publisher, so this part cannot be
-automated from here. At <https://pypi.org/manage/account/publishing/>, with 2FA enabled, add a
-**pending publisher** for each project name. Pending, rather than a project publisher, because
-none of these projects exist on PyPI yet.
+## Trusted PyPI publishing
 
-Owner `vardhjain`, repository name `finos-mcp` and workflow name `release.yml` are the same
-for all four. The environment differs per project:
+The four project names have already been claimed and released on PyPI:
+`finos-mcp-core`, `finos-mcp-aigf`, `finos-mcp-cdm` and
+`finos-mcp-fdc3`. **Do not use the old new-project/pending publisher
+bootstrap procedure for an existing package.**
 
-| PyPI project name | Environment name |
-|---|---|
+PyPI releases use short-lived OIDC credentials and one tag-restricted
+GitHub environment per package (not stored API tokens):
+
+| Project | GitHub environment |
+| --- | --- |
 | `finos-mcp-core` | `pypi` |
 | `finos-mcp-aigf` | `pypi-aigf` |
 | `finos-mcp-cdm` | `pypi-cdm` |
 | `finos-mcp-fdc3` | `pypi-fdc3` |
 
-**Why four environments.** PyPI keys a pending publisher on owner + repository + workflow +
-environment and refuses to register the same configuration for a second project, with the
-error "A pending trusted publisher matching this configuration has already been registered for
-a different project". Its documentation does not mention this. A shared environment can
-therefore bootstrap only one package, so `release.yml` publishes each package from its own
-matrix job and environment. That is also the tighter design: each environment can publish
-exactly one project.
+The publishing job is gated on `vars.PUBLISH_TO_PYPI == 'true'`, and
+the optional `PYPI_SKIP_PACKAGES` variable can exclude selected jobs.
+Do not enable publishing until the matching PyPI trusted publishers,
+their owners and deployment environment restrictions are confirmed.
+`finos-mcp-core` is the dependency of all three servers; resolve any
+partial-upload failure without attempting to reuse a PyPI version
+that has already been accepted (PyPI package versions are immutable).
 
-> **The names are claimed.** All four were published at 0.1.1 on 2026-09-11. The `finos-`
-> prefix on PyPI is also used by official FINOS packages such as `finos-cdm`, so the README
-> states plainly that these are independent and not affiliated with FINOS. The naming question
-> raised with FINOS at
-> [ai-governance-framework#381](https://github.com/finos/ai-governance-framework/issues/381)
-> was not answered before publishing.
-
-### PyPI allows three pending publishers at a time
-
-A PyPI account can hold at most **three pending publishers at once**, and this is not in
-PyPI's documentation either. A pending publisher becomes an ordinary one the first time it
-publishes, which frees its slot, so four brand-new projects have to bootstrap in two rounds:
-
-1. Register pending publishers for three projects, set `PYPI_SKIP_PACKAGES` to the fourth
-   (e.g. `fdc3`), and cut a release. The three are created on PyPI and their slots free up.
-   The skipped package's matrix job reports a notice and stays green.
-2. Register the fourth pending publisher, clear `PYPI_SKIP_PACKAGES`, and cut the next
-   release.
-
-`PYPI_SKIP_PACKAGES` is a comma-separated repository variable read by `release.yml`; it is
-also the way to hold back any single package from a release later.
-
-### Switching it on
-
-Once the publishers exist:
-
-```bash
-gh variable set PUBLISH_TO_PYPI --body true --repo vardhjain/finos-mcp
-```
-
-Then the next `v*` tag publishes all four. Leave the variable unset until then: without a
-registered publisher the upload step fails, and a red release run is a worse signal than a
-release that simply did not publish.
-
-`finos-mcp-core` is a dependency of the other three, so if PyPI ever rejects part of a batch,
-publish `core` first and re-run.
+When publishing, verify the independent project's non-affiliation
+notice remains visible on PyPI. These packages are not official
+FINOS packages.

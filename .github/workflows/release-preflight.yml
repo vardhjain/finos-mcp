@@ -1,0 +1,41 @@
+name: release-preflight
+
+# Non-publishing packaging validation. This does NOT create a tag, GitHub
+# Release, container image, or PyPI upload.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-inspect:
+    name: Build and inspect PyPI distributions (no publish)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+
+      - name: Confirm synchronized versions and resolver lock
+        run: |
+          python scripts/release_check.py
+          uv lock --check
+
+      - name: Build four real wheels and sdists
+        run: |
+          set -euo pipefail
+          for pkg in core aigf cdm fdc3; do
+            uv build --package "finos-mcp-$pkg" --out-dir dist
+          done
+          python scripts/release_check.py --dist dist
+
+      - name: Archive reviewed release candidates
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-candidate-distributions
+          path: dist/
+          retention-days: 14
