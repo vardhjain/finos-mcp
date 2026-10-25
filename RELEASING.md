@@ -22,7 +22,7 @@ Go to **Actions → publish-release (manual, guarded) → Run workflow**, select
 `main`, and enter these three inputs:
 
 - Version: `0.3.0`
-- Expected SHA: `a450f391021cf66f9e19c97ea4fec89ee04ff13a`
+- Expected SHA: copy the **current 40-character `main` commit SHA** from the repository after this workflow PR merges; do not use the old pre-merge release-preparation SHA
 - Confirmation: `PUBLISH v0.3.0`
 
 **Before running it**, verify Actions repository variable
