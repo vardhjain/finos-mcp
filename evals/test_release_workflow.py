@@ -81,7 +81,11 @@ def test_container_publish_is_serialized_after_github_and_pypi_release() -> None
     assert "needs.github-release.result == 'success'" in dispatch["if"]
     assert dispatch["permissions"]["actions"] == "write"
     script = dispatch["steps"][0]["run"]
-    assert 'gh workflow run docker.yml --ref "$GITHUB_REF_NAME" -f push=true' in script
+    # Dispatch runs without checkout, so the repository must be passed explicitly.
+    assert (
+        'gh workflow run docker.yml --repo "$GITHUB_REPOSITORY" '
+        '--ref "$GITHUB_REF_NAME" -f push=true'
+    ) in script
     assert 'GITHUB_REF_TYPE" != "tag' in script
 
     docker = load("docker.yml")
