@@ -134,6 +134,7 @@ async def worker(server: str) -> None:
 
 async def main(*, fast: bool = False) -> None:
     """Stream each worker's live output while keeping peak memory bounded."""
+
     async def say(message: str, pause: float = 0.0) -> None:
         print(message, flush=True)
         # Nonblocking: an MCP worker may have its own event loop.
