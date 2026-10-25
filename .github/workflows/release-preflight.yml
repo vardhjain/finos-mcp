@@ -39,3 +39,48 @@ jobs:
           name: release-candidate-distributions
           path: dist/
           retention-days: 14
+
+  install-and-smoke:
+    name: Install release wheels (Python ${{ matrix.python }})
+    needs: build-and-inspect
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "${{ matrix.python }}"
+
+      - name: Download the exact inspected wheel artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: release-candidate-distributions
+          path: dist/
+
+      - name: Install built distributions in an isolated environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv venv --python "${{ matrix.python }}" .release-wheel-venv
+          uv pip install --python .release-wheel-venv/bin/python dist/*.whl
+          uv pip check --python .release-wheel-venv/bin/python
+
+      - name: Run installed servers from outside the source checkout
+        shell: bash
+        env:
+          VENV_PYTHON: ${{ github.workspace }}/.release-wheel-venv/bin/python
+          VENV_BIN: ${{ github.workspace }}/.release-wheel-venv/bin
+          FINOS_MCP_AUDIT_PATH: ""
+        run: |
+          set -euo pipefail
+          # Prevent local workspace modules from masking missing wheel files.
+          cd "$RUNNER_TEMP"
+          for component in aigf cdm fdc3; do
+            "$VENV_PYTHON" -I "$GITHUB_WORKSPACE/scripts/smoke_installed_wheel.py" "$component" "0.3.0"
+            "$VENV_BIN/finos-mcp-$component" --help > /dev/null
+          done
+          echo "All three installed MCP server wheels passed on Python ${{ matrix.python }}"
