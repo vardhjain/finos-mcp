@@ -1,9 +1,11 @@
 """finos-mcp-fdc3: read-only MCP server exposing the FINOS FDC3 standard as typed tools."""
 
+from importlib.metadata import version as _distribution_version
+
 from .models import ContextType, Intent
 from .registry import Fdc3Registry, get_registry
 
-__version__ = "0.2.6"
+__version__ = _distribution_version("finos-mcp-fdc3")
 
 __all__ = [
     "ContextType",

@@ -157,7 +157,7 @@ what changed in each release, [RELEASING.md](RELEASING.md) for how releases are 
 
 ## Status
 
-Version [0.2.6](https://github.com/vardhjain/finos-mcp/releases/tag/v0.2.6) is released on
+The [latest published release](https://github.com/vardhjain/finos-mcp/releases/latest) is available on
 PyPI as [`finos-mcp-core`](https://pypi.org/project/finos-mcp-core/),
 [`finos-mcp-aigf`](https://pypi.org/project/finos-mcp-aigf/),
 [`finos-mcp-cdm`](https://pypi.org/project/finos-mcp-cdm/) and
