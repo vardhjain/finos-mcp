@@ -134,7 +134,7 @@ with a proposed fix.
 |---|---|
 | [`core/`](core/) | Shared safety layer: read-only enforcement, rate limits, size caps, audit log, search |
 | [`servers/`](servers/) | One package per standard, each with its copy of the upstream content |
-| [`evals/`](evals/) | The measurements above: reference answers, search quality, speed, and the AI model test |
+| [`evals/`](evals/) | Golden tool assertions, 50-question search benchmark, [offline CDM/FDC3 workflows](evals/offline/), latency and optional agent evaluations |
 | [`examples/`](examples/) | Configuration and sample clients |
 | [`docs/`](docs/) | Documentation, also published at <https://vardhjain.github.io/finos-mcp/> |
 
@@ -143,6 +143,7 @@ with a proposed fix.
 ```bash
 uv sync --all-packages --all-extras
 uv run pytest
+uv run pytest evals/offline/test_workflows.py -v  # 16 multi-tool scenarios, no paid APIs
 uv run ruff check . && uv run mypy core/src servers/*/src
 ```
 
