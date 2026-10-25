@@ -19,8 +19,7 @@ def test_demo_runs_five_real_tools_in_separate_workers(tmp_path: Path) -> None:
         cwd=REPO,
         env=env,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         timeout=180,
         check=False,
     )
@@ -49,8 +48,7 @@ def test_demo_rejects_unknown_worker() -> None:
         [sys.executable, str(DEMO), "--worker", "unknown"],
         cwd=REPO,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         timeout=15,
         check=False,
     )
