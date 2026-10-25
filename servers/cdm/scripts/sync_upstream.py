@@ -70,9 +70,10 @@ SAMPLES_RUNE_DIR = VENDOR_DIR / "samples" / "rune"
 SAMPLES_LEGACY_DIR = VENDOR_DIR / "samples" / "legacy"
 ROSETTA_VENDOR_DIR = VENDOR_DIR / "rosetta"
 
-# Expected cdm-json-schema-<version>.zip sizes (bytes), per PLAN.md 1.2 -- used
-# only for a non-fatal sanity warning if Maven Central ever reshuffles a release.
-EXPECTED_SCHEMA_ZIP_SIZES = {"7.8.0": 947168, "6.30.0": 393_944}
+# Observed Maven Central artifact sizes (bytes), verified during the pinned
+# October 25, 2026 sync. Advisory only if upstream republishes an artifact;
+# vendored file integrity is tracked separately in SOURCE.json.
+EXPECTED_SCHEMA_ZIP_SIZES = {"7.8.0": 947_168, "6.30.0": 393_934}
 
 LICENSE_URL = "https://github.com/finos/common-domain-model/blob/master/LICENSE.md"
 
