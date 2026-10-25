@@ -1,13 +1,16 @@
-"""Scripted terminal demo: one process, three servers, five real tool calls.
+"""A memory-bounded live demo using one short-lived MCP server worker at a time.
 
-Used by examples/demo.tape so the recording is not dominated by interpreter start-up,
-and by `docs/demo.md`, which is this script's captured output. Every line shown is
-produced live by the in-memory MCP client; nothing is canned.
+The parent imports no FINOS server; each child imports exactly one server,
+executes its real MCP tool calls, streams compact JSON-rendered results, and exits
+before the next server is started. This avoids the old all-servers-in-memory
+CDM validation crash, with no paid models or external APIs.
 """
 
 from __future__ import annotations
 
+import argparse
 import asyncio
+import importlib
 import json
 import logging
 import sys
@@ -17,10 +20,6 @@ from pathlib import Path
 from typing import Any
 
 from mcp.client import Client
-
-from finos_mcp.aigf.server import create_server as aigf_server
-from finos_mcp.cdm.server import create_server as cdm_server
-from finos_mcp.fdc3.server import create_server as fdc3_server
 
 # Library debug chatter (bm25s index building, httpx) goes to stderr and would appear in the
 # recording beside the demo output. The audit log is redirected with FINOS_MCP_AUDIT_PATH by
@@ -112,47 +111,98 @@ STEPS: list[tuple[str, str, str, dict[str, Any], Callable[[dict[str, Any]], list
 ]
 
 
-async def say(text: str, pause: float = 0.0) -> None:
-    """Print one line, then yield.
-
-    `asyncio.sleep`, never `time.sleep`: an MCP `Client` runs a message-dispatch
-    task on this loop, and blocking it for seconds at a time while a session is
-    open starves that task and wedges the next `call_tool`.
-    """
-    sys.stdout.write(text + "\n")
-    sys.stdout.flush()
-    await asyncio.sleep(pause if pause else 0)
+SERVER_NAMES = ("aigf", "cdm", "fdc3")
 
 
-async def main() -> None:
-    await say("loading finos-mcp servers ...")
-    servers = {"aigf": aigf_server(), "cdm": cdm_server(), "fdc3": fdc3_server()}
-    clients: dict[str, Client] = {}
-    for name, srv in servers.items():
-        clients[name] = await Client(srv, raise_exceptions=True).__aenter__()
-    await say("READY", 0.5)
+async def worker(server: str) -> None:
+    """Serve one demo segment, outputting JSON lines only on stdout."""
+    module = importlib.import_module(f"finos_mcp.{server}.server")
+    steps = [(index, step) for index, step in enumerate(STEPS) if step[1] == server]
+    async with Client(module.create_server(), raise_exceptions=True) as client:
+        for index, (_title, _server, tool, args, render) in steps:
+            started = time.perf_counter()
+            result = await client.call_tool(tool, args)
+            if result.is_error:
+                raise RuntimeError(f"{server}.{tool}: {result.content}")
+            payload = {
+                "index": index,
+                "lines": render(dict(result.structured_content or {})),
+                "elapsed_ms": round((time.perf_counter() - started) * 1000),
+            }
+            print(json.dumps(payload, ensure_ascii=False), flush=True)
+
+
+async def main(*, fast: bool = False) -> None:
+    """Stream each worker's live output while keeping peak memory bounded."""
+    async def say(message: str, pause: float = 0.0) -> None:
+        print(message, flush=True)
+        # Nonblocking: an MCP worker may have its own event loop.
+        await asyncio.sleep(0 if fast else pause)
+
+    await say("starting FINOS MCP demo (isolated servers, one at a time) ...")
+    await say("READY")
     await say("")
-    await say("$ finos-mcp: read-only MCP servers for FINOS standards (AIGF, CDM, FDC3)", 1.5)
-    for title, server, tool, args, render in STEPS:
-        await say("")
-        await say(f"# {title}", 1.2)
-        shown = {k: ("<broken_execution.json>" if k == "object" else v) for k, v in args.items()}
-        await say(f"$ {server} > {tool} {json.dumps(shown)[:96]}", 0.8)
-        t0 = time.perf_counter()
-        result = await clients[server].call_tool(tool, args)
-        ms = (time.perf_counter() - t0) * 1000
-        if result.is_error:
-            await say(str(result.content[0].text))  # type: ignore[union-attr]
-        else:
-            for line in render(dict(result.structured_content or {})):
-                await say(line)
-        await say(f"[{ms:.0f} ms, read-only, rate-limited, audited]", 2.5)
+    await say("$ finos-mcp: read-only MCP servers for FINOS standards (AIGF, CDM, FDC3)", 1.0)
+    for server in SERVER_NAMES:
+        process = await asyncio.create_subprocess_exec(
+            sys.executable,
+            "-u",
+            str(Path(__file__).resolve()),
+            "--worker",
+            server,
+            stdin=asyncio.subprocess.DEVNULL,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        assert process.stdout is not None and process.stderr is not None
+        completed: set[int] = set()
+        try:
+            # Worker emits one line per completed tool call. We never cache
+            # schema registries or model weights in the parent.
+            async for raw in process.stdout:
+                result = json.loads(raw.decode("utf-8"))
+                index = result["index"]
+                assert isinstance(index, int) and index not in completed
+                title, declared, tool, args, _render = STEPS[index]
+                assert declared == server, "worker returned an unexpected server"
+                completed.add(index)
+                await say("")
+                await say(f"# {title}", 0.3)
+                shown = {
+                    key: ("<broken_execution.json>" if key == "object" else value)
+                    for key, value in args.items()
+                }
+                await say(f"$ {server} > {tool} {json.dumps(shown)[:96]}", 0.2)
+                for line in result["lines"]:
+                    await say(str(line))
+                await say("[read-only, rate-limited, audited]", 0.8)
+            code = await process.wait()
+            stderr = (await process.stderr.read()).decode("utf-8", errors="replace")
+            if code:
+                raise RuntimeError(f"{server} worker failed ({code}): {stderr[-2000:]}")
+            expected = {i for i, step in enumerate(STEPS) if step[1] == server}
+            if completed != expected:
+                raise RuntimeError(f"{server} returned {completed}; expected {expected}")
+        finally:
+            if process.returncode is None:
+                process.kill()
+                await process.wait()
+        # This process is fully gone before another FINOS server is created.
     await say("")
-    await say("$ every tool is read-only; nothing here writes to any external system.", 2.0)
+    await say("$ every tool is read-only; nothing here writes to any external system.", 0.5)
     await say("DEMO DONE")
-    for name in reversed(list(clients)):
-        await clients[name].__aexit__(None, None, None)
+
+
+def cli() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fast", action="store_true", help="Skip pauses for CI and transcripts")
+    parser.add_argument("--worker", choices=SERVER_NAMES, help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    if args.worker:
+        asyncio.run(worker(args.worker))
+    else:
+        asyncio.run(main(fast=args.fast))
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    cli()
