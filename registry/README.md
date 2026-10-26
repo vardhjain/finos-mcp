@@ -8,8 +8,8 @@ a fourth server.
 
 The manifests follow the official
 [server.json schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json)
-and describe **proposed PyPI v0.3.2** and `uvx`. Version 0.3.2 has **not been
-published**; these files are **DRAFTS ONLY**.
+and describe **published PyPI v0.3.2** and `uvx`. The Python packages are
+released, but these MCP Registry entries are **DRAFTS ONLY**.
 
 ## Upstream JSON Schema checks in CI
 
@@ -52,7 +52,7 @@ This pins the **validator release** for reproducible CI; before a future
 approved publication, run the latest official CLI too, since Registry
 validation rules can change. Successful CLI validation **does not**
 prove GitHub namespace authentication or ownership of a published
-PyPI package. The proposed v0.3.2 drafts remain unpublished and blocked below.
+PyPI package. The v0.3.2 Registry drafts remain unpublished and gated below.
 
 ## Packaging ownership preflight (offline; no publish)
 
@@ -69,13 +69,15 @@ explicitly approved new release, the public PyPI descriptions must still
 be checked with the read-only ownership audit, and Registry publication
 still needs separate approval.
 
-## Publication is blocked until a new authorized release
+## Registry publication remains separately gated
 
-The proposed v0.3.2 package versions and Registry manifests have only been
-prepared in source control. A version bump **does not** publish PyPI packages,
-establish ownership, authenticate with the Registry or grant publication
-approval. After an explicitly approved v0.3.2 release, verify the exact
-public PyPI descriptions before requesting Registry publication.
+The four v0.3.2 Python packages and the v0.3.2 GitHub Release have been
+published. The **three Registry entries have not been published**. Verify the
+public PyPI descriptions with the read-only
+[`pypi-ownership-audit` workflow](../.github/workflows/pypi-ownership-audit.yml)
+before requesting a separate approval to publish Registry entries. This
+workflow can be run manually from GitHub Actions and checks all three live
+PyPI v0.3.2 package descriptions without authenticating or publishing.
 
 The already-published **0.3.1** PyPI package descriptions do **not**
 include the `mcp-name:` proof-of-ownership markers. Those markers were
@@ -110,18 +112,17 @@ CLI reference: [`mcp-publisher validate`](https://github.com/modelcontextprotoco
 
 ## Checklist before any official publication
 
-1. Obtain the owner's **separate approval** for a new PyPI release;
-   never overwrite v0.3.1. Include the updated `mcp-name:` markers in
-   each *new* distribution's README.
-2. Update **both** `version` and `packages[0].version` in each
-   draft to match the newly published versions. Run the offline tests.
-3. Verify the **new public PyPI pages** contain the exact ownership
-   markers; source-controlled READMEs alone do not establish ownership.
-4. Run the latest official `mcp-publisher validate` on each updated
-   manifest. Confirm GitHub namespace and Registry policies.
-5. Obtain separate approval to authenticate and publish **each**
-   entry. Publish one at a time and verify public discoverability.
-   Never check tokens into GitHub.
+1. Confirm that each draft names the already-published PyPI v0.3.2
+   distribution, and that both `version` and `packages[0].version` are
+   `0.3.2`. Run the offline manifest tests.
+2. Run the read-only `pypi-ownership-audit` workflow, or
+   `python scripts/check_pypi_mcp_ownership.py`, and require **PASS for
+   AIGF, CDM, and FDC3** against the *public* PyPI descriptions.
+3. Run the latest official `mcp-publisher validate` for all three
+   manifests. Confirm GitHub namespace ownership and current policies.
+4. Obtain the owner's **separate, explicit approval** to authenticate and
+   publish each Registry entry. Publish one at a time and verify public
+   discoverability. Never check tokens into GitHub.
 
 No `remotes` property is included: this project has **local,
 installable stdio** MCP servers and optional user-hosted HTTP/Docker,
