@@ -169,11 +169,7 @@ Before registry submission:
 2. Independently verify that all three **new public PyPI project pages**
    contain the exact ownership markers. Do not use old v0.3.1 manifests
    as a workaround.
-3. Prepare and schema-validate **three separate** `server.json` manifests
-   with matching `io.github.vardhjain/...` names, the actual published
-   package versions, `registryType: "pypi"`, and `transport.type: "stdio"`.
-   Confirm install commands for each package; use the official schema and
-   its latest requirements, not guesses.
+3. Review the three [draft registry manifests](https://github.com/vardhjain/finos-mcp/tree/main/registry). They describe v0.3.1 **for offline review only**; it cannot pass the published PyPI ownership-marker check. After a future authorized PyPI release, update both versions, verify public PyPI descriptions, and use the official `mcp-publisher validate` command on all three before seeking publishing approval.
 4. Have the owner authenticate with GitHub to the Registry and approve
    three `mcp-publisher publish` actions; verify published entries via the
    official API. Publishing server metadata is a public external action,
@@ -208,9 +204,10 @@ other systems.
 
 ## Next owner action
 
-Review the GitHub About suggestion, then decide whether to **claim and
-correct the existing Glama entry**. That is the nearest-term improvement
-because a listing already exists; the official Registry requires a later
-authorized package release and ownership verification. No submissions,
-third-party logins, payments, GitHub topic edits or release actions are
-performed as part of this document.
+The owner reports claiming the existing Glama entry and contacting Glama
+support about its misleading Remote label. The support reply and public
+listing correction remain pending in [issue #40](https://github.com/vardhjain/finos-mcp/issues/40).
+In parallel, the [official Registry draft metadata](https://github.com/vardhjain/finos-mcp/tree/main/registry)
+is prepared for offline review, **not publication**. A later approved PyPI
+release with public ownership markers is required first. No submissions,
+payments, GitHub topic edits or new releases are performed here.

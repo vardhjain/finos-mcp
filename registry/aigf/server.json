@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.vardhjain/finos-mcp-aigf",
+  "title": "FINOS MCP - AI Governance (community)",
+  "description": "Read-only MCP for FINOS AI governance risks, controls and crosswalks. Independent project.",
+  "websiteUrl": "https://vardhjain.github.io/finos-mcp/",
+  "repository": {
+    "url": "https://github.com/vardhjain/finos-mcp",
+    "source": "github"
+  },
+  "version": "0.3.1",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "finos-mcp-aigf",
+      "version": "0.3.1",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
