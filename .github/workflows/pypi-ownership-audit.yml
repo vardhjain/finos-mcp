@@ -1,0 +1,28 @@
+name: pypi-ownership-audit
+
+# Live, read-only check of already-published PyPI long descriptions.
+# Does not tag, release, authenticate, register MCP servers, or publish.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pypi-ownership-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-public-pypi:
+    name: Check three live PyPI ownership markers (no publish)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Audit already-published package descriptions on PyPI
+        shell: bash
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          set -euo pipefail
+          python3 scripts/check_pypi_mcp_ownership.py
