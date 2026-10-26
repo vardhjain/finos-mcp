@@ -105,7 +105,7 @@ MCP client on CI.
 
 For Claude Desktop, Claude Code, VS Code or Copilot, copy the
 [version-pinned client configurations](getting-started.md); the published
-v0.3.1 distributions were independently tested on Python 3.12 and 3.14.
+v0.3.2 distributions are independently tested through real stdio MCP sessions on Python 3.12 and 3.14.
 
 See the [full tool reference](tools.md), [safety model](safety.md),
 and [detailed demo](demo.md) for more.
