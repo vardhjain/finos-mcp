@@ -59,9 +59,9 @@ async def verify(component: str, expected_version: str, command: list[str]) -> N
         )
         if "citation" in case:
             citation = get_value(payload, case["citation"]["path"])
-            assert isinstance(citation, str) and citation.startswith(
-                f"{component}://"
-            ), f"{component}: expected citable MCP source URI"
+            assert isinstance(citation, str) and citation.startswith(f"{component}://"), (
+                f"{component}: expected citable MCP source URI"
+            )
     print(
         f"PASS: PyPI finos-mcp-{component}=={expected_version}: "
         f"stdio initialize, tools/list, {case['tool']} -> {actual}",
