@@ -1,6 +1,10 @@
 """Offline tests for PyPI ownership boundary matching."""
 
-from scripts.check_pypi_mcp_ownership import ownership_marker_present
+import runpy
+from pathlib import Path
+
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "check_pypi_mcp_ownership.py"
+ownership_marker_present = runpy.run_path(str(SCRIPT))["ownership_marker_present"]
 
 
 def test_exact_hidden_comment() -> None:
