@@ -1,5 +1,12 @@
 # Releasing FINOS MCP
 
+> **v0.3.2 completed on 2026-10-26.** All four PyPI packages, the
+> [GitHub Release](https://github.com/vardhjain/finos-mcp/releases/tag/v0.3.2),
+> GHCR image, and all three official MCP Registry entries are published and
+> verified. **Do not rerun the v0.3.2 publishing workflow or recreate its tag.**
+> The procedures below document this completed release. Future versions require
+> an updated release workflow, fresh checks and explicit owner approval.
+
 Releasing is a **separate, explicit step** from merging a release-preparation PR.
 An annotated `v*` tag activates [`release.yml`](.github/workflows/release.yml),
 which builds four Python wheels and source archives and publishes to PyPI when
@@ -13,21 +20,21 @@ uploads are disabled.
 Use the safe [`release-preflight.yml`](.github/workflows/release-preflight.yml)
 workflow instead.
 
-## One-click manual release (recommended)
+## Completed guarded manual release (v0.3.2 reference only)
 
-**This is a candidate preparation, not authorization to publish.** Do not run
-the manual release, push a tag or change `PUBLISH_TO_PYPI` until
-PRs #44 and #45 are merged, v0.3.2's checks are green and the owner
-separately approves the release. For MCP Registry publication, require
-another distinct approval after verifying the live PyPI ownership markers.
+The owner approved v0.3.2 after PRs #44 and #45 merged and all preflight
+checks passed. The manual release was successfully triggered and completed
+on 2026-10-26. The owner separately approved MCP Registry publication
+after the public PyPI ownership markers were verified. **These exact
+v0.3.2 inputs are historical; do not trigger them again.**
 
 The [guarded release workflow](.github/workflows/publish-release.yml) lets the
 repository owner publish the reviewed release from the **Actions** tab, without
 a local Git checkout or a persistent PyPI token. It still requires confirmation
 of the four PyPI trusted publishers described below.
 
-Go to **Actions → publish-release (manual, guarded) → Run workflow**, select
-`main`, and enter these three inputs:
+For the completed v0.3.2 release, the owner opened **Actions →
+publish-release (manual, guarded)**, selected `main`, and entered:
 
 - Version: `0.3.2`
 - Expected SHA: copy the **current 40-character `main` commit SHA** from the repository after this workflow PR merges; do not use the old pre-merge release-preparation SHA
@@ -59,7 +66,7 @@ GitHub Release succeeds but only Docker dispatch fails, manually dispatch
 the successful upstream release. Verify the GHCR image separately:
 successful dispatch is not proof of publication.
 
-## Release 0.3.2 checklist
+## Release 0.3.2 checklist (historical; completed)
 
 1. Review and merge the version/changelog PR after green cross-platform CI and
    green **release-preflight**. The latter builds and inspects all four wheels
