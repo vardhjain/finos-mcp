@@ -2,19 +2,31 @@
 
 ## Unreleased
 
-## 0.3.2 — pending release
+## 0.3.2 — 2026-10-26
 
-### Release and Registry readiness
-- Prepared a new immutable version of all four PyPI distributions so the
-  exact MCP Registry ownership markers already present in the three server
-  package READMEs can reach the **public** package descriptions when this
-  release is separately approved and published.
-- Aligned six workspace versions, core dependency floors, the lockfile and
-  the three **draft** Registry manifests. No Registry entry is published.
-- Official Registry CLI validation, the public PyPI ownership audit and
-  inspection of ownership markers inside built wheels and sdists are
-  maintained as separate, fail-closed prepublication checks.
-- No changes to MCP tools, vendored data or the runtime's read-only behavior.
+### Released
+- Published all four PyPI distributions (`finos-mcp-core`, `finos-mcp-aigf`,
+  `finos-mcp-cdm`, and `finos-mcp-fdc3`), the GitHub Release, and the
+  multi-architecture `ghcr.io/vardhjain/finos-mcp:v0.3.2` container image.
+- Added the three exact MCP Registry `mcp-name` ownership markers to the
+  server package READMEs, wheel metadata, and source archives; confirmed
+  those markers appear in the **public** v0.3.2 PyPI descriptions.
+- Aligned six workspace versions, server-to-core dependency minimums,
+  `uv.lock`, and three official Registry manifests to v0.3.2.
+- Added fail-closed release-artifact ownership preflight and public PyPI
+  ownership auditing.
+- With separate owner approval, authenticated through GitHub Actions OIDC
+  and published three **local stdio** MCP Registry entries:
+  `io.github.vardhjain/finos-mcp-aigf`,
+  `io.github.vardhjain/finos-mcp-cdm`, and
+  `io.github.vardhjain/finos-mcp-fdc3`. Verified all three active
+  public Registry API records independently.
+- Added guarded, manual-only Registry publication and a reusable,
+  read-only public Registry listing audit.
+
+### Runtime
+- No changes to MCP tools, vendored standards data or read-only behavior
+  relative to v0.3.1.
 
 ## 0.3.1 — released
 

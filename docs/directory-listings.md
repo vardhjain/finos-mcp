@@ -1,7 +1,7 @@
-# Directory listings and registry readiness
+# Directory listings and official Registry publication
 
 Maintainer notes for how to help developers **discover** the independent
-FINOS MCP project. Last reviewed: **25 October 2026**.
+FINOS MCP project. Last reviewed: **26 October 2026**.
 
 **Ownership and affiliation:** The packages belong to
 [`vardhjain/finos-mcp`](https://github.com/vardhjain/finos-mcp).
@@ -40,8 +40,8 @@ is implied by merging this documentation.
 
 | Directory | Current situation | Next step |
 |---|---|---|
-| [Glama](https://glama.ai/mcp/servers/vardhjain/finos-mcp) | **Already indexed**. Its snapshot still says 23 AIGF risks / 23 controls, CDM 7.7.0-era numbers, and labels the entry *Remote*, though our recommended install is local `uvx` over stdio. | **Claim or request a refresh of the existing listing**, and correct its description and local/remote classification. Do **not** submit a duplicate entry, assume Glama's generated preview is up to date, or pay for hosting. |
-| [Official MCP Registry](https://github.com/modelcontextprotocol/registry) | Publication **not verified**. Requires a server manifest, GitHub namespace authentication, and proof of the published PyPI package's ownership. The registry is in preview. | **After the next authorized PyPI release** includes the `mcp-name` markers below, validate three separate `server.json` manifests and publish them through the official `mcp-publisher` CLI with owner approval. No registry action is performed by this PR. |
+| [Glama](https://glama.ai/mcp/servers/vardhjain/finos-mcp) | **Already indexed**. Its snapshot still says 23 AIGF risks / 23 controls, CDM 7.7.0-era numbers, and labels the entry *Remote*, though our recommended install is local `uvx` over stdio. | **Already claimed; refresh the existing listing**, and correct its description and local/remote classification. Do **not** submit a duplicate entry, assume Glama's generated preview is up to date, or pay for hosting. |
+| [Official MCP Registry](https://registry.modelcontextprotocol.io/) | **All three v0.3.2 servers published and independently verified active** with local `stdio` packages. | No resubmission needed. Keep metadata accurate and perform read-only discoverability checks after future changes. |
 | [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) | Community list accepts open GitHub servers but its PR bot currently expects a valid Glama listing and score badge; the PR queue is long. | Consider a standards/data category entry **after** the Glama details are corrected; no unsolicited PR now. |
 | [mcpnav](https://mcpnav.dev/submit/) | Aggregates the official MCP Registry and community awesome lists, with no direct submission route. | Expect it to discover the project *through* the official Registry or awesome list. |
 | [PulseMCP](https://www.pulsemcp.com/submit) | New submissions and edits are **paused** (notice dated September 3, 2026). | Don't submit while paused. It recommends official Registry publication first. |
@@ -54,7 +54,7 @@ Sources: [Official Registry publishing guide](https://github.com/modelcontextpro
 [mcpnav submission rules](https://mcpnav.dev/submit/), and
 [PulseMCP submission status](https://www.pulsemcp.com/submit).
 
-## Claim the existing Glama listing (owner action)
+## Refresh the already-claimed Glama listing (owner/support action)
 
 The listing already exists at
 [glama.ai/mcp/servers/vardhjain/finos-mcp](https://glama.ai/mcp/servers/vardhjain/finos-mcp).
@@ -71,27 +71,20 @@ with the officially documented ownership shape:
 }
 ```
 
-The [official Glama ownership instructions](https://glama.ai/blog/2025-07-08-what-is-glamajson)
-say the owner can verify an existing **server** listing by signing in
-with the corresponding GitHub account. The file is also an explicit
-maintainer hint for the existing listing. A `glama.json` file alone
-**does not claim the listing**; the owner must complete the claim
-flow, after which Glama imports any changes.
+The owner reports that this **existing listing is already claimed** under
+GitHub account `vardhjain`. The [Glama maintainer file instructions](https://glama.ai/blog/2025-07-08-what-is-glamajson)
+explain this repository's ownership hint. The claim does **not**
+automatically change old indexed descriptions or Glama's Remote label.
 
-1. Open the existing Glama listing, select **Claim** or **Claim
-   ownership**, and sign in to Glama using the GitHub account
-   `vardhjain`. Follow any ownership verification prompted.
-2. If Glama does not detect the new `glama.json`, retry the **Claim
-   ownership** flow after it has indexed the latest `main`.
-3. Once ownership is confirmed, update the listing details or
-   request a reindex of the **same** repository. See correction
-   details below. If the interface does not permit changes, use
-   the site's support/Discord link rather than making a duplicate
-   listing.
-4. Check the public listing after the refresh and confirm the
-   description and installation method are correct. Mark the
-   associated maintenance issue complete only after verifying
-   the external changes.
+1. In the existing listing's owner/admin view, update its description
+   to describe all three local `uvx`/stdio servers and request a
+   repository reindex/sync.
+2. The owner has contacted Glama support about the misleading
+   **Remote** classification. Follow up on [issue #40](https://github.com/vardhjain/finos-mcp/issues/40)
+   if the public label stays incorrect; no hosted endpoint should be claimed.
+3. Verify the actual **public** listing, including source version,
+   capabilities, classification and non-affiliation. Close issue #40
+   only after confirmation. Do not create a duplicate Glama entry.
 
 ### Correction text for the existing Glama page
 
@@ -111,18 +104,18 @@ flow, after which Glama imports any changes.
 | Glama snapshot | Correct information |
 |---|---|
 | 23 AIGF risks / 23 controls | **24 risks / 25 controls** in the current vendored framework |
-| CDM 7.7.0-era information, 1,142 types | Primary CDM **7.8.0**, **1,143 JSON schemas**, with CDM 6.30.0 legacy schemas also supported. Don't confuse schema and type counts. |
+| CDM 7.7.0-era information, 1,142 types | Primary CDM **7.8.0**, **767 types and 1,143 JSON schemas**, with CDM 6.30.0 legacy schemas also supported. Don't confuse schema and type counts. |
 | "Remote" as the only use mode | **Local stdio via `uvx` is the default**; self-hosted Streamable HTTP is optional. There is no publicly operated remote endpoint from this project. |
-| Published project version 0.2.6 | Latest public version is **0.3.1**. Later `main` changes are not necessarily on PyPI. |
+| Published project version 0.2.6 | Latest public version is **0.3.2**. Later `main` changes are not necessarily on PyPI. |
 | AIGF-only first impression | Repo contains **three separate MCP servers**: `finos-mcp-aigf`, `finos-mcp-cdm`, and `finos-mcp-fdc3`. The core package is a library, not a fourth server. |
 | Claim that paid evaluations run nightly | Paid LLM evaluation is **manual opt-in**, not scheduled. Offline checks run in CI. |
 
 **Recommended verified setup:**
 
 ```bash
-uvx --python 3.12 'finos-mcp-aigf==0.3.1'
-uvx --python 3.12 'finos-mcp-cdm==0.3.1'
-uvx --python 3.12 'finos-mcp-fdc3==0.3.1'
+uvx --python 3.12 'finos-mcp-aigf==0.3.2'
+uvx --python 3.12 'finos-mcp-cdm==0.3.2'
+uvx --python 3.12 'finos-mcp-fdc3==0.3.2'
 ```
 
 Users normally configure **one** relevant server rather than starting
@@ -133,7 +126,7 @@ all three simultaneously. Prefer the
 **Evidence:**
 [README / standards counts](https://github.com/vardhjain/finos-mcp/blob/main/README.md),
 [generated tool reference](tools.md),
-[public v0.3.1 release](https://github.com/vardhjain/finos-mcp/releases/tag/v0.3.1),
+[public v0.3.2 release](https://github.com/vardhjain/finos-mcp/releases/tag/v0.3.2),
 [CI](https://github.com/vardhjain/finos-mcp/actions/workflows/ci.yml),
 [release guide](https://github.com/vardhjain/finos-mcp/blob/main/RELEASING.md).
 
@@ -142,41 +135,44 @@ Never commit an account password, login token, or Glama session
 credential. This file is only a public GitHub username-based maintainer
 declaration.
 
-## Official Registry package ownership prerequisites
+## Official MCP Registry — published and independently verified
 
-Each real MCP server is a **separate PyPI distribution**.
-`finos-mcp-core` is a library and must not be advertised as a fourth MCP
-server. Proposed distinct *GitHub-owned* registry names are:
+These are **three independent, active public Registry entries** at version
+`0.3.2`. The fourth package, `finos-mcp-core`, is a shared dependency
+and **not** another MCP server.
 
-| Server namespace name | PyPI package | stdio executable |
-|---|---|---|
-| `io.github.vardhjain/finos-mcp-aigf` | `finos-mcp-aigf` | `finos-mcp-aigf` |
-| `io.github.vardhjain/finos-mcp-cdm` | `finos-mcp-cdm` | `finos-mcp-cdm` |
-| `io.github.vardhjain/finos-mcp-fdc3` | `finos-mcp-fdc3` | `finos-mcp-fdc3` |
+| Official Registry server | PyPI distribution | Transport | Public record |
+|---|---|---|---|
+| `io.github.vardhjain/finos-mcp-aigf` | `finos-mcp-aigf==0.3.2` | Local stdio | [AIGF](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-aigf/versions/0.3.2) |
+| `io.github.vardhjain/finos-mcp-cdm` | `finos-mcp-cdm==0.3.2` | Local stdio | [CDM](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-cdm/versions/0.3.2) |
+| `io.github.vardhjain/finos-mcp-fdc3` | `finos-mcp-fdc3==0.3.2` | Local stdio | [FDC3](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-fdc3/versions/0.3.2) |
 
-The official Registry accepts PyPI packages from `https://pypi.org`.
-For PyPI ownership verification, it reads the **published PyPI README** and
-requires an exact `mcp-name: io.github.vardhjain/finos-mcp-<server>`
-marker. This repository now contains the matching HTML comments in each
-package README, but **the already-published v0.3.1 distributions predate
-these changes**. Committing a marker to GitHub does **not** update a
-historical PyPI package or satisfy the Registry check immediately.
+The [owner-triggered Registry publishing run](https://github.com/vardhjain/finos-mcp/actions/runs/40389712353)
+successfully authenticated using GitHub Actions OIDC and published AIGF,
+CDM and FDC3 on **2026-10-26**. An independent
+[read-only public Registry API audit](https://github.com/vardhjain/finos-mcp/actions/runs/40390604767)
+returned PASS for the three active listings and exact PyPI package versions,
+transport type and repository. The
+[public PyPI marker audit](https://github.com/vardhjain/finos-mcp/actions/runs/40280037055)
+also passed all three.
 
-Before registry submission:
+The Registry records point to installable local stdio packages; this
+project **does not operate a public remote MCP endpoint**. An official
+Registry listing is a discovery mechanism, not FINOS endorsement or
+certification.
 
-1. Obtain explicit approval for the next versioned PyPI release and include
-   these updated READMEs in its built distributions.
-2. Independently verify that all three **new public PyPI project pages**
-   contain the exact ownership markers. Do not use old v0.3.1 manifests
-   as a workaround.
-3. Review the three [draft registry manifests](https://github.com/vardhjain/finos-mcp/tree/main/registry). They describe v0.3.1 **for offline review only**; it cannot pass the published PyPI ownership-marker check. After a future authorized PyPI release, update both versions, verify public PyPI descriptions, and use the official `mcp-publisher validate` command on all three before seeking publishing approval.
-4. Have the owner authenticate with GitHub to the Registry and approve
-   three `mcp-publisher publish` actions; verify published entries via the
-   official API. Publishing server metadata is a public external action,
-   **not** part of this repo PR.
+The manifests and read-only verifier live in
+[`registry/`](../registry/), and
+[`scripts/check_registry_discoverability.py`](../scripts/check_registry_discoverability.py).
+To check public listings without logging in, run:
 
-The ownership marker is not a certification or a FINOS brand claim. The
-project's non-affiliation statement remains present on each package page.
+```bash
+python scripts/check_registry_discoverability.py
+```
+
+**Do not rerun the v0.3.2 publication batch.** The guarded workflow
+rejects existing Registry versions. Future versions require separate
+review, updated publishing guards and explicit owner approval.
 
 ## Directory-ready short descriptions (drafts, not submitted)
 
@@ -204,10 +200,10 @@ other systems.
 
 ## Next owner action
 
-The owner reports claiming the existing Glama entry and contacting Glama
-support about its misleading Remote label. The support reply and public
-listing correction remain pending in [issue #40](https://github.com/vardhjain/finos-mcp/issues/40).
-In parallel, the [official Registry draft metadata](https://github.com/vardhjain/finos-mcp/tree/main/registry)
-is prepared for offline review, **not publication**. A later approved PyPI
-release with public ownership markers is required first. No submissions,
-payments, GitHub topic edits or new releases are performed here.
+The **official MCP Registry is complete** for AIGF, CDM and FDC3 v0.3.2.
+The remaining directory task is correcting the already-claimed
+[Glama listing](https://glama.ai/mcp/servers/vardhjain/finos-mcp):
+its outdated profile/sync and misleading Remote label are tracked in
+[issue #40](https://github.com/vardhjain/finos-mcp/issues/40).
+This documentation update does not submit new directory entries,
+require hosting or make paid API calls.
