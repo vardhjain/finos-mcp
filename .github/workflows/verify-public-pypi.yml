@@ -7,12 +7,15 @@ on:
   pull_request:
     paths:
       - .github/workflows/verify-public-pypi.yml
+      - scripts/verify_published_stdio.py
+      - scripts/smoke_installed_wheel.py
+      - examples/try_it_cases.json
   workflow_dispatch:
     inputs:
       version:
         description: "Already published version to test (X.Y.Z)"
         required: true
-        default: "0.3.0"
+        default: "0.3.2"
         type: string
 
 permissions:
@@ -28,7 +31,7 @@ jobs:
       matrix:
         python: ["3.12", "3.14"]
     env:
-      VERSION: ${{ inputs.version || '0.3.0' }}
+      VERSION: ${{ inputs.version || '0.3.2' }}
       FINOS_MCP_AUDIT_PATH: ""
     steps:
       - uses: actions/checkout@v7
@@ -68,3 +71,27 @@ jobs:
             "$RUNNER_TEMP/finos-public-pypi/bin/finos-mcp-$component" --help > /dev/null
           done
           echo "PASS: four PyPI packages at $VERSION install and all three servers start on Python ${{ matrix.python }}"
+
+      - name: Run real MCP stdio sessions against each freshly installed PyPI server
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON="$RUNNER_TEMP/finos-public-pypi/bin/python"
+          cd "$RUNNER_TEMP"
+          for component in aigf cdm fdc3; do
+            "$PYTHON" -I "$GITHUB_WORKSPACE/scripts/verify_published_stdio.py" \
+              "$component" "$VERSION" \
+              "$RUNNER_TEMP/finos-public-pypi/bin/finos-mcp-$component"
+          done
+
+      - name: Test documented version-pinned uvx stdio launches (Python 3.12)
+        if: matrix.python == '3.12'
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHON="$RUNNER_TEMP/finos-public-pypi/bin/python"
+          cd "$RUNNER_TEMP"
+          for component in aigf cdm fdc3; do
+            "$PYTHON" -I "$GITHUB_WORKSPACE/scripts/verify_published_stdio.py" \
+              "$component" "$VERSION" uvx --python 3.12 "finos-mcp-$component==$VERSION"
+          done

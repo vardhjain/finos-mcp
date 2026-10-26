@@ -50,7 +50,7 @@ platform-specific paths, verified commands and troubleshooting. These sample fil
 - [Portable GitHub Copilot config](copilot_mcp.json) — `mcpServers` JSON for workspace
   `.mcp.json` or Copilot user configuration.
 
-The examples pin the already published **v0.3.1** Python packages and run each
+The examples pin the already published **v0.3.2** Python packages and run each
 server via `uvx` with Python 3.12. This needs no paid model API calls or API keys for
 the FINOS MCP servers.
 
