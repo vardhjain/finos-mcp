@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "examples"
 COMPONENTS = ("aigf", "cdm", "fdc3")
 SERVER_IDS = {f"finos-{name}" for name in COMPONENTS}
-PINNED = "0.3.1"  # Last public release tested when the examples were authored.
+PINNED = "0.3.2"  # Public v0.3.2 release, verified on PyPI.
 
 
 def test_mcp_client_samples_have_correct_schema_and_real_console_scripts() -> None:
