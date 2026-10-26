@@ -20,7 +20,28 @@
 | Understand a trade field or validate CDM JSON | **CDM** | [CDM example](docs/use-cases.md#2-understand-a-cdm-trade-type) |
 | Find the right desktop intent for a financial instrument | **FDC3** | [FDC3 example](docs/use-cases.md#3-find-an-fdc3-action-for-a-selected-instrument) |
 
-To **connect to an assistant**, use the [copy-paste client setup guide](docs/getting-started.md).
+**Official MCP Registry (published v0.3.2):**
+[AIGF](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-aigf/versions/0.3.2) ·
+[CDM](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-cdm/versions/0.3.2) ·
+[FDC3](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-fdc3/versions/0.3.2).
+All three are **local stdio** packages, not public hosted endpoints.
+
+**Claude Code quick connect:** With [Claude Code](https://code.claude.com/docs/en/mcp)
+and [uv](https://docs.astral.sh/uv/) installed, run **one** of the following
+commands for the standard you need:
+
+```bash
+claude mcp add --scope user finos-aigf -- uvx --python 3.12 finos-mcp-aigf==0.3.2
+claude mcp add --scope user finos-cdm -- uvx --python 3.12 finos-mcp-cdm==0.3.2
+claude mcp add --scope user finos-fdc3 -- uvx --python 3.12 finos-mcp-fdc3==0.3.2
+```
+
+Run `claude mcp list` and then ask your assistant to use `get_control`
+(AIGF), `describe_type` (CDM), or `suggest_intent` (FDC3).
+The [client setup guide](docs/getting-started.md) also provides tested
+JSON configuration examples for **Claude Desktop, VS Code and Copilot**,
+with troubleshooting for Windows and macOS.
+
 To **see a real MCP call without a model or API key**, clone this repository,
 run `uv sync --all-packages`, then try:
 
@@ -63,13 +84,6 @@ Each answer comes with an identifier or link the reader can check against the st
 | `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | Explore 767 CDM types and 1,143 JSON schemas, browse products and trade events, and validate trade documents with exact error paths |
 | `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | Look up 19 standard actions ("intents") and 28 data types, check a data object, and suggest which actions fit it |
 
-The three servers are also **published in the official MCP Registry** at v0.3.2:
-[AIGF](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-aigf/versions/0.3.2),
-[CDM](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-cdm/versions/0.3.2), and
-[FDC3](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-fdc3/versions/0.3.2).
-These public Registry records describe local `stdio` installable packages,
-**not a remotely hosted endpoint**.
-
 All three are built on [`finos-mcp-core`](core/), a shared package that holds the safety rules
 described below. The full list of 29 tools is in [docs/tools.md](docs/tools.md), and
 [docs/demo.md](docs/demo.md) shows a real session, including the CDM server finding three
@@ -83,8 +97,8 @@ database to set up.
 **First-time setup:** Follow the [MCP client setup guide](docs/getting-started.md) for
 copy-paste, version-pinned configurations for Claude Desktop, Claude Code,
 VS Code and GitHub Copilot. It also covers Windows and macOS setup, verifying
-a real tool call, and troubleshooting. The quick-start example below installs
-the latest version rather than pinning one.
+a real tool call, and troubleshooting. The quick-start examples below pin
+the **published, end-to-end-tested v0.3.2** packages.
 
 **Claude Desktop or Claude Code.** Add this to your MCP configuration
 ([full example](examples/claude_desktop_config.json)) and restart:
@@ -92,7 +106,7 @@ the latest version rather than pinning one.
 ```json
 {
   "mcpServers": {
-    "finos-aigf": { "command": "uvx", "args": ["--python", "3.12", "finos-mcp-aigf"] }
+    "finos-aigf": { "command": "uvx", "args": ["--python", "3.12", "finos-mcp-aigf==0.3.2"] }
   }
 }
 ```
@@ -101,22 +115,27 @@ the latest version rather than pinning one.
 
 ```bash
 # talk over stdin/stdout, the way desktop assistants connect
-uvx --python 3.12 finos-mcp-aigf
+uvx --python 3.12 finos-mcp-aigf==0.3.2
 
-# or serve HTTP on localhost
-uvx --python 3.12 finos-mcp-aigf --transport streamable-http --port 8000
+# or serve HTTP on localhost (self-hosted, not a public hosted service)
+uvx --python 3.12 finos-mcp-aigf==0.3.2 --transport streamable-http --port 8000
 ```
 
 **As a container.** It needs no writable disk and no extra privileges:
 
 ```bash
-docker run --rm -p 8000:8000 --read-only --cap-drop ALL     -e FINOS_MCP_ALLOWED_HOSTS='localhost:*,127.0.0.1:*' ghcr.io/vardhjain/finos-mcp
+docker run --rm -p 8000:8000 --read-only --cap-drop ALL \
+  -e FINOS_MCP_ALLOWED_HOSTS='localhost:*,127.0.0.1:*' \
+  ghcr.io/vardhjain/finos-mcp:v0.3.2
 ```
 
 The allowed-hosts setting makes the server refuse requests that arrive under any other host
 name, which stops a web page in your browser from reaching the port.
 
-Swap `finos-mcp-aigf` for `finos-mcp-cdm` or `finos-mcp-fdc3` to run the other servers.
+Running a stdio command directly **starts a server waiting for a client**;
+it does not display a chat prompt. To verify installation in a terminal,
+add `--help` instead. Swap `finos-mcp-aigf` for `finos-mcp-cdm` or
+`finos-mcp-fdc3` to run the other servers.
 [examples/](examples/) includes a [low-memory, reproducible live demo](examples/README.md),
 a short Python client, and a LangGraph agent.
 
@@ -189,10 +208,10 @@ what changed in each release, [RELEASING.md](RELEASING.md) for how releases are 
 
 ## Status
 
-For maintainers, [MCP directory and registry readiness](docs/directory-listings.md)
-records where this project is already indexed, which listing metadata is stale,
-and the ownership checks required before separately registering the three
-published server packages. Directory submissions require explicit approval.
+For maintainers, [MCP directory and Registry status](docs/directory-listings.md)
+records the three already-published official Registry entries and the pending
+Glama listing correction. Future third-party directory submissions require
+separate approval.
 
 The [latest published release](https://github.com/vardhjain/finos-mcp/releases/latest) is available on
 PyPI as [`finos-mcp-core`](https://pypi.org/project/finos-mcp-core/),

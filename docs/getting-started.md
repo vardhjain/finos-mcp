@@ -99,9 +99,22 @@ You should see an actual `get_control` tool call with a result identifying
 `AIR-PREV-020`. Confirm the response came from the MCP tool rather than
 the assistant's own knowledge.
 
-For the **CDM** server, ask for `describe_type` with name `TradeState`.
-For **FDC3**, ask for `list_intents`. You can also try the
-[demo walkthrough](demo.md).
+For the **CDM** server, ask the assistant to call `describe_type` with
+`name=TradeState`, which returns `TradeState` and a citable `cdm://`
+schema URI.
+
+For **FDC3**, ask your assistant:
+
+> Call `suggest_intent` with context
+> `{"type":"fdc3.instrument","id":{"ticker":"AAPL"}}` and goal
+> `"show a price chart"`. Show the top proposed standard intent.
+
+The verified top suggestion is `ViewChart`. Inspect the actual MCP tool
+call rather than treating an answer from memory as proof. All three
+published v0.3.2 `uvx`/stdio launch paths are checked by
+[clean-PyPI protocol tests](https://github.com/vardhjain/finos-mcp/actions/workflows/verify-public-pypi.yml)
+on Python 3.12; direct installed commands are also checked on Python 3.14.
+You can also try the [demo walkthrough](demo.md).
 
 ## Troubleshooting
 
