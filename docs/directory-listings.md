@@ -162,8 +162,8 @@ Registry listing is a discovery mechanism, not FINOS endorsement or
 certification.
 
 The manifests and read-only verifier live in
-[`registry/`](../registry/), and
-[`scripts/check_registry_discoverability.py`](../scripts/check_registry_discoverability.py).
+[`registry/`](https://github.com/vardhjain/finos-mcp/tree/main/registry), and
+[`scripts/check_registry_discoverability.py`](https://github.com/vardhjain/finos-mcp/blob/main/scripts/check_registry_discoverability.py).
 To check public listings without logging in, run:
 
 ```bash
