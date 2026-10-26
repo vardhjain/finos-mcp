@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import runpy
 import subprocess
 import sys
 import tomllib
 from importlib import import_module
 from importlib.metadata import version as distribution_version
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECK = ROOT / "scripts" / "release_check.py"
@@ -50,3 +53,20 @@ def test_running_package_versions_match_installed_distribution_metadata() -> Non
         installed = distribution_version(f"finos-mcp-{component}")
         assert installed == expected
         assert module.__version__ == installed
+
+
+def test_packaged_mcp_ownership_marker_requires_matching_server_name() -> None:
+    validate_marker = runpy.run_path(str(CHECK))["validate_ownership_marker"]
+    for component in ("aigf", "cdm", "fdc3"):
+        marker = f"<!-- mcp-name: io.github.vardhjain/finos-mcp-{component} -->"
+        validate_marker(f"# Package\n\n{marker}", component, "test.whl")
+
+        with pytest.raises(ValueError, match="missing.*mcp-name"):
+            validate_marker("# Package without marker", component, "test.whl")
+
+        with pytest.raises(ValueError, match="missing.*mcp-name"):
+            validate_marker(
+                "<!-- mcp-name: io.github.vardhjain/finos-mcp-aigf-extra -->",
+                component,
+                "test.tar.gz",
+            )
