@@ -71,7 +71,7 @@ def main() -> None:
     parser.add_argument("component", choices=COMPONENTS)
     parser.add_argument("version")
     parser.add_argument("command")
-    parser.add_argument("args", nargs="*")
+    parser.add_argument("args", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if not args.version.replace(".", "").isdigit() or len(args.version.split(".")) != 3:
         parser.error("expected published X.Y.Z version")
