@@ -5,7 +5,7 @@
       "args": [
         "--python",
         "3.12",
-        "finos-mcp-aigf==0.3.1"
+        "finos-mcp-aigf==0.3.2"
       ]
     },
     "finos-cdm": {
@@ -13,7 +13,7 @@
       "args": [
         "--python",
         "3.12",
-        "finos-mcp-cdm==0.3.1"
+        "finos-mcp-cdm==0.3.2"
       ]
     },
     "finos-fdc3": {
@@ -21,7 +21,7 @@
       "args": [
         "--python",
         "3.12",
-        "finos-mcp-fdc3==0.3.1"
+        "finos-mcp-fdc3==0.3.2"
       ]
     }
   }
