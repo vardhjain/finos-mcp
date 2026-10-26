@@ -3,11 +3,14 @@
 Typed, **read-only** [MCP](https://modelcontextprotocol.io) servers for three FINOS data
 standards, so an agent can query them without being able to change anything.
 
-| Server | Standard | What it exposes |
+| Server | What it exposes | Official MCP Registry (v0.3.2) |
 |---|---|---|
-| `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | 24 risks and 25 controls under their published `AIR-*` ids, the risk-to-control graph, crosswalks to 13 reference frameworks, search, citable resources |
-| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | 1143 schemas, 16 root types, 35 event-qualification rules, and validation of CDM JSON in both the Rune (CDM 7) and legacy shapes |
-| `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | 19 intents with a generated intent-to-context table, 28 context types, context validation and intent suggestion |
+| `finos-mcp-aigf` (AI Governance Framework) | 24 risks, 25 controls, traceable references and crosswalks | [AIGF listing](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-aigf/versions/0.3.2) |
+| `finos-mcp-cdm` (Common Domain Model) | 767 CDM types, 1,143 JSON schemas, Rune/legacy trade validation | [CDM listing](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-cdm/versions/0.3.2) |
+| `finos-mcp-fdc3` (FDC3) | 19 standard intents, 28 context types and intent suggestions | [FDC3 listing](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-fdc3/versions/0.3.2) |
+
+These are **three independent local stdio servers**, not hosted remote
+endpoints. All packages are released at **v0.3.2** and require Python 3.12+.
 
 ## Pick a question to try
 
@@ -29,21 +32,37 @@ model API or API key**. To connect them to Claude, VS Code, or Copilot, use the
 - **[Demo transcript](demo.md)** — five real tool calls, including CDM catching three planted
   defects in a Rune-format `BusinessEvent`.
 
-## Install
+## Connect an assistant
+
+Install [uv](https://docs.astral.sh/uv/) and choose the **one server** you
+need. In [Claude Code](https://code.claude.com/docs/en/mcp), run one line:
 
 ```bash
-# Claude Desktop / Claude Code, no install step
-uvx --python 3.12 finos-mcp-aigf
-
-# from a checkout
-uv run finos-mcp-aigf
+claude mcp add --scope user finos-aigf -- uvx --python 3.12 finos-mcp-aigf==0.3.2
+claude mcp add --scope user finos-cdm -- uvx --python 3.12 finos-mcp-cdm==0.3.2
+claude mcp add --scope user finos-fdc3 -- uvx --python 3.12 finos-mcp-fdc3==0.3.2
 ```
 
-Or over HTTP, in a container:
+Then run `claude mcp list` and ask the assistant to call a tool:
+`get_control` for `mi-20` returns `AIR-PREV-020`;
+`describe_type` for `TradeState` returns its schema details; and
+`suggest_intent` with an `fdc3.instrument` and a price-chart goal
+returns `ViewChart`. These were verified with real MCP stdio
+connections against the published packages in the
+[clean PyPI client tests](https://github.com/vardhjain/finos-mcp/actions/workflows/verify-public-pypi.yml).
 
-```bash
-docker run --rm -p 8000:8000 --read-only --cap-drop ALL ghcr.io/vardhjain/finos-mcp
-```
+For **Claude Desktop, VS Code and Copilot**, use the
+[version-pinned JSON examples and setup instructions](getting-started.md).
+The standard packages run locally and require no API key or paid model service
+(the assistant/client itself may have separate access requirements).
+
+To check installation **without an MCP client**, run
+`uvx --python 3.12 finos-mcp-aigf==0.3.2 --help`. Running a stdio
+server without `--help` simply waits for an MCP client connection.
+
+A self-hosted Docker/HTTP alternative is explained in the
+[repository README](https://github.com/vardhjain/finos-mcp#quick-start).
+There is no project-operated public endpoint.
 
 ## What makes it trustworthy
 
