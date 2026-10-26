@@ -35,10 +35,7 @@ def test_directory_guide_records_verified_public_registry_entries() -> None:
     for component in COMPONENTS:
         assert f"io.github.vardhjain/finos-mcp-{component}" in guide
         assert f"finos-mcp-{component}==0.3.2" in guide
-        assert (
-            f"io.github.vardhjain%2Ffinos-mcp-{component}/versions/0.3.2"
-            in guide
-        )
+        assert f"io.github.vardhjain%2Ffinos-mcp-{component}/versions/0.3.2" in guide
     assert "40389712353" in guide  # successful owner-triggered submission
     assert "40390604767" in guide  # independent public API verification
     assert "not FINOS endorsement" in guide
