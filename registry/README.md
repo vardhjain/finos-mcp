@@ -10,6 +10,29 @@ The manifests follow the official
 [server.json schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json)
 and describe **PyPI v0.3.1** and `uvx`. They are **DRAFTS ONLY**.
 
+## Upstream JSON Schema checks in CI
+
+The CI suite runs JSON Schema validation **offline** against a pinned snapshot
+of the [Registry's upstream draft `server.schema.json`](https://github.com/modelcontextprotocol/registry/blob/e47b29ec6091a4b05969d9f755a024529ee2b5b3/docs/reference/server-json/draft/server.schema.json)
+at upstream commit `e47b29ec6091a4b05969d9f755a024529ee2b5b3`. The exact, unmodified schema is checked into
+[`schema/upstream-draft.schema.json`](schema/upstream-draft.schema.json)
+so that CI doesn't depend on Registry availability and upstream changes cannot
+silently change our passing tests. It is upstream specification data, not a
+runtime dependency.
+
+```bash
+uv run --no-sync pytest evals/test_registry_schema.py -q
+```
+
+**Validation limits:** this pinned draft is **not** the same URL as the
+versioned `2025-12-11` schema named in the manifests. It is an additional
+upstream-structure check, not proof that the manifests pass the Registry's
+current schema, semantic checks, or published-PyPI ownership verification.
+Before *any* approved publication, use the current official
+`mcp-publisher validate` on all three manifests and resolve every error.
+Update the pinned snapshot only in a reviewed PR after checking upstream
+changes.
+
 ## Publication is blocked until a new authorized release
 
 The already-published **0.3.1** PyPI package descriptions do **not**
