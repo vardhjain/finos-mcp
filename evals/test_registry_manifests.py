@@ -70,6 +70,20 @@ def test_three_distinct_drafts_not_auto_published() -> None:
     )
     assert found == [f"{component}/server.json" for component in COMPONENTS]
     guide = (ROOT / "registry" / "README.md").read_text(encoding="utf-8")
-    assert "Do not run `mcp-publisher publish`" in guide
+    assert "Do not publish directly from a PR, merge, or tag" in guide
+    assert "PUBLISH MCP REGISTRY v0.3.2" in guide
     assert "public PyPI" in guide
-    assert "0.3.1" in guide
+    assert "0.3.2" in guide
+
+    workflow = (ROOT / ".github" / "workflows" / "publish-mcp-registry.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "  workflow_dispatch:" in workflow
+    assert "  pull_request:" in workflow
+    assert "  push:" not in workflow
+    assert "github.event_name == 'workflow_dispatch'" in workflow
+    assert "github.actor == github.repository_owner" in workflow
+    assert "github.triggering_actor == github.repository_owner" in workflow
+    assert "github.ref == 'refs/heads/main'" in workflow
+    assert "id-token: write" not in workflow.split("  publish:")[0]
+    assert "id-token: write" in workflow.split("  publish:")[1]

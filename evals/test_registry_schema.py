@@ -52,5 +52,5 @@ def test_upstream_pin_and_release_blocker_are_documented() -> None:
     readme = (ROOT / "registry" / "README.md").read_text(encoding="utf-8")
     assert UPSTREAM_SHA in readme
     assert "not proof that the manifests pass the Registry's" in readme
-    assert "Do not run" in readme
+    assert "Do not publish directly from a PR, merge, or tag" in readme
     assert "mcp-publisher validate" in readme
