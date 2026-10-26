@@ -119,9 +119,7 @@ def validate_artifacts(path: Path, version: str) -> None:
                 handle = tf.extractfile(readmes[0])
                 if handle is None:
                     raise ValueError(f"{archive.name}: cannot read packaged README.md")
-                validate_ownership_marker(
-                    handle.read().decode("utf-8"), component, archive.name
-                )
+                validate_ownership_marker(handle.read().decode("utf-8"), component, archive.name)
     # uv may create a dist/.gitignore marker; it is not a release artifact.
     found = {p.name for p in path.iterdir() if p.is_file() and p.name != ".gitignore"}
     if found != expected:
