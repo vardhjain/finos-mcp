@@ -33,6 +33,26 @@ Before *any* approved publication, use the current official
 Update the pinned snapshot only in a reviewed PR after checking upstream
 changes.
 
+## Official publisher CLI validation in GitHub Actions
+
+All three drafts passed the real **`mcp-publisher validate` v1.8.4**
+CLI (schema + semantic checks) in a [read-only verification run](https://github.com/vardhjain/finos-mcp/actions/runs/40257964837).
+The executable was the official Linux amd64 [v1.8.4 release](https://github.com/modelcontextprotocol/registry/releases/tag/v1.8.4), verified against its published SHA-256 checksum.
+
+The separate [`registry-validation` workflow](../.github/workflows/registry-validation.yml)
+repeats this official CLI check on pull requests and `main` pushes that
+change Registry files, package metadata, or the workflow itself. It also
+supports a manual **workflow_dispatch** run. It has **read-only**
+repository permissions and deliberately uses only `validate`, never
+`login` or `publish`. No paid API, registry account, or secrets
+are needed.
+
+This pins the **validator release** for reproducible CI; before a future
+approved publication, run the latest official CLI too, since Registry
+validation rules can change. Successful CLI validation **does not**
+prove GitHub namespace authentication or ownership of a published
+PyPI package. The v0.3.1 manifests remain blocked below.
+
 ## Publication is blocked until a new authorized release
 
 The already-published **0.3.1** PyPI package descriptions do **not**

@@ -1,0 +1,53 @@
+name: registry-validation
+
+# Official publisher validation only. Never authenticate, publish, or tag.
+on:
+  pull_request:
+    paths:
+      - 'registry/**'
+      - 'servers/*/pyproject.toml'
+      - 'servers/*/README.md'
+      - 'pyproject.toml'
+      - '.github/workflows/registry-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'registry/**'
+      - 'servers/*/pyproject.toml'
+      - 'servers/*/README.md'
+      - 'pyproject.toml'
+      - '.github/workflows/registry-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publisher-validate:
+    name: Official publisher validate (AIGF, CDM, FDC3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+
+      # Pin both tool release and its published SHA-256 digest to guard against drift.
+      # Reviewed artifact: github.com/modelcontextprotocol/registry/releases/tag/v1.8.4
+      - name: Install checksum-verified official mcp-publisher v1.8.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/modelcontextprotocol/registry/releases/download/v1.8.4/mcp-publisher_linux_amd64.tar.gz \
+            --output "$RUNNER_TEMP/mcp-publisher.tar.gz"
+          echo '5dc2fd415369c73551259f31cd33e2aacc9e0d1021e7f08fef1492d93b781628  '"$RUNNER_TEMP"'/mcp-publisher.tar.gz' | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/mcp-publisher.tar.gz" -C "$RUNNER_TEMP"
+          chmod +x "$RUNNER_TEMP/mcp-publisher"
+
+      - name: Validate each draft (no Registry login or publish)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for server in aigf cdm fdc3; do
+            echo "Validating registry/$server/server.json with official mcp-publisher"
+            "$RUNNER_TEMP/mcp-publisher" validate "registry/$server/server.json"
+          done
