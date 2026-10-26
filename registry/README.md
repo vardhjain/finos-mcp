@@ -79,6 +79,13 @@ before requesting a separate approval to publish Registry entries. This
 workflow can be run manually from GitHub Actions and checks all three live
 PyPI v0.3.2 package descriptions without authenticating or publishing.
 
+**Verified 2026-10-26:** the read-only [live PyPI audit run](https://github.com/vardhjain/finos-mcp/actions/runs/40280037055)
+reported `PASS` for `finos-mcp-aigf==0.3.2`,
+`finos-mcp-cdm==0.3.2`, and `finos-mcp-fdc3==0.3.2`.
+PyPI ownership-marker verification is therefore complete for this version.
+This does **not** verify GitHub namespace authentication or authorize
+Registry publication.
+
 The already-published **0.3.1** PyPI package descriptions do **not**
 include the `mcp-name:` proof-of-ownership markers. Those markers were
 committed to GitHub **after** the immutable v0.3.1 release.
