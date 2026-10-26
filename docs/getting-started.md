@@ -16,9 +16,9 @@ Choose **one** server to begin with; running all three at the same time can use 
    invocation downloads packages from PyPI; the installed standards data are vendored,
    so **the servers themselves require no network access at runtime**.
 
-All examples intentionally pin the **published v0.3.1** packages so the setup is
-repeatable. For newer versions, edit each `==0.3.1` pin after that release is published
-and verified. Do not use the workspace's unpublished source version as a PyPI pin.
+All examples intentionally pin the **published v0.3.2** packages so setup is
+repeatable. For future releases, update the version pins only after the new
+packages are publicly available on PyPI and verified.
 
 ## Claude Desktop
 
@@ -44,9 +44,9 @@ Claude Desktop also supports desktop extensions; these JSON instructions are for
 In a shell with the `claude` command installed, run whichever lines you need:
 
 ```bash
-claude mcp add --scope user finos-aigf -- uvx --python 3.12 finos-mcp-aigf==0.3.1
-claude mcp add --scope user finos-cdm -- uvx --python 3.12 finos-mcp-cdm==0.3.1
-claude mcp add --scope user finos-fdc3 -- uvx --python 3.12 finos-mcp-fdc3==0.3.1
+claude mcp add --scope user finos-aigf -- uvx --python 3.12 finos-mcp-aigf==0.3.2
+claude mcp add --scope user finos-cdm -- uvx --python 3.12 finos-mcp-cdm==0.3.2
+claude mcp add --scope user finos-fdc3 -- uvx --python 3.12 finos-mcp-fdc3==0.3.2
 ```
 
 `--scope user` makes each available in all your Claude Code projects. To share a
@@ -109,7 +109,7 @@ For **FDC3**, ask for `list_intents`. You can also try the
 |---|---|
 | `uvx` not found | Run `uvx --version` in a normal terminal. Restart the desktop client after installing uv, or use the **full absolute path to uvx** in the `command` field (especially for GUI apps on macOS/Windows). |
 | Python 3.12 not available | Run `uv python install 3.12`, then retry. The first setup needs network access to download Python and packages. |
-| A server will not start | Test `uvx --python 3.12 'finos-mcp-aigf==0.3.1' --help` in a terminal; for the other servers, replace the package name. `--help` should exit without starting a persistent MCP session. |
+| A server will not start | Test `uvx --python 3.12 'finos-mcp-aigf==0.3.2' --help` in a terminal; for the other servers, replace the package name. `--help` should exit without starting a persistent MCP session. |
 | The server starts but no tool appears | Verify the client supports **stdio**, that the correct JSON wrapper was used, restart/reload the server, and inspect the client MCP server logs. |
 | The configuration is rejected | Check JSON syntax and ensure you merged, not duplicated, the top-level `mcpServers` or `servers` key. |
 | Startup is slow or uses too much RAM | Start only one of the three servers. CDM contains large, vendored standard definitions. |
