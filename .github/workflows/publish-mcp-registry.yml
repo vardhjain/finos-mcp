@@ -1,0 +1,178 @@
+name: publish-mcp-registry (manual, guarded)
+
+# This workflow does NOT run on merges or tags. PRs validate only.
+# Registry publication requires a manual owner dispatch and exact reviewed main SHA.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/publish-mcp-registry.yml'
+      - 'registry/**'
+      - 'scripts/check_pypi_mcp_ownership.py'
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: "Current reviewed main SHA (40 lowercase hex characters)"
+        required: true
+        type: string
+      confirmation:
+        description: "Type PUBLISH MCP REGISTRY v0.3.2"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finos-mcp-registry-v0.3.2
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate public PyPI and all three Registry manifests (no publishing)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Require exact reviewed names, package versions and local stdio transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          for component in aigf cdm fdc3; do
+            jq -e --arg component "$component" '
+              .name == ("io.github.vardhjain/finos-mcp-" + $component)
+              and .version == "0.3.2"
+              and .packages[0].registryType == "pypi"
+              and .packages[0].registryBaseUrl == "https://pypi.org"
+              and .packages[0].identifier == ("finos-mcp-" + $component)
+              and .packages[0].version == "0.3.2"
+              and .packages[0].transport.type == "stdio"
+              and (.remotes == null)
+            ' "registry/$component/server.json" > /dev/null
+          done
+
+      - name: Verify ownership markers on the three live PyPI v0.3.2 pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/check_pypi_mcp_ownership.py
+
+      - name: Install checksum-pinned official mcp-publisher v1.8.5
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/modelcontextprotocol/registry/releases/download/v1.8.5/mcp-publisher_linux_amd64.tar.gz \
+            --output "$RUNNER_TEMP/mcp-publisher.tar.gz"
+          printf '%s  %s\n' '2d151ac57275c9a6684d9d22b1cba81058bab195ea0a162e8fce3c6a5ec32812' "$RUNNER_TEMP/mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/mcp-publisher.tar.gz" -C "$RUNNER_TEMP"
+          chmod +x "$RUNNER_TEMP/mcp-publisher"
+
+      - name: Validate AIGF, CDM and FDC3 using the latest reviewed official CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          for component in aigf cdm fdc3; do
+            "$RUNNER_TEMP/mcp-publisher" validate "registry/$component/server.json"
+          done
+
+  publish:
+    name: Owner-approved Registry submission (AIGF, CDM, FDC3)
+    needs: validate
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == github.repository_owner && github.repository == 'vardhjain/finos-mcp' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check typed confirmation, source commit, release tag and post-merge CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRMATION" != 'PUBLISH MCP REGISTRY v0.3.2' ]]; then
+            echo "::error::Confirmation must exactly match the Registry publication intent"; exit 1
+          fi
+          if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Expected the full 40-character main SHA"; exit 1
+          fi
+          git fetch origin main --no-tags
+          if [[ "$(git rev-parse HEAD)" != "$EXPECTED_SHA" || "$(git rev-parse refs/remotes/origin/main)" != "$EXPECTED_SHA" ]]; then
+            echo "::error::Main moved or dispatch did not use the reviewed SHA"; exit 1
+          fi
+          git fetch origin tag v0.3.2
+          if [[ "$(git rev-parse 'refs/tags/v0.3.2^{commit}')" != 'e79ed797f20798682fcae835c727825374484d8a' ]]; then
+            echo "::error::Published v0.3.2 tag points to an unexpected commit"; exit 1
+          fi
+          successful=$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SHA&event=push&per_page=30" \
+            --jq '.workflow_runs[] | select(.conclusion == "success") | .head_sha' \
+            | grep -Fxc "$EXPECTED_SHA" || true)
+          if [[ "$successful" -lt 1 ]]; then
+            echo "::error::Require successful push CI on the current reviewed main SHA"; exit 1
+          fi
+
+      - name: Refuse to overwrite an existing v0.3.2 Registry entry
+        shell: bash
+        run: |
+          set -euo pipefail
+          for component in aigf cdm fdc3; do
+            url="https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-$component/versions/0.3.2"
+            status=$(curl --silent --show-error --location --retry 3 -o /dev/null -w '%{http_code}' "$url")
+            case "$status" in
+              404) echo "No existing Registry version: $component v0.3.2" ;;
+              200) echo "::error::Registry already contains $component v0.3.2. Do not rerun the batch; inspect partial publication."; exit 1 ;;
+              *) echo "::error::Registry precheck failed for $component: HTTP $status"; exit 1 ;;
+            esac
+          done
+
+      - name: Install verified publisher v1.8.5
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/modelcontextprotocol/registry/releases/download/v1.8.5/mcp-publisher_linux_amd64.tar.gz \
+            --output "$RUNNER_TEMP/mcp-publisher.tar.gz"
+          printf '%s  %s\n' '2d151ac57275c9a6684d9d22b1cba81058bab195ea0a162e8fce3c6a5ec32812' "$RUNNER_TEMP/mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/mcp-publisher.tar.gz" -C "$RUNNER_TEMP"
+          chmod +x "$RUNNER_TEMP/mcp-publisher"
+
+      - name: Authenticate to the production MCP Registry using GitHub Actions OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/mcp-publisher" login github-oidc --registry=https://registry.modelcontextprotocol.io
+
+      - name: Publish AIGF, then CDM, then FDC3
+        shell: bash
+        run: |
+          set -euo pipefail
+          for component in aigf cdm fdc3; do
+            echo "::group::Publish finos-mcp-$component 0.3.2"
+            "$RUNNER_TEMP/mcp-publisher" publish "registry/$component/server.json"
+            echo "::endgroup::"
+            echo "Registry accepted: io.github.vardhjain/finos-mcp-$component v0.3.2"
+            {
+              echo "- Submitted io.github.vardhjain/finos-mcp-$component v0.3.2"
+            } >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo "All three submissions completed. Verify discoverability separately." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clear local Registry credential
+        if: always()
+        shell: bash
+        run: |
+          if [[ -x "$RUNNER_TEMP/mcp-publisher" ]]; then
+            "$RUNNER_TEMP/mcp-publisher" logout || true
+          fi
