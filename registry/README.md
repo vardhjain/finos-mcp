@@ -52,7 +52,22 @@ This pins the **validator release** for reproducible CI; before a future
 approved publication, run the latest official CLI too, since Registry
 validation rules can change. Successful CLI validation **does not**
 prove GitHub namespace authentication or ownership of a published
-PyPI package. The v0.3.1 manifests remain blocked below.
+PyPI package. The proposed v0.3.2 drafts remain unpublished and blocked below.
+
+## Packaging ownership preflight (offline; no publish)
+
+The non-publishing [release-preflight workflow](../.github/workflows/release-preflight.yml)
+builds all four Python wheels and source archives, then checks that the
+**three server distributions** carry their exact `mcp-name` ownership
+comments in both the wheel's `METADATA` description and the sdist's
+top-level `README.md`. Core is a shared library and has no Registry entry.
+A missing or wrong marker fails the build before any tag or upload.
+
+This checks the files *we would upload*, not what's already on PyPI. It
+does **not** unblock the previously published v0.3.1 artifacts. After an
+explicitly approved new release, the public PyPI descriptions must still
+be checked with the read-only ownership audit, and Registry publication
+still needs separate approval.
 
 ## Publication is blocked until a new authorized release
 

@@ -55,6 +55,16 @@ def validate_versions(root: Path = ROOT, tag: str | None = None) -> str:
     return version
 
 
+def validate_ownership_marker(description: str, component: str, artifact: str) -> None:
+    """Require the MCP Registry name in the *packaged* PyPI description."""
+    marker = f"<!-- mcp-name: io.github.vardhjain/finos-mcp-{component} -->"
+    if marker not in description:
+        raise ValueError(
+            f"{artifact}: missing {marker!r} in packaged README/description; "
+            "MCP Registry PyPI ownership would fail"
+        )
+
+
 def validate_artifacts(path: Path, version: str) -> None:
     if not path.is_dir():
         raise ValueError(f"release artifact directory does not exist: {path}")
@@ -78,6 +88,11 @@ def validate_artifacts(path: Path, version: str) -> None:
                 raise ValueError(f"{wheel.name}: wrong Name in METADATA")
             if message["Version"] != version:
                 raise ValueError(f"{wheel.name}: wrong Version in METADATA")
+            if component != "core":
+                description = message.get_payload()
+                if not isinstance(description, str):
+                    raise ValueError(f"{wheel.name}: wheel description is not plain text")
+                validate_ownership_marker(description, component, wheel.name)
             if component != "core" and not any(
                 f"finos-mcp-core>={version}" in dep.replace(" ", "")
                 for dep in message.get_all("Requires-Dist", [])
@@ -91,6 +106,20 @@ def validate_artifacts(path: Path, version: str) -> None:
         with tarfile.open(archive, "r:gz") as tf:
             if not any(n.endswith("pyproject.toml") for n in tf.getnames()):
                 raise ValueError(f"{archive.name}: missing project metadata")
+            if component != "core":
+                readmes = [
+                    member
+                    for member in tf.getmembers()
+                    if member.isfile()
+                    and member.name.count("/") == 1
+                    and member.name.endswith("/README.md")
+                ]
+                if len(readmes) != 1:
+                    raise ValueError(f"{archive.name}: missing/duplicate packaged README.md")
+                handle = tf.extractfile(readmes[0])
+                if handle is None:
+                    raise ValueError(f"{archive.name}: cannot read packaged README.md")
+                validate_ownership_marker(handle.read().decode("utf-8"), component, archive.name)
     # uv may create a dist/.gitignore marker; it is not a release artifact.
     found = {p.name for p in path.iterdir() if p.is_file() and p.name != ".gitignore"}
     if found != expected:
