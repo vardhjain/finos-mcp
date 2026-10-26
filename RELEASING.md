@@ -15,6 +15,12 @@ workflow instead.
 
 ## One-click manual release (recommended)
 
+**This is a candidate preparation, not authorization to publish.** Do not run
+the manual release, push a tag or change `PUBLISH_TO_PYPI` until
+PRs #44 and #45 are merged, v0.3.2's checks are green and the owner
+separately approves the release. For MCP Registry publication, require
+another distinct approval after verifying the live PyPI ownership markers.
+
 The [guarded release workflow](.github/workflows/publish-release.yml) lets the
 repository owner publish the reviewed release from the **Actions** tab, without
 a local Git checkout or a persistent PyPI token. It still requires confirmation
@@ -23,9 +29,9 @@ of the four PyPI trusted publishers described below.
 Go to **Actions → publish-release (manual, guarded) → Run workflow**, select
 `main`, and enter these three inputs:
 
-- Version: `0.3.1`
+- Version: `0.3.2`
 - Expected SHA: copy the **current 40-character `main` commit SHA** from the repository after this workflow PR merges; do not use the old pre-merge release-preparation SHA
-- Confirmation: `PUBLISH v0.3.1`
+- Confirmation: `PUBLISH v0.3.2`
 
 **Before running it**, verify Actions repository variable
 `PUBLISH_TO_PYPI=true`, empty `PYPI_SKIP_PACKAGES`, and each of the four
@@ -34,7 +40,7 @@ a tag if the variables, SHA, CI result, version availability, or archive
 validation do not pass. It does not inspect private PyPI trusted publisher
 configurations, which must be checked manually.
 
-If all checks pass, it creates an annotated `v0.3.1` tag and **dispatches
+If all checks pass, it creates an annotated `v0.3.2` tag and **dispatches
 `release.yml` only**. After all four PyPI uploads succeed, `release.yml`
 creates the public GitHub Release from reviewed release notes and then
 dispatches `docker.yml` on the same tag. Docker builds and checks the real
@@ -49,11 +55,11 @@ If a tag exists but dispatch fails, **do not create another tag**.
 Review the failing job and determine whether it is safe to retry. PyPI
 files are immutable; a partial upload cannot simply be repeated. If the
 GitHub Release succeeds but only Docker dispatch fails, manually dispatch
-`docker.yml` on the existing `v0.3.1` tag with `push=true` after checking
+`docker.yml` on the existing `v0.3.2` tag with `push=true` after checking
 the successful upstream release. Verify the GHCR image separately:
 successful dispatch is not proof of publication.
 
-## Release 0.3.1 checklist
+## Release 0.3.2 checklist
 
 1. Review and merge the version/changelog PR after green cross-platform CI and
    green **release-preflight**. The latter builds and inspects all four wheels
@@ -64,7 +70,7 @@ successful dispatch is not proof of publication.
 
    ```bash
    uv lock --check
-   python scripts/release_check.py --tag v0.3.1
+   python scripts/release_check.py --tag v0.3.2
    ```
 
 3. Decide **before tagging** whether PyPI publishing should happen.
@@ -82,9 +88,9 @@ successful dispatch is not proof of publication.
    git fetch origin
    git checkout main
    git pull --ff-only
-   python scripts/release_check.py --tag v0.3.1
-   git tag -a v0.3.1 -m "FINOS MCP v0.3.1"
-   git push origin v0.3.1
+   python scripts/release_check.py --tag v0.3.2
+   git tag -a v0.3.2 -m "FINOS MCP v0.3.2"
+   git push origin v0.3.2
    ```
 
 5. The `release.yml` GitHub Release job intentionally **waits for all
@@ -101,12 +107,12 @@ successful dispatch is not proof of publication.
    ```bash
    gh run list -R vardhjain/finos-mcp --workflow release.yml --limit 5
    gh run list -R vardhjain/finos-mcp --workflow docker.yml --limit 5
-   gh release view v0.3.1 -R vardhjain/finos-mcp
+   gh release view v0.3.2 -R vardhjain/finos-mcp
    ```
 
    GitHub Release should attach **four wheels and four source archives**.
-   Review the curated [v0.3.1 release notes](docs/releases/v0.3.1.md)
-   against the generated release body. Confirm the GHCR `v0.3.1` image
+   Review the curated [v0.3.2 release notes](docs/releases/v0.3.2.md)
+   against the generated release body. Confirm the GHCR `v0.3.2` image
    and multi-arch manifest. If `PUBLISH_TO_PYPI` was enabled, verify
    all four PyPI package pages show the new version; otherwise describe
    it as a GitHub/container release only, not a PyPI release.
