@@ -8,7 +8,8 @@ a fourth server.
 
 The manifests follow the official
 [server.json schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json)
-and describe **PyPI v0.3.1** and `uvx`. They are **DRAFTS ONLY**.
+and describe **proposed PyPI v0.3.2** and `uvx`. Version 0.3.2 has **not been
+published**; these files are **DRAFTS ONLY**.
 
 ## Upstream JSON Schema checks in CI
 
@@ -51,7 +52,7 @@ This pins the **validator release** for reproducible CI; before a future
 approved publication, run the latest official CLI too, since Registry
 validation rules can change. Successful CLI validation **does not**
 prove GitHub namespace authentication or ownership of a published
-PyPI package. The v0.3.1 manifests remain blocked below.
+PyPI package. The proposed v0.3.2 drafts remain unpublished and blocked below.
 
 ## Packaging ownership preflight (offline; no publish)
 
@@ -70,11 +71,17 @@ still needs separate approval.
 
 ## Publication is blocked until a new authorized release
 
+The proposed v0.3.2 package versions and Registry manifests have only been
+prepared in source control. A version bump **does not** publish PyPI packages,
+establish ownership, authenticate with the Registry or grant publication
+approval. After an explicitly approved v0.3.2 release, verify the exact
+public PyPI descriptions before requesting Registry publication.
+
 The already-published **0.3.1** PyPI package descriptions do **not**
 include the `mcp-name:` proof-of-ownership markers. Those markers were
 committed to GitHub **after** the immutable v0.3.1 release.
 
-**Do not run `mcp-publisher publish` on these v0.3.1 drafts.**
+**Do not run `mcp-publisher publish` on these v0.3.2 drafts.**
 Matching GitHub README text is insufficient: the Registry checks the
 *public PyPI package README* when verifying ownership. The Registry
 is currently in preview, and its schema can change.

@@ -2,7 +2,21 @@
 
 ## Unreleased
 
-## 0.3.1 — pending release
+## 0.3.2 — pending release
+
+### Release and Registry readiness
+- Prepared a new immutable version of all four PyPI distributions so the
+  exact MCP Registry ownership markers already present in the three server
+  package READMEs can reach the **public** package descriptions when this
+  release is separately approved and published.
+- Aligned six workspace versions, core dependency floors, the lockfile and
+  the three **draft** Registry manifests. No Registry entry is published.
+- Official Registry CLI validation, the public PyPI ownership audit and
+  inspection of ownership markers inside built wheels and sdists are
+  maintained as separate, fail-closed prepublication checks.
+- No changes to MCP tools, vendored data or the runtime's read-only behavior.
+
+## 0.3.1 — released
 
 ### Changed
 - Updated the primary vendored FINOS Common Domain Model JSON Schema and official Rune
