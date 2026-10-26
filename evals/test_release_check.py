@@ -61,10 +61,10 @@ def test_packaged_mcp_ownership_marker_requires_matching_server_name() -> None:
         marker = f"<!-- mcp-name: io.github.vardhjain/finos-mcp-{component} -->"
         validate_marker(f"# Package\n\n{marker}", component, "test.whl")
 
-        with pytest.raises(ValueError, match="missing.*mcp-name"):
+        with pytest.raises(ValueError, match=r"missing.*mcp-name"):
             validate_marker("# Package without marker", component, "test.whl")
 
-        with pytest.raises(ValueError, match="missing.*mcp-name"):
+        with pytest.raises(ValueError, match=r"missing.*mcp-name"):
             validate_marker(
                 "<!-- mcp-name: io.github.vardhjain/finos-mcp-aigf-extra -->",
                 component,
