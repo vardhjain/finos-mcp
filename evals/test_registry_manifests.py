@@ -16,15 +16,13 @@ SCHEMA = "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schem
 @pytest.mark.parametrize("component", COMPONENTS)
 def test_registry_draft_matches_pypi_package(component: str) -> None:
     package_path = ROOT / "servers" / component
-    project = tomllib.loads(
-        (package_path / "pyproject.toml").read_text(encoding="utf-8")
-    )["project"]
-    workspace_version = tomllib.loads(
-        (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    )["project"]["version"]
-    draft = json.loads(
-        (ROOT / "registry" / component / "server.json").read_text(encoding="utf-8")
-    )
+    project = tomllib.loads((package_path / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]
+    workspace_version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]["version"]
+    draft = json.loads((ROOT / "registry" / component / "server.json").read_text(encoding="utf-8"))
     package = f"finos-mcp-{component}"
     registered_name = f"io.github.vardhjain/{package}"
     assert project["name"] == package
@@ -52,8 +50,14 @@ def test_registry_draft_matches_pypi_package(component: str) -> None:
     ]
     assert "remotes" not in draft
     assert set(draft) == {
-        "$schema", "name", "title", "description", "websiteUrl",
-        "repository", "version", "packages",
+        "$schema",
+        "name",
+        "title",
+        "description",
+        "websiteUrl",
+        "repository",
+        "version",
+        "packages",
     }
     readme = (package_path / "README.md").read_text(encoding="utf-8")
     assert f"<!-- mcp-name: {registered_name} -->" in readme
