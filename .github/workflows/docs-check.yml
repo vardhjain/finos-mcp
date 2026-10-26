@@ -1,0 +1,26 @@
+name: docs-check
+
+# Validate documentation before merging; never deploy Pages from a PR.
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - ".github/workflows/docs-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  strict-docs-build:
+    name: Build documentation and verify local links (no deploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+      - name: MkDocs strict build
+        run: uv run --no-project --with mkdocs-material mkdocs build --strict
