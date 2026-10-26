@@ -52,7 +52,15 @@ def main() -> int:
     for component in COMPONENTS:
         try:
             verify_entry(component)
-        except (HTTPError, URLError, TimeoutError, KeyError, ValueError, TypeError, AssertionError) as exc:
+        except (
+            HTTPError,
+            URLError,
+            TimeoutError,
+            KeyError,
+            ValueError,
+            TypeError,
+            AssertionError,
+        ) as exc:
             print(f"UNVERIFIED: {component}: {exc}", file=sys.stderr)
             failed = True
     if failed:
