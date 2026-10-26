@@ -38,27 +38,30 @@ async def verify(component: str, expected_version: str, command: list[str]) -> N
     assert version(f"finos-mcp-{component}") == expected_version
 
     params = StdioServerParameters(command=command[0], args=command[1:])
-    async with stdio_client(params) as (reader, writer):
-        async with ClientSession(reader, writer) as session:
-            initialized = await session.initialize()
-            assert initialized.serverInfo.name, f"{component}: missing MCP server identity"
-            tools = (await session.list_tools()).tools
-            matches = [tool for tool in tools if tool.name == case["tool"]]
-            assert len(matches) == 1, f"{component}: required tool absent from MCP tools/list"
-            result = await session.call_tool(case["tool"], case["arguments"])
-            assert not result.isError, f"{component}: MCP error: {result.content}"
-            payload = result.structuredContent
-            assert isinstance(payload, dict), f"{component}: no structured MCP output"
-            actual = get_value(payload, case["expect"]["path"])
-            expected = case["expect"]["equals"]
-            assert actual == expected, (
-                f"{component}.{case['tool']}: expected {expected!r}, got {actual!r}"
-            )
-            if "citation" in case:
-                citation = get_value(payload, case["citation"]["path"])
-                assert isinstance(citation, str) and citation.startswith(
-                    f"{component}://"
-                ), f"{component}: expected citable MCP source URI"
+    async with (
+        stdio_client(params) as (reader, writer),
+        ClientSession(reader, writer) as session,
+    ):
+        initialized = await session.initialize()
+        assert initialized.server_info.name, f"{component}: missing MCP server identity"
+        tools = (await session.list_tools()).tools
+        matches = [tool for tool in tools if tool.name == case["tool"]]
+        assert len(matches) == 1, f"{component}: required tool absent from MCP tools/list"
+        result = await session.call_tool(case["tool"], case["arguments"])
+        wire = result.model_dump(by_alias=True)
+        assert not wire.get("isError", False), f"{component}: MCP error: {result.content}"
+        payload = wire.get("structuredContent")
+        assert isinstance(payload, dict), f"{component}: no structured MCP output"
+        actual = get_value(payload, case["expect"]["path"])
+        expected = case["expect"]["equals"]
+        assert actual == expected, (
+            f"{component}.{case['tool']}: expected {expected!r}, got {actual!r}"
+        )
+        if "citation" in case:
+            citation = get_value(payload, case["citation"]["path"])
+            assert isinstance(citation, str) and citation.startswith(
+                f"{component}://"
+            ), f"{component}: expected citable MCP source URI"
     print(
         f"PASS: PyPI finos-mcp-{component}=={expected_version}: "
         f"stdio initialize, tools/list, {case['tool']} -> {actual}",
