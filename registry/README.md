@@ -72,10 +72,10 @@ still needs separate approval.
 ## Registry publication remains separately gated
 
 The four v0.3.2 Python packages and the v0.3.2 GitHub Release have been
-published. The **three Registry entries have not been published**. Verify the
+published. The **three Registry entries have not been published yet**. Verify the
 public PyPI descriptions with the read-only
 [`pypi-ownership-audit` workflow](../.github/workflows/pypi-ownership-audit.yml)
-before requesting a separate approval to publish Registry entries. This
+before starting any Registry publication workflow. This
 workflow can be run manually from GitHub Actions and checks all three live
 PyPI v0.3.2 package descriptions without authenticating or publishing.
 
@@ -90,10 +90,40 @@ The already-published **0.3.1** PyPI package descriptions do **not**
 include the `mcp-name:` proof-of-ownership markers. Those markers were
 committed to GitHub **after** the immutable v0.3.1 release.
 
-**Do not run `mcp-publisher publish` on these v0.3.2 drafts.**
+**Do not publish directly from a PR, merge, or tag.** Use only the guarded
+manual GitHub Actions workflow after validating the published PyPI packages,
+the reviewed commit and the currently absent Registry versions.
 Matching GitHub README text is insufficient: the Registry checks the
 *public PyPI package README* when verifying ownership. The Registry
 is currently in preview, and its schema can change.
+
+## Guarded initial Registry publication (owner-approved)
+
+The repository owner has approved submission of all three **v0.3.2** servers,
+but the Registry submission still requires a deliberate **manual run**.
+The [`publish-mcp-registry` workflow](../.github/workflows/publish-mcp-registry.yml)
+is not triggered by pushes, tags, or merges. Pull requests run **validation
+only**, without OIDC tokens or publication permissions.
+
+From **GitHub Actions → publish-mcp-registry (manual, guarded) → Run workflow**,
+select `main` and enter:
+
+- **Expected SHA:** the current full 40-character `main` SHA, after this
+  workflow PR merges and its post-merge CI passes.
+- **Confirmation:** `PUBLISH MCP REGISTRY v0.3.2`
+
+The workflow checks the published v0.3.2 tag, successful CI on that exact
+SHA, public PyPI ownership markers, Registry manifest versions and transport,
+and whether a v0.3.2 Registry entry already exists. It uses the official
+checksum-pinned `mcp-publisher v1.8.5` and GitHub Actions **OIDC** to
+authenticate to the production Registry, without a personal access token or
+long-lived secret. Submission proceeds in order: AIGF, CDM, FDC3.
+
+**Partial publishing is possible:** If one server is accepted but a later
+submission fails, do not blindly rerun the entire workflow. Check each
+server's public Registry version and resolve the specific failure before
+attempting recovery. Successful publishing also needs independent
+discoverability verification.
 
 ## Safe, free preparation
 
@@ -127,9 +157,11 @@ CLI reference: [`mcp-publisher validate`](https://github.com/modelcontextprotoco
    AIGF, CDM, and FDC3** against the *public* PyPI descriptions.
 3. Run the latest official `mcp-publisher validate` for all three
    manifests. Confirm GitHub namespace ownership and current policies.
-4. Obtain the owner's **separate, explicit approval** to authenticate and
-   publish each Registry entry. Publish one at a time and verify public
-   discoverability. Never check tokens into GitHub.
+4. The owner has approved the initial three v0.3.2 submissions. Use the
+   guarded workflow **manually**, from reviewed `main`, with the exact current
+   SHA and the required typed confirmation. Do not retry a partially
+   successful batch without inspecting the Registry. Verify discoverability
+   per entry. Never check tokens into GitHub.
 
 No `remotes` property is included: this project has **local,
 installable stdio** MCP servers and optional user-hosted HTTP/Docker,
