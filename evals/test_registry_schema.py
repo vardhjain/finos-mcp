@@ -37,9 +37,7 @@ def test_registry_manifest_validates_against_pinned_upstream_schema(component: s
 
 @pytest.mark.parametrize("bad_case", ("overlong_description", "invalid_name", "missing_stdio_type"))
 def test_registry_schema_rejects_malformed_metadata(bad_case: str) -> None:
-    manifest = json.loads(
-        (ROOT / "registry" / "aigf" / "server.json").read_text(encoding="utf-8")
-    )
+    manifest = json.loads((ROOT / "registry" / "aigf" / "server.json").read_text(encoding="utf-8"))
     broken = copy.deepcopy(manifest)
     if bad_case == "overlong_description":
         broken["description"] = "x" * 101
