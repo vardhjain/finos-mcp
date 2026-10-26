@@ -24,8 +24,9 @@ def test_glama_ownership_metadata_matches_actual_repo_owner() -> None:
 
 def test_glama_claim_instructions_disclose_required_external_verification() -> None:
     guide = (ROOT / "docs" / "directory-listings.md").read_text(encoding="utf-8")
-    assert "A `glama.json` file alone" in guide
-    assert "**does not claim the listing**" in guide
-    assert "Claim" in guide
+    assert "already claimed" in guide
+    assert "does **not**" in guide
+    assert "Remote" in guide
+    assert "issue #40" in guide
     assert "Do not submit a duplicate listing" in guide
     assert "Not affiliated with or endorsed by FINOS" in guide
