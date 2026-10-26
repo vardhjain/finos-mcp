@@ -60,8 +60,15 @@ Each answer comes with an identifier or link the reader can check against the st
 | Server | Standard | What an assistant can do with it |
 |---|---|---|
 | `finos-mcp-aigf` | [AI Governance Framework](https://air-governance-framework.finos.org/) | Look up 24 risks and 25 controls by their published ids, see which controls address which risks, cross-reference 13 outside frameworks (NIST, ISO 42001, EU AI Act, OWASP), and search in plain language |
-| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | Describe any of 1,143 data types, browse products and trade events, and check a trade document for errors, with the location of each one |
+| `finos-mcp-cdm` | [Common Domain Model](https://cdm.finos.org/) | Explore 767 CDM types and 1,143 JSON schemas, browse products and trade events, and validate trade documents with exact error paths |
 | `finos-mcp-fdc3` | [FDC3](https://fdc3.finos.org/) | Look up 19 standard actions ("intents") and 28 data types, check a data object, and suggest which actions fit it |
+
+The three servers are also **published in the official MCP Registry** at v0.3.2:
+[AIGF](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-aigf/versions/0.3.2),
+[CDM](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-cdm/versions/0.3.2), and
+[FDC3](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-fdc3/versions/0.3.2).
+These public Registry records describe local `stdio` installable packages,
+**not a remotely hosted endpoint**.
 
 All three are built on [`finos-mcp-core`](core/), a shared package that holds the safety rules
 described below. The full list of 29 tools is in [docs/tools.md](docs/tools.md), and
