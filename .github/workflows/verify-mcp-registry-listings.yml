@@ -1,0 +1,26 @@
+name: verify-mcp-registry-listings
+
+# Read-only, unauthenticated verification of public entries. No publication.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-mcp-registry-listings.yml'
+      - 'scripts/check_registry_discoverability.py'
+      - 'registry/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-listings:
+    name: Verify three public Registry v0.3.2 listings
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check public Registry version metadata and stdio installation packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/check_registry_discoverability.py
