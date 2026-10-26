@@ -81,7 +81,7 @@ jobs:
   publish:
     name: Owner-approved Registry submission (AIGF, CDM, FDC3)
     needs: validate
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == github.repository_owner && github.repository == 'vardhjain/finos-mcp' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == github.repository_owner && github.triggering_actor == github.repository_owner && github.repository == 'vardhjain/finos-mcp' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
