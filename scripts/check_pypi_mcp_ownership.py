@@ -20,10 +20,13 @@ def ownership_marker_present(description: str, registry_name: str) -> bool:
     """Match the Registry's mcp-name token with an explicit trailing boundary."""
     import re
 
-    return re.search(
-        r"mcp-name:\s*" + re.escape(registry_name) + r"(?=\s|<|$)",
-        description,
-    ) is not None
+    return (
+        re.search(
+            r"mcp-name:\s*" + re.escape(registry_name) + r"(?=\s|<|$)",
+            description,
+        )
+        is not None
+    )
 
 
 def audit(fetch=urlopen) -> int:
@@ -38,8 +41,10 @@ def audit(fetch=urlopen) -> int:
                 info = json.load(response)["info"]
             description = info.get("description") or ""
             ok = ownership_marker_present(description, draft["name"])
-            print(f'{"PASS" if ok else "BLOCKED"}: {name}=={version}: '
-                  f'public PyPI ownership marker {"found" if ok else "missing"}')
+            print(
+                f"{'PASS' if ok else 'BLOCKED'}: {name}=={version}: "
+                f"public PyPI ownership marker {'found' if ok else 'missing'}"
+            )
             failed |= not ok
         except (HTTPError, URLError, TimeoutError, ValueError, KeyError) as exc:
             print(f"UNVERIFIED: {name}=={version}: {exc}", file=sys.stderr)
