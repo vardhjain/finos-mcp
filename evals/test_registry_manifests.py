@@ -83,6 +83,7 @@ def test_three_distinct_drafts_not_auto_published() -> None:
     assert "  push:" not in workflow
     assert "github.event_name == 'workflow_dispatch'" in workflow
     assert "github.actor == github.repository_owner" in workflow
+    assert "github.triggering_actor == github.repository_owner" in workflow
     assert "github.ref == 'refs/heads/main'" in workflow
     assert "id-token: write" not in workflow.split("  publish:")[0]
     assert "id-token: write" in workflow.split("  publish:")[1]
