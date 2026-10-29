@@ -1,0 +1,41 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "finos-mcp",
+  "version": "0.1.0",
+  "description": "Community-maintained, read-only AI governance, CDM and FDC3 tools for financial standards.",
+  "author": {
+    "name": "Vardh Jain",
+    "url": "https://github.com/vardhjain"
+  },
+  "homepage": "https://github.com/vardhjain/finos-mcp",
+  "repository": "https://github.com/vardhjain/finos-mcp",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mcp",
+    "finance",
+    "aigf",
+    "cdm",
+    "fdc3"
+  ],
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "FINOS MCP (Community)",
+        "shortDescription": "Read-only AIGF, CDM and FDC3 tools",
+        "longDescription": "Explore AI governance controls, validate Common Domain Model documents, and check FDC3 contexts and intents using independently maintained local MCP servers. Not an official FINOS product.",
+        "developerName": "Vardh Jain",
+        "category": "Productivity",
+        "capabilities": [
+          "Read"
+        ],
+        "websiteURL": "https://github.com/vardhjain/finos-mcp",
+        "defaultPrompt": [
+          "Find AIGF controls for prompt injection and cite their IDs.",
+          "Describe the CDM TradeState type and its schema.",
+          "Suggest standard FDC3 intents for an instrument context."
+        ]
+      }
+    }
+  }
+}
