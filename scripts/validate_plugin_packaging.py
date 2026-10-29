@@ -25,12 +25,8 @@ def main() -> None:
     claude_market = load(ROOT / ".claude-plugin" / "marketplace.json")
     codex_market = load(ROOT / ".agents" / "plugins" / "marketplace.json")
 
-    assert portable["$schema"] == (
-        "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
-    )
-    assert portable_mcp["$schema"] == (
-        "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
-    )
+    assert portable["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+    assert portable_mcp["$schema"] == "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
     assert portable["name"] == claude["name"] == "finos-mcp"
     assert portable["version"] == claude["version"]
     assert portable["extensions"]["com.openai"]["requires_local_executor"] is True
