@@ -24,8 +24,8 @@ permissions:
 
 jobs:
   validate:
-    name: plugin manifests (\${{ matrix.os }})
-    runs-on: \${{ matrix.os }}
+    name: plugin manifests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
