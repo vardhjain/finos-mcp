@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           for package in finos-mcp-aigf finos-mcp-cdm finos-mcp-fdc3; do
-            uvx --python 3.12 "${package}==0.3.2" --help > /dev/null
+            uv --no-config run --project plugins/finos-mcp --frozen --python 3.12 "${package}" --help > /dev/null
             echo "OK: ${package}"
           done
 

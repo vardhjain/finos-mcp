@@ -93,7 +93,10 @@ def check(config: str, server_key: str) -> None:
     server = manifest["mcpServers"][server_key]
     if "type" in server:
         assert server["type"] == "stdio"
-    client = MCPClient(server["command"], server["args"])
+    client = MCPClient(
+        server["command"],
+        [arg.replace("${CLAUDE_PLUGIN_ROOT}", str(PLUGIN)).replace("${PLUGIN_ROOT}", str(PLUGIN)) for arg in server["args"]],
+    )
     try:
         client.request(
             "initialize",

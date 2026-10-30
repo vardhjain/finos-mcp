@@ -1,6 +1,6 @@
 {
   "name": "finos-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read-only AIGF, CDM and FDC3 tools and workflows.",
   "author": {
     "name": "Vardh Jain"

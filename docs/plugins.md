@@ -9,7 +9,7 @@ metadata and portable Agent Plugins metadata for Codex.
 
 ## Requirements
 
-- Install uv and verify that uvx is available on the AI client's PATH.
+- Install uv and verify that uv is available on the AI client's PATH.
 - Allow uv to install or use Python 3.12 (uv python install 3.12).
 - Use a supported Claude Code or local Codex/ChatGPT desktop client.
 - The first launch downloads pinned PyPI packages; ordinary reference lookups
@@ -25,7 +25,7 @@ Run these commands **inside Claude Code**:
 
 Start a new session and check /mcp to verify that finos-aigf, finos-cdm
 and finos-fdc3 are connected. The plugin includes corresponding skills.
-If uvx is not found, add it to the application's PATH and restart.
+If uv is not found, add it to the application's PATH and restart.
 
 To validate from a local repo checkout:
 
@@ -79,3 +79,20 @@ Specification references:
 - [Claude marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
 - [OpenAI plugin packaging](https://developers.openai.com/plugins/build/plugins)
 - [Portable Agent Plugins](https://agent-plugins.org/specification)
+
+## Directory submission runtime
+
+Plugin 0.1.1 uses an independent plugin-local pyproject.toml and uv.lock.
+Launchers run uv --no-config run --project <plugin-root> --frozen against
+public-PyPI artifacts pinned with hashes, rather than resolving uvx dependencies
+from a checkout. The parent development workspace remains separate.
+Regenerate only this lock with:
+
+    uv --no-config lock --project plugins/finos-mcp --no-sources --default-index https://pypi.org/simple --python 3.12
+
+The native manifest uses ${CLAUDE_PLUGIN_ROOT}; the portable manifest uses
+${PLUGIN_ROOT}. Keep launcher behavior aligned. The directory may still require
+human review of the name similarity to finom. Local MCP support is limited to
+Claude Code and Cowork for plugin installs; web chat cannot launch these servers.
+The root portable plugin.json is for other clients and is intentionally ignored
+by Claude. The listing icon is .claude-plugin/icon.png.

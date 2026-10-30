@@ -1,6 +1,9 @@
 """Validate the shared Claude Code and portable MCP plugin package without network access."""
 
 import json
+import os
+import tomllib
+import struct
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,11 +36,13 @@ def main() -> None:
 
     assert set(portable_mcp["mcpServers"]) == set(claude_mcp["mcpServers"]) == set(PACKAGES)
     for key, package in PACKAGES.items():
-        args = ["--python", "3.12", f"{package}=={PIN}"]
+        args = ["--no-config", "run", "--project", "${CLAUDE_PLUGIN_ROOT}",
+                "--frozen", "--default-index", "https://pypi.org/simple",
+                "--python", "3.12", package]
         modern = portable_mcp["mcpServers"][key]
         legacy = claude_mcp["mcpServers"][key]
-        assert modern == {"type": "stdio", "command": "uvx", "args": args}
-        assert legacy == {"command": "uvx", "args": args}
+        assert modern == {"type": "stdio", "command": "uv", "args": [a.replace("${CLAUDE_PLUGIN_ROOT}", "${PLUGIN_ROOT}") for a in args]}
+        assert legacy == {"command": "uv", "args": args}
 
         skill_file = PLUGIN / "skills" / key / "SKILL.md"
         skill_text = skill_file.read_text(encoding="utf-8")
@@ -50,6 +55,26 @@ def main() -> None:
     assert claude_market["plugins"][0]["name"] == "finos-mcp"
     assert codex_market["plugins"][0]["name"] == "finos-mcp"
 
+    project = tomllib.loads((PLUGIN / "pyproject.toml").read_text())
+    assert set(project["project"]["dependencies"]) == {f"{p}=={PIN}" for p in PACKAGES.values()}
+    assert "sources" not in project.get("tool", {}).get("uv", {})
+    lock = tomllib.loads((PLUGIN / "uv.lock").read_text())
+    for pkg in lock["package"]:
+        if pkg["name"] == project["project"]["name"]:
+            continue
+        assert pkg["source"] == {"registry": "https://pypi.org/simple"}, pkg["name"]
+        artifacts = pkg.get("wheels", []) + ([pkg["sdist"]] if "sdist" in pkg else [])
+        assert artifacts and all(a["hash"].startswith("sha256:") for a in artifacts)
+    files = []
+    for directory, dirs, names in os.walk(PLUGIN):
+        dirs[:] = [d for d in dirs if d not in (".venv", "__pycache__")]
+        files.extend(Path(directory) / name for name in names)
+    assert len(files) <= 512
+    assert all(f.stat().st_size < 256 * 1024 for f in files)
+    icon = (PLUGIN / ".claude-plugin" / "icon.png").read_bytes()
+    assert icon[:8] == b"\x89PNG\r\n\x1a\n"
+    width, height = struct.unpack(">II", icon[16:24])
+    assert width == height and 512 <= width <= 2048 and len(icon) < 2 * 1024 * 1024
     print("OK: plugin manifests, marketplaces, skills and pinned MCP servers")
 
 

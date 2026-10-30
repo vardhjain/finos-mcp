@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "finos-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Community-maintained, read-only AI governance, CDM and FDC3 tools for financial standards.",
   "author": {
     "name": "Vardh Jain",

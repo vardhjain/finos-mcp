@@ -3,29 +3,50 @@
   "mcpServers": {
     "finos-aigf": {
       "type": "stdio",
-      "command": "uvx",
+      "command": "uv",
       "args": [
+        "--no-config",
+        "run",
+        "--project",
+        "${PLUGIN_ROOT}",
+        "--frozen",
+        "--default-index",
+        "https://pypi.org/simple",
         "--python",
         "3.12",
-        "finos-mcp-aigf==0.3.2"
+        "finos-mcp-aigf"
       ]
     },
     "finos-cdm": {
       "type": "stdio",
-      "command": "uvx",
+      "command": "uv",
       "args": [
+        "--no-config",
+        "run",
+        "--project",
+        "${PLUGIN_ROOT}",
+        "--frozen",
+        "--default-index",
+        "https://pypi.org/simple",
         "--python",
         "3.12",
-        "finos-mcp-cdm==0.3.2"
+        "finos-mcp-cdm"
       ]
     },
     "finos-fdc3": {
       "type": "stdio",
-      "command": "uvx",
+      "command": "uv",
       "args": [
+        "--no-config",
+        "run",
+        "--project",
+        "${PLUGIN_ROOT}",
+        "--frozen",
+        "--default-index",
+        "https://pypi.org/simple",
         "--python",
         "3.12",
-        "finos-mcp-fdc3==0.3.2"
+        "finos-mcp-fdc3"
       ]
     }
   }
