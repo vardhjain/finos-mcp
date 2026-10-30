@@ -48,6 +48,10 @@ jobs:
             echo "OK: ${package}"
           done
 
+      - name: Exercise real MCP calls via both plugin configurations
+        if: matrix.os == 'ubuntu-latest'
+        run: python scripts/smoke_plugin_mcp.py
+
   native-client-validation:
     name: Native Claude and Codex plugin validation
     runs-on: ubuntu-latest
