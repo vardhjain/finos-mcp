@@ -51,9 +51,7 @@ class MCPClient:
     def request(self, method: str, params: dict[str, Any]) -> dict[str, Any]:
         self.next_id += 1
         request_id = self.next_id
-        self.send(
-            {"jsonrpc": "2.0", "id": request_id, "method": method, "params": params}
-        )
+        self.send({"jsonrpc": "2.0", "id": request_id, "method": method, "params": params})
         while True:
             try:
                 line = self.lines.get(timeout=TIMEOUT)
