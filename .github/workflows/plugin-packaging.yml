@@ -47,3 +47,25 @@ jobs:
             uvx --python 3.12 "${package}==0.3.2" --help > /dev/null
             echo "OK: ${package}"
           done
+
+  native-client-validation:
+    name: Native Claude and Codex plugin validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install native plugin CLIs without model authentication
+        run: npm install --global @anthropic-ai/claude-code @openai/codex
+      - name: Validate Claude plugin and marketplace (strict)
+        run: |
+          claude --version
+          claude plugin validate ./plugins/finos-mcp --strict
+          claude plugin validate . --strict
+      - name: Register and inspect local Codex marketplace
+        run: |
+          codex --version
+          codex plugin marketplace add .
+          codex plugin marketplace list
