@@ -2,8 +2,8 @@
 
 import json
 import os
-import tomllib
 import struct
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,12 +36,25 @@ def main() -> None:
 
     assert set(portable_mcp["mcpServers"]) == set(claude_mcp["mcpServers"]) == set(PACKAGES)
     for key, package in PACKAGES.items():
-        args = ["--no-config", "run", "--project", "${CLAUDE_PLUGIN_ROOT}",
-                "--frozen", "--default-index", "https://pypi.org/simple",
-                "--python", "3.12", package]
+        args = [
+            "--no-config",
+            "run",
+            "--project",
+            "${CLAUDE_PLUGIN_ROOT}",
+            "--frozen",
+            "--default-index",
+            "https://pypi.org/simple",
+            "--python",
+            "3.12",
+            package,
+        ]
         modern = portable_mcp["mcpServers"][key]
         legacy = claude_mcp["mcpServers"][key]
-        assert modern == {"type": "stdio", "command": "uv", "args": [a.replace("${CLAUDE_PLUGIN_ROOT}", "${PLUGIN_ROOT}") for a in args]}
+        assert modern == {
+            "type": "stdio",
+            "command": "uv",
+            "args": [a.replace("${CLAUDE_PLUGIN_ROOT}", "${PLUGIN_ROOT}") for a in args],
+        }
         assert legacy == {"command": "uv", "args": args}
 
         skill_file = PLUGIN / "skills" / key / "SKILL.md"
