@@ -1,0 +1,20 @@
+{
+  "name": "finos-mcp",
+  "interface": {
+    "displayName": "FINOS MCP Community Plugins"
+  },
+  "plugins": [
+    {
+      "name": "finos-mcp",
+      "source": {
+        "source": "local",
+        "path": "./plugins/finos-mcp"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

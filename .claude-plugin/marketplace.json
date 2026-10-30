@@ -1,0 +1,14 @@
+{
+  "name": "finos-mcp",
+  "description": "Community plugin for financial industry reference standards.",
+  "owner": {
+    "name": "Vardh Jain"
+  },
+  "plugins": [
+    {
+      "name": "finos-mcp",
+      "source": "./plugins/finos-mcp",
+      "description": "Read-only AIGF, CDM and FDC3 MCP servers and skills."
+    }
+  ]
+}

@@ -26,6 +26,11 @@
 [FDC3](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-fdc3/versions/0.3.2).
 All three are **local stdio** packages, not public hosted endpoints.
 
+**Claude Code and Codex plugins:** A community-maintained plugin can bundle all three
+servers and their guided AIGF, CDM, and FDC3 skills. See the
+[plugin installation guide](docs/plugins.md) for marketplace setup and local
+runtime requirements; the existing manual MCP commands below still work.
+
 **Claude Code quick connect:** With [Claude Code](https://code.claude.com/docs/en/mcp)
 and [uv](https://docs.astral.sh/uv/) installed, run **one** of the following
 commands for the standard you need:

@@ -1,0 +1,75 @@
+name: plugin-packaging
+
+on:
+  pull_request:
+    paths:
+      - "plugins/**"
+      - ".claude-plugin/**"
+      - ".agents/plugins/**"
+      - "scripts/validate_plugin_packaging.py"
+      - "docs/plugins.md"
+      - ".github/workflows/plugin-packaging.yml"
+  push:
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - ".claude-plugin/**"
+      - ".agents/plugins/**"
+      - "scripts/validate_plugin_packaging.py"
+      - ".github/workflows/plugin-packaging.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: plugin manifests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Validate Claude and portable plugin configs
+        run: python scripts/validate_plugin_packaging.py
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+      - name: Smoke-check pinned PyPI CLI entry points
+        shell: bash
+        run: |
+          for package in finos-mcp-aigf finos-mcp-cdm finos-mcp-fdc3; do
+            uvx --python 3.12 "${package}==0.3.2" --help > /dev/null
+            echo "OK: ${package}"
+          done
+
+      - name: Exercise real MCP calls via both plugin configurations
+        if: matrix.os == 'ubuntu-latest'
+        run: python scripts/smoke_plugin_mcp.py
+
+  native-client-validation:
+    name: Native Claude and Codex plugin validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install native plugin CLIs without model authentication
+        run: npm install --global @anthropic-ai/claude-code @openai/codex
+      - name: Validate Claude plugin and marketplace (strict)
+        run: |
+          claude --version
+          claude plugin validate ./plugins/finos-mcp --strict
+          claude plugin validate . --strict
+      - name: Register and inspect local Codex marketplace
+        run: |
+          codex --version
+          codex plugin marketplace add .
+          codex plugin marketplace list
