@@ -1,6 +1,6 @@
 {
   "agent": {},
-  "commit": "b7857ed9bc43f690cd53ab5c8e9cff216c66989a",
+  "commit": "9a8c6e7a2647646d993d0a1ee75c4142167c97e4",
   "exposure": {
     "aigf.controls": 25,
     "aigf.crosswalk_refs": 763,
@@ -22,154 +22,154 @@
     "resources_total": 14,
     "tools_total": 29
   },
-  "generated_at": "2026-11-06T18:11:26+00:00",
+  "generated_at": "2026-11-06T18:52:47+00:00",
   "latency_detail": {
     "aigf.find_by_external_reference": {
       "budget_p95": 10.0,
-      "mean": 0.795,
+      "mean": 0.718,
       "n": 100,
-      "p50": 0.788,
-      "p95": 0.85,
-      "p99": 0.909
+      "p50": 0.714,
+      "p95": 0.748,
+      "p99": 0.793
     },
     "aigf.get_control": {
       "budget_p95": 10.0,
-      "mean": 0.667,
+      "mean": 0.625,
       "n": 100,
-      "p50": 0.659,
-      "p95": 0.704,
-      "p99": 0.744
+      "p50": 0.618,
+      "p95": 0.683,
+      "p99": 0.74
     },
     "aigf.get_risk": {
       "budget_p95": 10.0,
-      "mean": 1.093,
+      "mean": 1.025,
       "n": 100,
-      "p50": 1.087,
-      "p95": 1.121,
-      "p99": 1.202
+      "p50": 1.021,
+      "p95": 1.042,
+      "p99": 1.094
     },
     "aigf.list_risks": {
       "budget_p95": 10.0,
-      "mean": 1.064,
+      "mean": 0.952,
       "n": 100,
-      "p50": 1.061,
-      "p95": 1.089,
-      "p99": 1.167
+      "p50": 0.949,
+      "p95": 0.978,
+      "p99": 1.02
     },
     "aigf.map_risks_to_controls": {
       "budget_p95": 10.0,
-      "mean": 0.999,
+      "mean": 0.931,
       "n": 100,
-      "p50": 0.992,
-      "p95": 1.064,
-      "p99": 1.082
+      "p50": 0.926,
+      "p95": 0.955,
+      "p99": 1.001
     },
     "aigf.search_framework": {
       "budget_p95": 25.0,
-      "mean": 1.685,
+      "mean": 1.576,
       "n": 100,
-      "p50": 1.672,
-      "p95": 1.774,
-      "p99": 1.874
+      "p50": 1.572,
+      "p95": 1.622,
+      "p99": 1.675
     },
     "aigf.search_status": {
       "budget_p95": 5.0,
-      "mean": 0.295,
+      "mean": 0.258,
       "n": 100,
-      "p50": 0.281,
-      "p95": 0.363,
-      "p99": 0.464
+      "p50": 0.246,
+      "p95": 0.326,
+      "p99": 0.399
     },
     "cdm.describe_type": {
       "budget_p95": 5.0,
-      "mean": 0.634,
+      "mean": 0.597,
       "n": 100,
-      "p50": 0.624,
-      "p95": 0.658,
-      "p99": 0.736
+      "p50": 0.588,
+      "p95": 0.641,
+      "p99": 0.694
     },
     "cdm.explain_event": {
       "budget_p95": 10.0,
-      "mean": 0.399,
+      "mean": 0.412,
       "n": 100,
-      "p50": 0.392,
-      "p95": 0.432,
-      "p99": 0.538
+      "p50": 0.409,
+      "p95": 0.443,
+      "p99": 0.502
     },
     "cdm.list_types": {
       "budget_p95": 10.0,
-      "mean": 3.614,
+      "mean": 3.177,
       "n": 100,
-      "p50": 2.879,
-      "p95": 3.72,
-      "p99": 4.262
+      "p50": 2.723,
+      "p95": 3.152,
+      "p99": 3.263
     },
     "cdm.search_types": {
       "budget_p95": 25.0,
-      "mean": 1.946,
+      "mean": 1.798,
       "n": 100,
-      "p50": 1.761,
-      "p95": 3.592,
-      "p99": 3.919
+      "p50": 1.847,
+      "p95": 1.889,
+      "p99": 1.936
     },
     "cdm.validate_object": {
       "budget_p95": 150.0,
-      "mean": 18.83,
+      "mean": 17.776,
       "n": 100,
-      "p50": 18.717,
-      "p95": 19.567,
-      "p99": 21.26
+      "p50": 17.778,
+      "p95": 17.986,
+      "p99": 18.043
     },
     "fdc3.get_context_schema": {
       "budget_p95": 5.0,
-      "mean": 0.549,
+      "mean": 0.517,
       "n": 100,
-      "p50": 0.544,
-      "p95": 0.596,
-      "p99": 0.63
+      "p50": 0.511,
+      "p95": 0.559,
+      "p99": 0.588
     },
     "fdc3.list_intents": {
       "budget_p95": 10.0,
-      "mean": 1.07,
+      "mean": 1.015,
       "n": 100,
-      "p50": 1.066,
-      "p95": 1.089,
-      "p99": 1.16
+      "p50": 1.011,
+      "p95": 1.051,
+      "p99": 1.099
     },
     "fdc3.suggest_intent": {
       "budget_p95": 10.0,
-      "mean": 0.782,
+      "mean": 0.742,
       "n": 100,
-      "p50": 0.775,
-      "p95": 0.818,
-      "p99": 0.872
+      "p50": 0.739,
+      "p95": 0.767,
+      "p99": 0.811
     },
     "fdc3.validate_context": {
       "budget_p95": 10.0,
-      "mean": 0.365,
+      "mean": 0.343,
       "n": 100,
-      "p50": 0.356,
-      "p95": 0.385,
-      "p99": 0.463
+      "p50": 0.336,
+      "p95": 0.37,
+      "p99": 0.441
     }
   },
   "latency_ms_p95": {
-    "aigf.find_by_external_reference": 0.85,
-    "aigf.get_control": 0.704,
-    "aigf.get_risk": 1.121,
-    "aigf.list_risks": 1.089,
-    "aigf.map_risks_to_controls": 1.064,
-    "aigf.search_framework": 1.774,
-    "aigf.search_status": 0.363,
-    "cdm.describe_type": 0.658,
-    "cdm.explain_event": 0.432,
-    "cdm.list_types": 3.72,
-    "cdm.search_types": 3.592,
-    "cdm.validate_object": 19.567,
-    "fdc3.get_context_schema": 0.596,
-    "fdc3.list_intents": 1.089,
-    "fdc3.suggest_intent": 0.818,
-    "fdc3.validate_context": 0.385
+    "aigf.find_by_external_reference": 0.748,
+    "aigf.get_control": 0.683,
+    "aigf.get_risk": 1.042,
+    "aigf.list_risks": 0.978,
+    "aigf.map_risks_to_controls": 0.955,
+    "aigf.search_framework": 1.622,
+    "aigf.search_status": 0.326,
+    "cdm.describe_type": 0.641,
+    "cdm.explain_event": 0.443,
+    "cdm.list_types": 3.152,
+    "cdm.search_types": 1.889,
+    "cdm.validate_object": 17.986,
+    "fdc3.get_context_schema": 0.559,
+    "fdc3.list_intents": 1.051,
+    "fdc3.suggest_intent": 0.767,
+    "fdc3.validate_context": 0.37
   },
   "offline_evals": {
     "by_server": {
@@ -440,7 +440,7 @@
     },
     "cdm": {
       "resource_count": 4,
-      "standard_version": "7.8.0",
+      "standard_version": "7.9.0",
       "tool_count": 9,
       "tools": [
         "describe_type",
@@ -453,8 +453,8 @@
         "server_info",
         "validate_object"
       ],
-      "upstream_commit": "5b852ed61573467c8f8e6bb5cc02779a70df032d",
-      "upstream_ref": "7.8.0",
+      "upstream_commit": "0f1f99aef829c23910476981bb91256544cb8569",
+      "upstream_ref": "7.9.0",
       "version": "0.3.2"
     },
     "fdc3": {
