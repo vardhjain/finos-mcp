@@ -1,5 +1,43 @@
 # Releasing FINOS MCP
 
+## v0.3.3 candidate — preparation complete, publication pending
+
+The current source targets v0.3.3. Reviewed notes are in
+[docs/releases/v0.3.3.md](docs/releases/v0.3.3.md). No v0.3.3 tag, public package,
+container or Registry record is created by preparing or merging this change.
+The v0.3.2 procedures below are historical reference only.
+
+Before publication, require green CI and release-preflight for the merged
+candidate. The preflight must build and inspect four wheels and four source
+archives and install the wheels on Python 3.12 and 3.14. Locally:
+
+```bash
+uv lock --check
+python scripts/release_check.py --tag v0.3.3
+```
+
+After separate explicit owner approval, use `publish-release.yml` on `main`
+with version `0.3.3`, the exact reviewed post-merge 40-character SHA, and
+confirmation `PUBLISH v0.3.3`. Verify the existing four trusted publishers,
+`PUBLISH_TO_PYPI=true` and empty `PYPI_SKIP_PACKAGES` before dispatch. Do not
+run this workflow merely to validate preparation.
+
+After successful PyPI, GitHub Release and GHCR publication, verify the exact
+version through `verify-public-pypi.yml` with version `0.3.3`. Only then update
+public install recipes. New MCP Registry records require separate approval:
+`publish-mcp-registry.yml`, the same release-tag/current-main SHA and
+`PUBLISH MCP REGISTRY v0.3.3`. Its live PyPI audit runs only on manual dispatch;
+PRs validate candidate manifests without assuming they are already public.
+For independent verification after publication:
+
+```bash
+python scripts/check_pypi_mcp_ownership.py --version 0.3.3
+python scripts/check_registry_discoverability.py --version 0.3.3
+```
+
+Until then, public audits and install/plugin examples remain pinned to 0.3.2.
+Never rerun an immutable version after partial publication without inspection.
+
 > **v0.3.2 completed on 2026-10-26.** All four PyPI packages, the
 > [GitHub Release](https://github.com/vardhjain/finos-mcp/releases/tag/v0.3.2),
 > GHCR image, and all three official MCP Registry entries are published and

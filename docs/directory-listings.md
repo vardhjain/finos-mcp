@@ -1,7 +1,10 @@
 # Directory listings and official Registry publication
 
 Maintainer notes for how to help developers **discover** the independent
-FINOS MCP project. Last reviewed: **26 October 2026**.
+FINOS MCP project. Last reviewed: **6 November 2026**.
+
+The v0.3.3 release candidate is not published. Installation and public Registry
+links below intentionally refer to the verified v0.3.2 release.
 
 **Ownership and affiliation:** The packages belong to
 [`vardhjain/finos-mcp`](https://github.com/vardhjain/finos-mcp).
@@ -40,7 +43,7 @@ is implied by merging this documentation.
 
 | Directory | Current situation | Next step |
 |---|---|---|
-| [Glama](https://glama.ai/mcp/servers/vardhjain/finos-mcp) | **Already indexed**. Its snapshot still says 23 AIGF risks / 23 controls, CDM 7.7.0-era numbers, and labels the entry *Remote*, though our recommended install is local `uvx` over stdio. | **Already claimed; refresh the existing listing**, and correct its description and local/remote classification. Do **not** submit a duplicate entry, assume Glama's generated preview is up to date, or pay for hosting. |
+| [Glama](https://glama.ai/mcp/servers/vardhjain/finos-mcp) | Already indexed and already claimed. Glama support confirmed that **Remote means remote-capable**, including deployment through Glama hosting; it does **not** mean this project operates a public endpoint. | Classification resolved: leave the label and `glama.json` unchanged. Its embedded README now describes all three servers; the generated overview may still emphasize AIGF. No duplicate entry, hosting purchase, or classification follow-up is needed. |
 | [Official MCP Registry](https://registry.modelcontextprotocol.io/) | **All three v0.3.2 servers published and independently verified active** with local `stdio` packages. | No resubmission needed. Keep metadata accurate and perform read-only discoverability checks after future changes. |
 | [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) | Community list accepts open GitHub servers but its PR bot currently expects a valid Glama listing and score badge; the PR queue is long. | Consider a standards/data category entry **after** the Glama details are corrected; no unsolicited PR now. |
 | [mcpnav](https://mcpnav.dev/submit/) | Aggregates the official MCP Registry and community awesome lists, with no direct submission route. | Expect it to discover the project *through* the official Registry or awesome list. |
@@ -76,17 +79,19 @@ GitHub account `vardhjain`. The [Glama maintainer file instructions](https://gla
 explain this repository's ownership hint. The claim does **not**
 automatically change old indexed descriptions or Glama's Remote label.
 
-1. In the existing listing's owner/admin view, update its description
-   to describe all three local `uvx`/stdio servers and request a
-   repository reindex/sync.
-2. The owner has contacted Glama support about the misleading
-   **Remote** classification. Follow up on [issue #40](https://github.com/vardhjain/finos-mcp/issues/40)
-   if the public label stays incorrect; no hosted endpoint should be claimed.
-3. Verify the actual **public** listing, including source version,
-   capabilities, classification and non-affiliation. Close issue #40
-   only after confirmation. Do not create a duplicate Glama entry.
+Glama support confirmed on 6 November 2026 (reported by the owner) that
+**Remote means remote-capable**: the server builds on Glama and can be deployed
+through its hosting. It does **not** claim that this project runs a public
+hosted endpoint. **No classification change is required.**
 
-### Correction text for the existing Glama page
+The public embedded README was checked on 6 November and includes all three
+servers, version-pinned v0.3.2 installation, the current published counts,
+non-affiliation, and manual opt-in paid evaluation. Glama's generated overview
+still emphasizes AIGF; this is an optional editorial refinement, not a blocker.
+The classification task in [issue #40](https://github.com/vardhjain/finos-mcp/issues/40)
+is resolved. Do not submit a duplicate listing or provision hosting.
+
+### Optional description for the existing Glama page
 
 **Suggested name:** FINOS MCP — AIGF, CDM and FDC3 (community project)
 
@@ -99,13 +104,13 @@ automatically change old indexed descriptions or Glama's Remote label.
 > `uvx`; self-hosted Streamable HTTP and Docker are optional.
 > Not affiliated with or endorsed by FINOS.
 
-**Facts to correct (verified from the current repository):**
+**Published v0.3.2 facts (reference for future profile edits):**
 
 | Glama snapshot | Correct information |
 |---|---|
 | 23 AIGF risks / 23 controls | **24 risks / 25 controls** in the current vendored framework |
 | CDM 7.7.0-era information, 1,142 types | Primary CDM **7.8.0**, **767 types and 1,143 JSON schemas**, with CDM 6.30.0 legacy schemas also supported. Don't confuse schema and type counts. |
-| "Remote" as the only use mode | **Local stdio via `uvx` is the default**; self-hosted Streamable HTTP is optional. There is no publicly operated remote endpoint from this project. |
+| Remote badge | Correct as remote-capable; local stdio via `uvx` remains available. No project-operated public endpoint is implied. |
 | Published project version 0.2.6 | Latest public version is **0.3.2**. Later `main` changes are not necessarily on PyPI. |
 | AIGF-only first impression | Repo contains **three separate MCP servers**: `finos-mcp-aigf`, `finos-mcp-cdm`, and `finos-mcp-fdc3`. The core package is a library, not a fourth server. |
 | Claim that paid evaluations run nightly | Paid LLM evaluation is **manual opt-in**, not scheduled. Offline checks run in CI. |
@@ -200,10 +205,8 @@ other systems.
 
 ## Next owner action
 
-The **official MCP Registry is complete** for AIGF, CDM and FDC3 v0.3.2.
-The remaining directory task is correcting the already-claimed
-[Glama listing](https://glama.ai/mcp/servers/vardhjain/finos-mcp):
-its outdated profile/sync and misleading Remote label are tracked in
-[issue #40](https://github.com/vardhjain/finos-mcp/issues/40).
-This documentation update does not submit new directory entries,
-require hosting or make paid API calls.
+The official MCP Registry is complete for AIGF, CDM and FDC3 v0.3.2, and the
+Glama classification question is resolved. No directory action is required.
+Prepare and review v0.3.3 separately; publishing PyPI, GHCR, a GitHub Release,
+and new Registry versions requires explicit release approval. Do not describe
+the candidate as published or change live install examples before verification.

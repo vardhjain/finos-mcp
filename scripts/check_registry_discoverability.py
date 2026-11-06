@@ -7,6 +7,7 @@ authenticate, mutate or publish anything.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -19,11 +20,11 @@ COMPONENTS = ("aigf", "cdm", "fdc3")
 REGISTRY = "https://registry.modelcontextprotocol.io/v0.1"
 
 
-def verify_entry(component: str) -> None:
+def verify_entry(component: str, version_override: str | None = None) -> None:
     """Require the exact released metadata from the public Registry API."""
     manifest = json.loads((ROOT / "registry" / component / "server.json").read_text())
     name = manifest["name"]
-    version = manifest["version"]
+    version = version_override or manifest["version"]
     url = f"{REGISTRY}/servers/{quote(name, safe='')}/versions/{quote(version, safe='')}"
     with urlopen(url, timeout=20) as response:
         payload = json.load(response)
@@ -35,7 +36,7 @@ def verify_entry(component: str) -> None:
     assert any(
         package.get("registryType") == "pypi"
         and package.get("identifier") == expected_package["identifier"]
-        and package.get("version") == expected_package["version"]
+        and package.get("version") == version
         and package.get("transport", {}).get("type") == "stdio"
         for package in server.get("packages", [])
     ), f"{component}: expected public PyPI/stdio package missing"
@@ -48,10 +49,13 @@ def verify_entry(component: str) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--version", help="Published version to audit instead of the candidate")
+    args = parser.parse_args()
     failed = False
     for component in COMPONENTS:
         try:
-            verify_entry(component)
+            verify_entry(component, args.version)
         except (
             HTTPError,
             URLError,

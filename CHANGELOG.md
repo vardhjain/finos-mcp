@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.3 — release candidate (not published)
+
 - Refresh AIGF to the v3 upstream snapshot and preserve readable risk/control
   type labels with both v2 and v3 configuration keys.
 
