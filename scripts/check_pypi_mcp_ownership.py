@@ -6,6 +6,7 @@ No package upload, registry authentication, or publishing takes place.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -29,12 +30,12 @@ def ownership_marker_present(description: str, registry_name: str) -> bool:
     )
 
 
-def audit(fetch=urlopen) -> int:
+def audit(fetch=urlopen, version_override: str | None = None) -> int:
     failed = False
     for component in COMPONENTS:
         draft = json.loads((ROOT / "registry" / component / "server.json").read_text())
         package = draft["packages"][0]
-        name, version = package["identifier"], package["version"]
+        name, version = package["identifier"], version_override or package["version"]
         url = f"https://pypi.org/pypi/{name}/{version}/json"
         try:
             with fetch(url, timeout=15) as response:
@@ -57,4 +58,7 @@ def audit(fetch=urlopen) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(audit())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--version", help="Published version to audit instead of the candidate")
+    args = parser.parse_args()
+    raise SystemExit(audit(version_override=args.version))

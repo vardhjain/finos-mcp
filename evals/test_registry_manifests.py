@@ -71,7 +71,7 @@ def test_three_distinct_drafts_not_auto_published() -> None:
     assert found == [f"{component}/server.json" for component in COMPONENTS]
     guide = (ROOT / "registry" / "README.md").read_text(encoding="utf-8")
     assert "Do not publish directly from a PR, merge, or tag" in guide
-    assert "PUBLISH MCP REGISTRY v0.3.2" in guide
+    assert "PUBLISH MCP REGISTRY v0.3.3" in guide
     assert "public PyPI" in guide
     assert "0.3.2" in guide
 

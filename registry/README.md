@@ -1,4 +1,4 @@
-# Official MCP Registry — published v0.3.2 metadata
+# Official MCP Registry — v0.3.3 candidates and v0.3.2 public records
 
 The files in [aigf/server.json](aigf/server.json),
 [cdm/server.json](cdm/server.json), and
@@ -8,8 +8,8 @@ a fourth server.
 
 The manifests follow the official
 [server.json schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json)
-and describe **published PyPI v0.3.2** and `uvx`. All three MCP Registry
-entries are published and independently verified through the public API.
+and describe **candidate PyPI v0.3.3** and `uvx`. They are not published. All three MCP Registry
+entries at **v0.3.2** are published and independently verified through the public API.
 
 ## Upstream JSON Schema checks in CI
 
@@ -84,7 +84,7 @@ server and package names, PyPI version 0.3.2 and local stdio transports:
 - [FDC3 public Registry API](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.vardhjain%2Ffinos-mcp-fdc3/versions/0.3.2)
 
 Run the [read-only listing verification](../.github/workflows/verify-mcp-registry-listings.yml)
-on demand or with `python scripts/check_registry_discoverability.py`.
+on demand or with `python scripts/check_registry_discoverability.py --version 0.3.2`.
 No GitHub or Registry authentication is needed to check these entries.
 
 The four v0.3.2 Python packages, the GitHub Release and all three official
@@ -164,11 +164,11 @@ CLI reference: [`mcp-publisher validate`](https://github.com/modelcontextprotoco
 
 ## Checklist for future new-version publication
 
-1. Confirm that each draft names the already-published PyPI v0.3.2
-   distribution, and that both `version` and `packages[0].version` are
-   `0.3.2`. Run the offline manifest tests.
+1. Candidate manifests target v0.3.3. After an approved PyPI release, confirm
+   all three public v0.3.3 package descriptions and matching ownership markers.
+   Run the offline manifest tests before publication.
 2. Run the read-only `pypi-ownership-audit` workflow, or
-   `python scripts/check_pypi_mcp_ownership.py`, and require **PASS for
+   `python scripts/check_pypi_mcp_ownership.py --version 0.3.2`, and require **PASS for
    AIGF, CDM, and FDC3** against the *public* PyPI descriptions.
 3. Run the latest official `mcp-publisher validate` for all three
    manifests. Confirm GitHub namespace ownership and current policies.
@@ -189,3 +189,15 @@ Official sources:
 [package ownership](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx),
 [quickstart](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/quickstart.mdx),
 [server.json reference](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/generic-server-json.md).
+
+## v0.3.3 preparation
+
+The three `server.json` files are now candidate manifests for v0.3.3, not proof
+of publication. Public v0.3.2 records above remain the verified installation
+source. **Do not publish directly from a PR, merge, or tag.**
+
+After explicit approval and verified public PyPI v0.3.3 packages, the guarded
+workflow requires `PUBLISH MCP REGISTRY v0.3.3` and an exact current-main SHA
+matching the v0.3.3 release tag, plus successful CI. Live PyPI ownership checks
+run on manual dispatch; PR validation checks candidate metadata without requiring
+an unpublished PyPI version. Existing Registry versions are never overwritten.

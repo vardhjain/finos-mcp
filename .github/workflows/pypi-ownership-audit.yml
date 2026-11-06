@@ -25,4 +25,4 @@ jobs:
           PYTHONUTF8: "1"
         run: |
           set -euo pipefail
-          python3 scripts/check_pypi_mcp_ownership.py
+          python3 scripts/check_pypi_mcp_ownership.py --version 0.3.2
