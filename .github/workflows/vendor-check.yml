@@ -44,7 +44,24 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         continue-on-error: true
         run: uv run pytest servers/aigf/tests servers/cdm/tests/test_registry.py servers/fdc3/tests -rf
+      # Preserve the staged content before create-pull-request commits/resets it.
+      - name: Save reviewable vendor changes
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/vendor-resync"
+          git rev-parse HEAD > "$RUNNER_TEMP/vendor-resync/base.txt"
+          git diff --cached --binary --full-index > "$RUNNER_TEMP/vendor-resync/vendor.patch"
+          cp /tmp/stat.txt "$RUNNER_TEMP/vendor-resync/stat.txt"
+      - name: Upload vendor recovery artifact
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: vendor-resync
+          path: ${{ runner.temp }}/vendor-resync/
+          if-no-files-found: error
+          retention-days: 14
       - name: Open a pull request
+        id: sync_pr
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
@@ -53,6 +70,24 @@ jobs:
           commit-message: "chore(vendor): resync upstream content"
           body-path: /tmp/stat.txt
           labels: vendor
+      - name: Explain pull request creation failure
+        if: failure() && steps.sync_pr.outcome == 'failure'
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## Vendor changes need a pull request
+
+          The upstream sync completed, but the pull request action failed. Check its
+          logs for the cause. If GitHub reports "GitHub Actions is not permitted to
+          create or approve pull requests", the repository owner can enable
+          **Settings → Actions → General → Workflow permissions → Allow GitHub
+          Actions to create and approve pull requests**, then rerun this workflow.
+
+          If the branch was pushed, open a PR from `chore/vendor-resync` to `main`.
+          Otherwise download the `vendor-resync` artifact and apply its patch on a
+          fresh branch at the commit recorded in `base.txt`. See CONTRIBUTING.md
+          for recovery commands. Review the drift-test result before merging.
+          This run remains failed; an artifact is not a successful sync PR.
+          EOF
       - name: Fail if updated content broke drift tests
         if: steps.diff.outputs.changed == 'true' && steps.drift_tests.outcome == 'failure'
         run: |
