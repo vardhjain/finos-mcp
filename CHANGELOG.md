@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Refresh the vendored CDM primary schema and Rune samples to 7.9.0 and the
+  legacy schema and samples to 6.31.0, with regenerated SHA-256 provenance.
+  Published v0.3.2 packages and Registry records retain CDM 7.8.0 / 6.30.0.
+
 ## 0.3.2 — 2026-10-26
 
 ### Released

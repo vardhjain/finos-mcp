@@ -49,7 +49,7 @@ references, not deciding whether an organization is legally compliant.
 ## 2. Understand a CDM trade type
 
 You need to generate or validate a trade document but aren't sure what
-`TradeState` looks like. CDM 7.8.0 has vendored type descriptions and schemas
+`TradeState` looks like. CDM 7.9.0 has vendored type descriptions and schemas
 and supports validation of Rune and legacy CDM JSON formats.
 
 ```bash
