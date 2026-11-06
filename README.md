@@ -214,8 +214,8 @@ what changed in each release, [RELEASING.md](RELEASING.md) for how releases are 
 ## Status
 
 For maintainers, [MCP directory and Registry status](docs/directory-listings.md)
-records the three already-published official Registry entries and the pending
-Glama listing correction. Future third-party directory submissions require
+records the three already-published official Registry entries and the resolved
+Glama classification question. Future third-party directory submissions require
 separate approval.
 
 The [latest published release](https://github.com/vardhjain/finos-mcp/releases/latest) is available on
