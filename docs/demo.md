@@ -22,7 +22,7 @@ terminal recorder installed, run `vhs examples/demo.tape`.
 
 **Historical snapshot:** The transcript below was captured with CDM 7.7.0
 before the v0.3.1 release. Current `main` and published v0.3.1 instead bundle
-**CDM 7.8.0**, so current validator messages may differ from the example below.
+**CDM 7.9.0**, so current validator messages may differ from the example below.
 The live demo script is still run on every CI pull request and uploads
 `demo-transcript.txt` in the metrics artifact; follow the commands above to
 produce a fresh transcript. For simpler, currently tested examples, see

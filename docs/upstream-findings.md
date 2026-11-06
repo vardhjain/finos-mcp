@@ -30,10 +30,15 @@ not.
 
 These were found against CDM 7.2.0 and 6.27.0 and are written as observed then. The vendored
 content moved to 7.4.0 and 6.29.0 on 2026-10-04 and to 7.5.0 on 2026-10-05.
-The current primary schema is 7.8.0 and the legacy schema is 6.30.0, both sourced
-from the official Maven Central releases on 2026-10-25. Known issues remain
+The unreleased development snapshot uses primary CDM 7.9.0 and legacy CDM 6.31.0,
+sourced from the official Maven Central releases on 2026-11-06. Published v0.3.2
+packages still contain CDM 7.8.0 and 6.30.0. Known issues remain
 covered by pinned tests; if an upstream fix changes behavior, update the
-corresponding finding and assertion together. Finding 9
+corresponding finding and assertion together. The 2026-11-06 refresh found the
+parsed schema payloads identical to 7.8.0 / 6.30.0 (only bundle version/source
+metadata changed), and all 94 CDM/golden/offline-workflow tests passed with the
+same counts and validation outcomes. Findings 3–8 and 10 therefore still apply;
+no workaround was removed. Finding 9
 concerns the `finos-cdm` 7.2.0 package and was not re-tested.
 
 3. **Rosetta basic-type names leak into JSON Schema `type`.** Eight 7.2.0 schema files emit
