@@ -3,7 +3,7 @@
   "ref": "7.9.0",
   "commit_sha": "0f1f99aef829c23910476981bb91256544cb8569",
   "version": "7.9.0",
-  "fetched_at": "2026-11-06T18:44:44+00:00",
+  "fetched_at": "2026-11-06T18:52:47+00:00",
   "license": "Community-Spec-1.0",
   "license_url": "https://github.com/finos/common-domain-model/blob/master/LICENSE.md",
   "notes": "cdm-json-schema-7.9.0.zip from Maven Central, bundled into _vendor/schemas/cdm-json-schema-7.9.0.json (primary version=7.9.0, one JSON file holding every *.schema.json member keyed by filename, instead of one file per schema); cdm-json-schema-6.31.0.zip also vendored the same way to _vendor/schemas/cdm-json-schema-6.31.0.json so legacy-format samples can be validated against a schema of matching vintage; samples from tags 7.9.0 (Rune JSON) and 6.31.0 (legacy JSON); qualify.json and root_types.json extracted from .rosetta sources",
