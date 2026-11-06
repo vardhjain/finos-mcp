@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -103,7 +104,9 @@ def test_every_risk_has_at_least_one_mitigated_by(framework: Framework) -> None:
 def test_framework_version_matches_config(framework: Framework) -> None:
     import yaml
 
-    config = yaml.safe_load((VENDOR_DIR / "_config.yml").read_text(encoding="utf-8"))
+    config_text = (VENDOR_DIR / "_config.yml").read_text(encoding="utf-8")
+    original_load = yaml.safe_load
+    config = original_load(config_text)
     assert framework.version == str(config["version"])
 
 
@@ -126,3 +129,27 @@ def test_framework_documents_aliases_include_short_ids(framework: Framework) -> 
         short_id = doc.meta.get("type")
         assert short_id is not None
         assert doc.meta.get("status") is not None
+
+
+@pytest.mark.parametrize("legacy_keys", [False, True])
+def test_type_labels_support_v2_and_v3(legacy_keys: bool) -> None:
+    import yaml
+
+    config_text = (VENDOR_DIR / "_config.yml").read_text(encoding="utf-8")
+    original_load = yaml.safe_load
+    config = original_load(config_text)
+    if legacy_keys:
+        config["risk_classification"] = config.pop("risk_type_labels")
+        config["mitigation_classification"] = config.pop("mitigation_type_labels")
+    else:
+        config["risk_classification"] = {"SEC": "outdated"}
+        config["mitigation_classification"] = {"PREV": "outdated"}
+
+    def load_yaml(text: str) -> object:
+        return config if text == config_text else original_load(text)
+
+    with patch("finos_mcp.aigf.parser.yaml.safe_load", side_effect=load_yaml):
+        framework = load_framework()
+    assert framework.risks["AIR-SEC-010"].type_label == "Security"
+    assert framework.controls["AIR-PREV-020"].type_label == "Preventative"
+    assert framework.type_labels["OP"] == "Operational"

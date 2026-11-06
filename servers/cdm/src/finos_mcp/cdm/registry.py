@@ -121,7 +121,7 @@ class CdmRegistry:
         self._schema_registry = SchemaRegistry(schemas, dialect="draft4")
         self._raw_schemas = schemas
         # Lazily-populated cache of `SchemaRegistry` instances for every
-        # non-primary vendored vintage (e.g. "6.31.0"), keyed by version string.
+        # non-primary vendored vintage (e.g. "6.32.0"), keyed by version string.
         self._schema_registries_by_version: dict[str, SchemaRegistry] = {
             self.PRIMARY_VERSION: self._schema_registry
         }
@@ -195,7 +195,7 @@ class CdmRegistry:
 
     def schema_versions(self) -> list[str]:
         """Every vendored JSON Schema vintage, primary version first (e.g.
-        ``["7.9.0", "6.31.0"]``), discovered from the
+        ``["7.9.0", "6.32.0"]``), discovered from the
         `_vendor/schemas/cdm-json-schema-<version>.json` bundle files actually
         present on disk."""
         prefix, suffix = "cdm-json-schema-", ".json"
@@ -208,8 +208,8 @@ class CdmRegistry:
     def schema_registry_for(self, version: str = PRIMARY_VERSION) -> SchemaRegistry:
         """The JSON Schema registry for one vendored vintage. Lazy and cached
         per version: the primary registry is built in `__init__`; every other
-        vintage (e.g. ``"6.31.0"``, vendored at
-        `_vendor/schemas/cdm-json-schema-6.31.0.json`) is parsed on first
+        vintage (e.g. ``"6.32.0"``, vendored at
+        `_vendor/schemas/cdm-json-schema-6.32.0.json`) is parsed on first
         request and reused afterwards. Legacy-format samples only validate
         meaningfully against a schema of matching vintage (see PLAN.md 1.2) --
         the primary 7.9.0 schema describes a different JSON shape entirely."""
