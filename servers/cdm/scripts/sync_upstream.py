@@ -2,7 +2,7 @@
 
 Stdlib only (urllib, zipfile, json, pathlib, argparse). Usage::
 
-    uv run python servers/cdm/scripts/sync_upstream.py --version 7.9.0 --legacy-version 6.31.0
+    uv run python servers/cdm/scripts/sync_upstream.py --version 7.9.0 --legacy-version 6.32.0
 
 Three upstream sources feed ``servers/cdm/src/finos_mcp/cdm/_vendor/``:
 
@@ -192,7 +192,7 @@ def _parse_schema_member(content: bytes) -> tuple[dict[str, Any], bool]:
 def _extract_schema_members(data: bytes) -> dict[str, bytes]:
     """Return ``{basename: content}`` for every ``*.schema.json`` member of
     ``data``, which is normally a genuine zip (as for 7.9.0) -- but, it turns
-    out, ``cdm-json-schema-6.31.0.zip`` is actually a gzip-compressed tar
+    out, ``cdm-json-schema-6.32.0.zip`` is actually a gzip-compressed tar
     archive despite its ``.zip`` extension and the ``application/zip``
     content-type Maven Central serves it with (confirmed via magic bytes and
     ``file(1)``; genuine upstream packaging quirk from that older release, not
@@ -439,7 +439,7 @@ def _sync(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--legacy-version",
         required=True,
-        help="Older CDM tag to source legacy-format JSON samples from, e.g. 6.31.0",
+        help="Older CDM tag to source legacy-format JSON samples from, e.g. 6.32.0",
     )
     args = parser.parse_args(argv)
 

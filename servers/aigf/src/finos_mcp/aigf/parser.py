@@ -140,6 +140,9 @@ def load_framework(vendor_dir: Path | None = None) -> Framework:
     type_labels: dict[str, str] = {}
     type_labels.update(config.get("risk_classification") or {})
     type_labels.update(config.get("mitigation_classification") or {})
+    # AIGF v3 renamed these maps. Prefer the current keys when both exist.
+    type_labels.update(config.get("risk_type_labels") or {})
+    type_labels.update(config.get("mitigation_type_labels") or {})
 
     reference_frameworks = _load_reference_frameworks(vd)
 

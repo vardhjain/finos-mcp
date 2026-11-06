@@ -8,7 +8,7 @@ outcome of validating older-tag legacy samples against the 7.9.0 schema (see
 `test_legacy_samples_validate_or_report_known_issues`).
 
 `_vendor/` also carries a second, older JSON Schema vintage bundled at
-`_vendor/schemas/cdm-json-schema-6.31.0.json`, matching the vintage the
+`_vendor/schemas/cdm-json-schema-6.32.0.json`, matching the vintage the
 vendored legacy-format samples were pulled from (the primary 7.9.0 vintage is
 `_vendor/schemas/cdm-json-schema-7.9.0.json`; each bundle is one JSON file
 holding every `*.schema.json` member keyed by filename, rather than one file
@@ -36,7 +36,7 @@ from finos_mcp.core import verify
 VENDOR_DIR = Path(__file__).parents[1] / "src" / "finos_mcp" / "cdm" / "_vendor"
 SCHEMAS_DIR = VENDOR_DIR / "schemas"
 PRIMARY_SCHEMA_VERSION = "7.9.0"
-LEGACY_SCHEMA_VERSION = "6.31.0"
+LEGACY_SCHEMA_VERSION = "6.32.0"
 
 # Two 7.9.0 enum files ship raw control characters inside string values, which
 # strict `json.loads` rejects; `sync_upstream.py` retries those members with
@@ -52,19 +52,19 @@ EXPECTED_ROOT_TYPE_COUNT = 16
 EXPECTED_QUALIFY_COUNT = 35
 EXPECTED_RUNE_SAMPLE_COUNT = 28
 EXPECTED_LEGACY_SAMPLE_COUNT = 12
-# cdm-json-schema-6.31.0.zip -- despite its name and the application/zip
+# cdm-json-schema-6.32.0.zip -- despite its name and the application/zip
 # content-type Maven Central serves it with -- is actually a gzip-compressed
 # tar archive (see sync_upstream.py's `_extract_schema_members`); it contains
 # 1066 *.schema.json files. That is the real, counted number for this
 # vendored snapshot, not an estimate.
 EXPECTED_LEGACY_SCHEMA_COUNT = 1066
-# How many of the 12 vendored legacy (6.31.0-tag) samples validate cleanly
-# against the matching-vintage 6.31.0 `BusinessEvent` schema -- see
+# How many of the 12 vendored legacy (6.32.0-tag) samples validate cleanly
+# against the matching-vintage 6.32.0 `BusinessEvent` schema -- see
 # `test_legacy_samples_validate_against_matching_vintage_schema`. Real,
 # counted result: 5 valid, 7 invalid, 0 crashed. Every one of the 7 failures
 # is a `required`-property miss (`activityDate`, `underlier`, `dateAdjustments`,
 # `executionDetails`) at a nested path. Those fields are required by the
-# *matching* 6.31.0 schema yet absent from its published samples; this is
+# *matching* 6.32.0 schema yet absent from its published samples; this is
 # upstream schema/sample disagreement, not 7.9.0 cross-version drift or a
 # workaround-needed defect like `_drop_bogus_type_keywords` handles.
 EXPECTED_LEGACY_SAMPLES_VALID_AGAINST_OWN_VINTAGE = 5
@@ -153,7 +153,7 @@ def test_no_dangling_refs() -> None:
 
 
 def test_legacy_schema_count() -> None:
-    """`_vendor/schemas/cdm-json-schema-6.31.0.json` is vendored alongside the
+    """`_vendor/schemas/cdm-json-schema-6.32.0.json` is vendored alongside the
     primary 7.9.0 bundle (see `sync_upstream.py`) so legacy-format samples can
     be validated against a schema of matching vintage."""
     schemas = _load_bundle_schemas(LEGACY_SCHEMA_VERSION)
@@ -161,7 +161,7 @@ def test_legacy_schema_count() -> None:
 
 
 def test_legacy_no_dangling_refs() -> None:
-    """Same check as `test_no_dangling_refs`, against the vendored 6.31.0
+    """Same check as `test_no_dangling_refs`, against the vendored 6.32.0
     schema bundle."""
     schemas = _load_bundle_schemas(LEGACY_SCHEMA_VERSION)
     filenames = set(schemas)
@@ -309,7 +309,7 @@ def test_primary_and_legacy_reject_wrong_qualified_type_names(registry: CdmRegis
 
 
 def test_legacy_samples_validate_or_report_known_issues(registry: CdmRegistry) -> None:
-    """Validate every vendored legacy (6.31.0) sample against the 7.9.0
+    """Validate every vendored legacy (6.32.0) sample against the 7.9.0
     `BusinessEvent` schema and assert what is *actually* true of the vendored
     snapshot, rather than an assumed-clean result.
 
@@ -328,16 +328,16 @@ def test_legacy_samples_validate_or_report_known_issues(registry: CdmRegistry) -
        bogus `type` keyword so the property is merely unconstrained rather
        than un-validatable). This test asserts that workaround holds: no
        sample may raise `UnknownType`.
-    2. With that workaround in place, all 12 vendored legacy (6.31.0-tag)
+    2. With that workaround in place, all 12 vendored legacy (6.32.0-tag)
        samples still fail *real* schema validation against the 7.9.0 schema
        -- **zero validate cleanly**. The dominant, recurring cause is that
        `priceQuantity[].quantity` is `array`-typed (`1..*`) in the 7.9.0
-       schema but a bare object in the 6.31.0-tag sample shape; a smaller
+       schema but a bare object in the 6.32.0-tag sample shape; a smaller
        set of samples also hit newly-`required` fields
        (`activityDate`/`underlier`/`securityType`/`dateAdjustments`) that did
-       not exist, or were not required, at 6.31.0. This is genuine structural
+       not exist, or were not required, at 6.32.0. This is genuine structural
        drift between the two tags this vendoring pulls from (CDM's JSON shape
-       evolved between 6.31.0 and 7.9.0 even before the 7.x Rune-format
+       evolved between 6.32.0 and 7.9.0 even before the 7.x Rune-format
        switch) -- not a bug in this registry. Anyone building the dual
        validator on top of `schema_registry` needs to know the legacy JSON
        Schema path only proves *shape*, and even that only for
@@ -391,14 +391,14 @@ def test_legacy_samples_validate_or_report_known_issues(registry: CdmRegistry) -
 
 def test_legacy_samples_validate_against_matching_vintage_schema(registry: CdmRegistry) -> None:
     """Validate every vendored legacy sample against the *matching-vintage*
-    6.31.0 `BusinessEvent` schema (`registry.schema_registry_for("6.31.0")`),
+    6.32.0 `BusinessEvent` schema (`registry.schema_registry_for("6.32.0")`),
     in contrast to `test_legacy_samples_validate_or_report_known_issues` above,
     which deliberately validates the same samples against the newer 7.9.0
     schema and documents that none validate cleanly there.
 
     This is the check that makes the legacy JSON Schema path meaningful: it
     only ever proves *shape*, and only for documents of the same vintage as
-    the schema. Validating 6.31.0-tag samples against a 6.31.0 schema
+    the schema. Validating 6.32.0-tag samples against a 6.32.0 schema
     exercises that guarantee for real, rather than against a schema that is
     already known (see above) to have drifted structurally.
     """

@@ -191,13 +191,13 @@ async def test_validate_legacy_sample_against_matching_vintage(client: Client) -
     primary = _ok(
         await client.call_tool("validate_object", {"object": doc, "type": "BusinessEvent"})
     )
-    assert primary["format_detected"] == "legacy" and "6.31.0" in " ".join(primary["warnings"])
+    assert primary["format_detected"] == "legacy" and "6.32.0" in " ".join(primary["warnings"])
     vintage = _ok(
         await client.call_tool(
-            "validate_object", {"object": doc, "type": "BusinessEvent", "schema_version": "6.31.0"}
+            "validate_object", {"object": doc, "type": "BusinessEvent", "schema_version": "6.32.0"}
         )
     )
-    assert "6.31.0" in vintage["validator"]
+    assert "6.32.0" in vintage["validator"]
     assert vintage["stats"]["schema_files"] > 1000
     env = _err(
         await client.call_tool(
@@ -247,7 +247,7 @@ async def test_search_samples_resources_and_info(client: Client) -> None:
     rule = (await client.read_resource("cdm://qualify/Execution")).contents[0].text  # type: ignore[union-attr]
     assert rule.startswith("# Qualify_Execution")
     index = json.loads((await client.read_resource("cdm://index")).contents[0].text)  # type: ignore[union-attr]
-    assert len(index["qualifiers"]) == 35 and "6.31.0" in index["schema_versions"]
+    assert len(index["qualifiers"]) == 35 and "6.32.0" in index["schema_versions"]
     info = _ok(await client.call_tool("server_info", {}))
     assert info["counts"]["root_types"] == 16 and info["counts"]["qualify_functions"] == 35
     assert info["counts"]["schemas"] > 1100 and info["standard_version"] == "7.9.0"
@@ -373,10 +373,10 @@ async def test_format_detection_scans_the_whole_document(client: Client) -> None
 async def test_types_only_in_the_legacy_vintage_validate_against_it(client: Client) -> None:
     """The type index is built from the primary schema; a type that exists only in the
     legacy vintage must still be found when that vintage is asked for."""
-    args = {"object": {}, "type": "AccessConditions", "schema_version": "6.31.0"}
+    args = {"object": {}, "type": "AccessConditions", "schema_version": "6.32.0"}
     report = _ok(await client.call_tool("validate_object", args))
     assert report["type"] == "cdm.legaldocumentation.csa.AccessConditions"
-    assert "6.31.0" in report["validator"]
+    assert "6.32.0" in report["validator"]
     primary = await client.call_tool("validate_object", {"object": {}, "type": "AccessConditions"})
     assert _err(primary).code == "not_found"
 
@@ -386,7 +386,7 @@ async def test_legacy_schema_rejects_a_wrong_fully_qualified_namespace(client: C
     """Wrong namespaces must not be silently mapped to a valid legacy type."""
     response = await client.call_tool(
         "validate_object",
-        {"object": {}, "type": "cdm.unrelated.AccessConditions", "schema_version": "6.31.0"},
+        {"object": {}, "type": "cdm.unrelated.AccessConditions", "schema_version": "6.32.0"},
     )
     assert _err(response).code == "not_found"
 
@@ -394,7 +394,7 @@ async def test_legacy_schema_rejects_a_wrong_fully_qualified_namespace(client: C
 @pytest.mark.anyio
 async def test_inferred_rune_type_must_match_the_declared_namespace(client: Client) -> None:
     """An invalid qualified '@type' must not fall back to a matching bare name."""
-    for version in ("7.9.0", "6.31.0"):
+    for version in ("7.9.0", "6.32.0"):
         args = {
             "object": {"@type": "cdm.unrelated.TradeState"},
             "schema_version": version,

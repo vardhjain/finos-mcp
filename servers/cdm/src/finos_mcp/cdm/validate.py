@@ -442,7 +442,7 @@ def validate_object(
         if version == registry.PRIMARY_VERSION:
             warnings.append(
                 "Legacy-format documents produced by CDM <= 6 may not match the 7.x schema; "
-                "pass schema_version='6.31.0' for same-vintage validation."
+                "pass schema_version='6.32.0' for same-vintage validation."
             )
         if format == "auto":
             warnings.append(
